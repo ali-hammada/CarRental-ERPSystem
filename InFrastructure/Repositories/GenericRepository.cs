@@ -1,5 +1,4 @@
-﻿using ApplicationCore.Interfaces;
-using InFrastructure.Data;
+﻿using InFrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace InFrastructure.Repositories

@@ -1,0 +1,79 @@
+﻿<!-- Views/Rental/Close.cshtml -->
+@model Application.Services.DTO_s.RentalCloseDto
+
+@{
+  ViewData["Title"]="Close Rental";
+  var rental = ViewBag.Rental as ApplicationCore.Entities.RentalContract;
+}
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">
+            <i class="bi bi-check-circle"></i> Close Rental Contract
+          </h4>
+        </div>
+        <div class="card-body">
+
+          @if(rental!=null)
+          {
+            <div class="alert alert-warning">
+              <i class="bi bi-exclamation-triangle"></i>
+              <strong>Important:</strong> Once you close this contract, the final amount will be calculated
+              based on actual usage. Late fees may apply if applicable.
+            </div>
+
+            <!-- Contract Summary -->
+            <div class="card bg-light mb-4">
+              <div class="card-body">
+                <h6 class="mb-3"><i class="bi bi-info-circle"></i> Contract Information</h6>
+                <div class="row">
+                  <div class="col-md-6">
+                    <p class="mb-1"><strong>Car:</strong>  @rental.Car?.Model</p>
+                    <p class="mb-1"><strong>Start Date:</strong> @rental.StartDate.ToString("MMM dd, yyyy")</p>
+                    <p class="mb-0"><strong>Expected End:</strong> @rental.EndDate.ToString("MMM dd, yyyy")</p>
+                  </div>
+                  <div class="col-md-6">
+                    <p class="mb-1"><strong>Daily Rate:</strong> @rental.DailyPrice.ToString("C")</p>
+                    <p class="mb-1"><strong>Expected Total:</strong> @rental.TotalAmount.ToString("C")</p>
+                    <p class="mb-0"><strong>Paid:</strong> @rental.PaidAmount.ToString("C")</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <form asp-action="Close" method="post">
+              <input type="hidden" asp-for="RentalId" value="@rental.Id" />
+
+              <div class="mb-3">
+                <label class="form-label">
+                  <i class="bi bi-sticky"></i> Closing Notes (Optional)
+                </label>
+                <textarea name="notes" class="form-control" rows="3"
+                        placeholder="Any damage reports or additional notes..."></textarea>
+              </div>
+
+              <div class="alert alert-info">
+                <strong>Today's Date:</strong> @DateTime.Now.ToString("MMMM dd, yyyy")
+              </div>
+
+              <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a asp-action="Details" asp-route-id="@rental.Id" class="btn btn-outline-secondary">
+                  <i class="bi bi-x-circle"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-check-circle"></i> Close Contract
+                </button>
+              </div>
+            </form>
+          }
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

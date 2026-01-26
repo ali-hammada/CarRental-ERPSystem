@@ -1,0 +1,181 @@
+﻿@model Application.Services.DTO_s.ExtendRentalDto
+
+@{
+  ViewData["Title"]="Extend Rental";
+  var rental = ViewBag.Rental as ApplicationCore.Entities.RentalContract;
+}
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark">
+          <h4 class="mb-0">
+            <i class="bi bi-clock-history"></i> Extend Rental Contract
+          </h4>
+        </div>
+        <div class="card-body">
+
+          @if(TempData["Error"]!=null)
+          {
+            <div class="alert alert-danger alert-dismissible fade show">
+              <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          }
+
+          <!-- معلومات العقد الحالي -->
+          @if(rental!=null)
+          {
+            <div class="card bg-light mb-4">
+              <div class="card-body">
+                <h6 class="text-primary mb-3">
+                  <i class="bi bi-info-circle"></i> Current Rental Information
+                </h6>
+                <div class="row">
+                  <div class="col-md-6">
+                    <p class="mb-1">
+                      <strong>Car:</strong>  @rental.Car?.Model
+                    </p>
+                    <p class="mb-1">
+                      <strong>Start Date:</strong> @rental.StartDate.ToString("MMM dd, yyyy")
+                    </p>
+                    <p class="mb-0">
+                      <strong>Current End Date:</strong>
+                      <span class="text-danger fw-bold">@rental.EndDate.ToString("MMM dd, yyyy")</span>
+                    </p>
+                  </div>
+                  <div class="col-md-6">
+                    <p class="mb-1">
+                      <strong>Daily Rate:</strong> @rental.DailyPrice.ToString("C")
+                    </p>
+                    <p class="mb-1">
+                      <strong>Current Total:</strong> @rental.TotalAmount.ToString("C")
+                    </p>
+                    <p class="mb-0">
+                      <strong>Paid Amount:</strong>
+                      <span class="text-success">@rental.PaidAmount.ToString("C")</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- الفورم -->
+            <form asp-action="Extend" method="post">
+              <input type="hidden" asp-for="RentalId" value="@rental.Id" />
+
+              <div class="mb-3">
+                <label asp-for="NewEndDate" class="form-label">
+                  <i class="bi bi-calendar-plus"></i> New End Date
+                </label>
+                <input asp-for="NewEndDate" type="date" class="form-control"
+                       min="@rental.EndDate.AddDays(1).ToString("yyyy-MM-dd")" required />
+                <small class="form-text text-muted">
+                  Must be after @rental.EndDate.ToString("MMM dd, yyyy")
+                </small>
+                <span asp-validation-for="NewEndDate" class="text-danger"></span>
+              </div>
+
+              <div class="mb-3">
+                <label asp-for="Notes" class="form-label">
+                  <i class="bi bi-sticky"></i> Extension Notes (Optional)
+                </label>
+                <textarea asp-for="Notes" class="form-control" rows="3"
+                          placeholder="Reason for extension..."></textarea>
+                <span asp-validation-for="Notes" class="text-danger"></span>
+              </div>
+
+              <!-- حساب التكلفة الإضافية -->
+              <div class="card bg-light mb-4" id="extensionCost" style="display: none;">
+                <div class="card-body">
+                  <h6 class="text-warning mb-3">
+                    <i class="bi bi-calculator"></i> Extension Cost
+                  </h6>
+                  <div class="row">
+                    <div class="col-6">
+                      <p class="mb-1"><strong>Extra Days:</strong></p>
+                      <p class="mb-1"><strong>Daily Rate:</strong></p>
+                      <p class="mb-0"><strong>Additional Cost:</strong></p>
+                    </div>
+                    <div class="col-6 text-end">
+                      <p class="mb-1" id="extraDays">-</p>
+                      <p class="mb-1">@rental.DailyPrice.ToString("C")</p>
+                      <h5 class="mb-0 text-warning" id="extraCost">-</h5>
+                    </div>
+                  </div>
+                  <hr>
+                  <div class="row">
+                    <div class="col-6">
+                      <p class="mb-0"><strong>New Total:</strong></p>
+                    </div>
+                    <div class="col-6 text-end">
+                      <h5 class="mb-0 text-success" id="newTotal">@rental.TotalAmount.ToString("C")</h5>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                <strong>Note:</strong> The extension cost will be added to your total rental amount.
+              </div>
+
+              <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a asp-action="Details" asp-route-id="@rental.Id" class="btn btn-outline-secondary">
+                  <i class="bi bi-x-circle"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-warning">
+                  <i class="bi bi-check-circle"></i> Extend Contract
+                </button>
+              </div>
+            </form>
+          }
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+  @{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+  }
+
+  <script>
+    const dailyPrice = @(rental?.DailyPrice??0);
+    const currentTotal = @(rental?.TotalAmount??0);
+    const currentEndDate = new Date('@rental?.EndDate.ToString("yyyy-MM-dd")');
+    const newEndDateInput = document.querySelector('[name="NewEndDate"]');
+    const extensionCostDiv = document.getElementById('extensionCost');
+    const extraDaysEl = document.getElementById('extraDays');
+    const extraCostEl = document.getElementById('extraCost');
+    const newTotalEl = document.getElementById('newTotal');
+
+    newEndDateInput.addEventListener('change', function() {
+        const newEndDate = new Date(this.value);
+
+        if (newEndDate > currentEndDate) {
+            const extraDays = Math.ceil((newEndDate - currentEndDate) / (1000 * 60 * 60 * 24));
+            const extraCost = extraDays * dailyPrice;
+            const newTotal = currentTotal + extraCost;
+
+            extraDaysEl.textContent = extraDays;
+            extraCostEl.textContent = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(extraCost);
+            newTotalEl.textContent = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(newTotal);
+
+            extensionCostDiv.style.display = 'block';
+        } else {
+            extensionCostDiv.style.display = 'none';
+        }
+    });
+  </script>
+}

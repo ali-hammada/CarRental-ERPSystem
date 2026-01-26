@@ -20,6 +20,7 @@ namespace Application.Services
       _unitOfWork=unitOfWork;
       _rentalContract=rentalContract;
     }
+
     //open contract 
     public async Task<(bool Success, string Content, int id)> OpenRequestRentalAsync(RentalRequestDTO request,int CustomerId)
     {
@@ -37,7 +38,7 @@ namespace Application.Services
         return (false, "End date must be after start date.", 0);
 
       // Conflict reservied Car in the future 
-      var HasConflict = await _rentalContract.HasActiveRentalAsync(request.CarId,request.StartDate,request.EndDate);
+      bool HasConflict = await _rentalContract.HasActiveRentalAsync(request.CarId,request.StartDate,request.EndDate);
       if(HasConflict)
         return (false, "This Car Is already reservied..  ", 0);
 
@@ -60,6 +61,7 @@ namespace Application.Services
         Notes=request.Notes
       };
 
+
       await _rentalRepo.AddAsync(rental);
       car.Status=CarStatus.Rented;
       _carRepo.Update(car);
@@ -67,6 +69,112 @@ namespace Application.Services
       return (true, "", rental.Id);
 
     }
+
+    public async Task<(bool Success, string Content, int id)> CancelRentalAsync(int rentalId,int customerId,string? reason = null)
+    {
+      var contract = await _rentalRepo.GetByIdAsync(rentalId);
+      if(contract==null)
+        return (false, "Contract doesn't exist", 0);
+
+      if(contract.CustomerId!=customerId)
+        return (false, "You are not allowed to cancel this contract", 0);
+
+      if(contract.Status!=RentalContractStatus.Open)
+        return (false, "Only Open contracts can be cancelled", 0);
+
+      var car = await _carRepo.GetByIdAsync(contract.CarId);
+      if(car==null)
+        return (false, "Car does not exist", 0);
+
+      decimal cancellationFee = 0;
+      DateTime now = DateTime.Now;
+
+      // قبل بداية العقد
+      if(now.Date<contract.StartDate.Date)
+      {
+        int daysUntilStart = (contract.StartDate.Date-now.Date).Days;
+
+        if(daysUntilStart<1)
+          cancellationFee=contract.TotalAmount*0.5m;
+        else if(daysUntilStart<3)
+          cancellationFee=contract.TotalAmount*0.25m;
+        else if(daysUntilStart<7)
+          cancellationFee=contract.TotalAmount*0.15m;
+        else cancellationFee=0;
+      }
+      // بعد بداية العقد
+      else
+      {
+        int usedDays = (now.Date-contract.StartDate.Date).Days+1;
+        decimal usedAmount = usedDays*contract.DailyPrice;
+
+        // المبلغ المستخدم + 20% من الباقي كغرامة
+        decimal remainingAmount = contract.TotalAmount-usedAmount;
+        cancellationFee=usedAmount+(remainingAmount*0.2m);
+      }
+
+      contract.Status=RentalContractStatus.Cancelled;
+      contract.ActualEndDate=now;
+      contract.ExtraFees=cancellationFee;
+      contract.FinalAmount=cancellationFee;
+
+      if(!string.IsNullOrWhiteSpace(reason))
+        contract.Notes+=$"\n[Cancelled: {now:yyyy-MM-dd}] Reason: {reason}";
+
+      car.Status=CarStatus.Available;
+
+      _rentalRepo.Update(contract);
+      _carRepo.Update(car);
+      await _unitOfWork.SaveChangesAsync();
+
+      string message = cancellationFee>0
+          ? $"Contract cancelled. Cancellation fee: {cancellationFee:C}"
+          : "Contract cancelled successfully with no fees";
+
+      return (true, message, rentalId);
+    }
+    // Extend the contract 
+    public async Task<(bool Success, string Content, int id)> ExtendContractAsync(ExtendRentalDto extend,int customerId)
+    {
+      var existingContract = await _rentalRepo.GetByIdAsync(extend.RentalId);
+      if(existingContract==null)
+        return (false, "Contract doesn't exist", 0);
+
+      if(existingContract.Status!=RentalContractStatus.Open)
+        return (false, "Only Open contracts can be extended", 0);
+
+      if(existingContract.CustomerId!=customerId)
+        return (false, "You are not allowed to modify this contract", 0);
+
+      if(!extend.NewEndDate.HasValue||extend.NewEndDate.Value<=existingContract.EndDate)
+        return (false, "New end date must be after current end date", 0);
+
+      bool hasConflict = await _rentalContract.HasActiveRentalAsync(
+          existingContract.CarId,
+          existingContract.EndDate.AddDays(1),
+          extend.NewEndDate.Value);
+
+      if(hasConflict)
+        return (false, "Car is reserved during the extension period", 0);
+
+      // حساب الأيام والمبلغ الإضافي
+      int extraDays = (extend.NewEndDate.Value-existingContract.EndDate).Days;
+      decimal extraAmount = extraDays*existingContract.DailyPrice;
+
+      existingContract.EndDate=extend.NewEndDate.Value;
+      existingContract.TotalAmount+=extraAmount;
+
+      if(!string.IsNullOrWhiteSpace(extend.Notes))
+        existingContract.Notes+=$"\n[Extended: {DateTime.Now:yyyy-MM-dd}] {extend.Notes}";
+
+      _rentalRepo.Update(existingContract);
+      await _unitOfWork.SaveChangesAsync();
+
+      return (true, $"Contract extended by {extraDays} days. Extra amount: {extraAmount:C}", existingContract.Id);
+    }
+
+
+
     //Close contract Function 
     public async Task<(bool Success, string Content, int id)> CloseContractAsync(RentalCloseDto request,int customerId)
     {
@@ -96,7 +204,7 @@ namespace Application.Services
       if(actualDays>expectedDays)
       {
         int lateDays = actualDays-expectedDays;
-        rental.ExtraFees=lateDays*rental.DailyPrice*0.2m; // 20% penalty
+        rental.ExtraFees=lateDays*rental.DailyPrice*0.2m;
       }
 
       rental.FinalAmount=baseAmount+rental.ExtraFees.Value;
@@ -105,7 +213,7 @@ namespace Application.Services
       car.Status=CarStatus.Available;
 
       _rentalRepo.Update(rental);
-      _carRepo.Update(car); // Important!
+      _carRepo.Update(car);
       await _unitOfWork.SaveChangesAsync();
 
       return (true, "Contract closed successfully", rental.Id);
@@ -119,32 +227,19 @@ namespace Application.Services
 
     }
 
-    public async Task<(bool Success, string Content, int id)> ExtendContractAsync(ExtendRentalDto extend,int customerId)
+    public async Task<RentalContract> GetRentalByIdAsync(int reantalId)
     {
-      // العقد موجود قبل كدا ولا لا 
-      var ExistingContract = await _rentalRepo.GetByIdAsync(extend.RentalId);
-      if(ExistingContract==null)
-        return (false, "Contract Doesn't yet Exists", 0);
-      //حاله العقد مفتوح ولا مقفول 
-      if(ExistingContract.Status!=RentalContractStatus.Open)
-        return (false, "Contract Must be Open at First !.. ", 0);
-      // التاريخ الجديد لازم يكون بعد تاريخ النهايه القديم 
-      if(ExistingContract.EndDate>=extend.NewEndDate)
-        return (false, "New end date must be after current end date.", 0);
-      // لازم ابعتله التاريخ الجديد للعقد 
-      if(!extend.NewEndDate.HasValue)
-        return (false, "New end date must be provided.", 0);
-      // صاحب العقد بس اللي يقدر يعمله امتداد 
-      if(ExistingContract.CustomerId!=customerId)
-        return (false, "You are not allowed to modify this contract.", 0);
-      //تعديل علي الفتره الجديده للعقد وحساب المستحق حسب الايام 
-      var extraDays = (extend.NewEndDate.Value-ExistingContract.EndDate).Days;
-      decimal ExtraAmount = extraDays*ExistingContract.DailyPrice;
-      return (true, $"Contract extended by {extraDays} days. Extra amount: {ExtraAmount}", ExistingContract.Id);
-
+      return await _rentalContract.GetByIdAsync(reantalId);
     }
 
+    public async Task<List<RentalContract>> GetCustomerRentalsAsync(int customerId)
+    {
+      var allRentals = _rentalRepo.GetAll();
 
-
+      return allRentals
+          .Where(r => r.CustomerId==customerId)
+          .OrderByDescending(r => r.StartDate)
+          .ToList();
+    }
   }
 }

@@ -1,0 +1,170 @@
+﻿@model Application.Services.DTO_s.RentalRequestDTO
+
+@{
+  ViewData["Title"]="New Rental";
+  var car = ViewBag.Car as ApplicationCore.Entities.Car;
+}
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <!-- عنوان الصفحة -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">
+            <i class="bi bi-plus-circle"></i> Create New Rental Contract
+          </h4>
+        </div>
+        <div class="card-body">
+
+          @if(TempData["Error"]!=null)
+          {
+            <div class="alert alert-danger alert-dismissible fade show">
+              <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          }
+
+          <!-- معلومات السيارة -->
+          @if(car!=null)
+          {
+            <div class="card bg-light mb-4">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-8">
+                    <h5 class="text-primary">
+                      <i class="bi bi-car-front"></i> @car.Model
+                    </h5>
+                    <p class="mb-1"><strong>Year:</strong> @car.Year</p>
+                 
+                    <p class="mb-1"><strong>License Plate:</strong> @car.PlateNumber</p>
+                    <h4 class="text-success mt-3">
+                      @car.PricePerDay.ToString("C") <small class="text-muted">/ day</small>
+                    </h4>
+                  </div>
+                  <div class="col-md-4 text-end">
+                   
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- الفورم -->
+          <form asp-action="Open" method="post">
+            <input type="hidden" asp-for="CarId" />
+
+            <div class="row">
+              <!-- تاريخ البداية -->
+              <div class="col-md-6 mb-3">
+                <label asp-for="StartDate" class="form-label">
+                  <i class="bi bi-calendar-check"></i> Start Date
+                </label>
+                <input asp-for="StartDate" type="date" class="form-control"
+                       min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+              </div>
+
+              <!-- تاريخ النهاية -->
+              <div class="col-md-6 mb-3">
+                <label asp-for="EndDate" class="form-label">
+                  <i class="bi bi-calendar-x"></i> End Date
+                </label>
+                <input asp-for="EndDate" type="date" class="form-control"
+                       min="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")" required />
+                <span asp-validation-for="EndDate" class="text-danger"></span>
+              </div>
+            </div>
+
+            <!-- الملاحظات -->
+            <div class="mb-3">
+              <label asp-for="Notes" class="form-label">
+                <i class="bi bi-sticky"></i> Notes (Optional)
+              </label>
+              <textarea asp-for="Notes" class="form-control" rows="3"
+                        placeholder="Any special requests or notes..."></textarea>
+              <span asp-validation-for="Notes" class="text-danger"></span>
+            </div>
+
+            <!-- ملخص التكلفة -->
+            <div class="card bg-light mb-4" id="costSummary" style="display: none;">
+              <div class="card-body">
+                <h6 class="text-primary mb-3">
+                  <i class="bi bi-calculator"></i> Cost Estimate
+                </h6>
+                <div class="row">
+                  <div class="col-6">
+                    <p class="mb-1"><strong>Daily Rate:</strong></p>
+                    <p class="mb-1"><strong>Number of Days:</strong></p>
+                    <p class="mb-0"><strong>Total Amount:</strong></p>
+                  </div>
+                  <div class="col-6 text-end">
+                    <p class="mb-1" id="dailyRate">@car?.PricePerDay.ToString("C")</p>
+                    <p class="mb-1" id="numDays">-</p>
+                    <h5 class="mb-0 text-success" id="totalAmount">-</h5>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- الأزرار -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <a asp-controller="Car" asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Create Rental
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+  @{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+  }
+
+  <script>
+    const dailyPrice = @(car?.PricePerDay??0);
+    const startDateInput = document.querySelector('[name="StartDate"]');
+    const endDateInput = document.querySelector('[name="EndDate"]');
+    const costSummary = document.getElementById('costSummary');
+    const numDaysEl = document.getElementById('numDays');
+    const totalAmountEl = document.getElementById('totalAmount');
+
+    function calculateCost() {
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(endDateInput.value);
+
+        if (startDate && endDate && endDate > startDate) {
+            const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+            const total = days * dailyPrice;
+
+            numDaysEl.textContent = days;
+            totalAmountEl.textContent = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(total);
+
+            costSummary.style.display = 'block';
+        } else {
+            costSummary.style.display = 'none';
+        }
+    }
+
+    startDateInput.addEventListener('change', calculateCost);
+    endDateInput.addEventListener('change', calculateCost);
+
+    // Set min date for end date based on start date
+    startDateInput.addEventListener('change', function() {
+        const startDate = new Date(this.value);
+        startDate.setDate(startDate.getDate() + 1);
+        endDateInput.min = startDate.toISOString().split('T')[0];
+    });
+  </script>
+}

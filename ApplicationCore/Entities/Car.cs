@@ -9,8 +9,9 @@ namespace ApplicationCore.Entities
     public int Year { get; set; }
     public decimal PricePerDay { get; set; }
     public CarStatus Status { get; set; }
-    public ICollection<RentalContract> RentalContracts { get; set; }
-        = new List<RentalContract>();
+    public byte[]? ImageUrl { get; set; }
 
+
+    public ICollection<RentalContract> RentalContracts { get; set; } = new List<RentalContract>();
   }
 }

@@ -4,7 +4,8 @@
   {
     public int RentalId { get; set; }
     public DateTime? NewEndDate { get; set; }
+    public decimal FinalAmountEX { get; set; }
 
-    public string Notes { get; set; }
+    public string? Notes { get; set; }
   }
 }

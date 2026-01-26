@@ -31,5 +31,7 @@ namespace InFrastructure.Repositories
         start<=r.EndDate
         &&end>=r.StartDate));
     }
+
+
   }
 }

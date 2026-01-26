@@ -1,0 +1,214 @@
+﻿@model ApplicationCore.Entities.RentalContract
+
+@{
+  ViewData["Title"]="Rental Details";
+}
+
+<div class="container mt-4">
+  <div class="row">
+    <!-- معلومات العقد -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">
+            <i class="bi bi-file-text"></i> Rental Contract #@Model.Id
+            <span class="badge bg-light text-dark float-end">@Model.Status</span>
+          </h4>
+        </div>
+        <div class="card-body">
+          <!-- معلومات السيارة -->
+          <h5 class="border-bottom pb-2 mb-3">
+            <i class="bi bi-car-front"></i> Vehicle Information
+          </h5>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <strong>Make & Model:</strong> @Model.Car?.Model @Model.Car?.Model<br>
+              <strong>Year:</strong> @Model.Car?.Year<br>
+              <strong>License Plate:</strong> @Model.Car?.PlateNumber
+            </div>
+            <div class="col-md-6">
+            
+            </div>
+          </div>
+
+          <!-- تفاصيل الإيجار -->
+          <h5 class="border-bottom pb-2 mb-3 mt-4">
+            <i class="bi bi-calendar-range"></i> Rental Period
+          </h5>
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <strong>Start Date:</strong><br>
+              @Model.StartDate.ToString("MMM dd, yyyy")
+            </div>
+            <div class="col-md-4">
+              <strong>End Date:</strong><br>
+              @Model.EndDate.ToString("MMM dd, yyyy")
+            </div>
+            <div class="col-md-4">
+              <strong>Duration:</strong><br>
+              @((Model.EndDate-Model.StartDate).Days+1) days
+            </div>
+          </div>
+
+          @if(Model.ActualEndDate.HasValue)
+          {
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <strong>Actual End Date:</strong><br>
+                @Model.ActualEndDate.Value.ToString("MMM dd, yyyy")
+              </div>
+              <div class="col-md-4">
+                <strong>Actual Duration:</strong><br>
+                @((Model.ActualEndDate.Value-Model.StartDate).Days+1) days
+              </div>
+            </div>
+          }
+
+          <!-- الملاحظات -->
+          @if(!string.IsNullOrWhiteSpace(Model.Notes))
+          {
+            <h5 class="border-bottom pb-2 mb-3 mt-4">
+              <i class="bi bi-sticky"></i> Notes
+            </h5>
+            <div class="alert alert-secondary">
+              @Html.Raw(Model.Notes.Replace("\n","<br>"))
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- تاريخ المدفوعات -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Payment History</h5>
+        </div>
+        <div class="card-body">
+          <a asp-controller="Payment" asp-action="History" asp-route-rentalId="@Model.Id"
+             class="btn btn-outline-success">
+            <i class="bi bi-list-ul"></i> View All Payments
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ملخص الأسعار -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0"><i class="bi bi-calculator"></i> Financial Summary</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm">
+            <tr>
+              <td><strong>Daily Rate:</strong></td>
+              <td class="text-end">@Model.DailyPrice.ToString("C")</td>
+            </tr>
+            <tr>
+              <td><strong>Base Amount:</strong></td>
+              <td class="text-end">@Model.TotalAmount.ToString("C")</td>
+            </tr>
+            @if(Model.ExtraFees.HasValue&&Model.ExtraFees.Value>0)
+            {
+              <tr class="text-danger">
+                <td><strong>Extra Fees:</strong></td>
+                <td class="text-end">@Model.ExtraFees.Value.ToString("C")</td>
+              </tr>
+            }
+            @if(Model.FinalAmount.HasValue)
+            {
+              <tr class="border-top">
+                <td><strong>Final Amount:</strong></td>
+                <td class="text-end"><strong>@Model.FinalAmount.Value.ToString("C")</strong></td>
+              </tr>
+            }
+            <tr class="border-top text-success">
+              <td><strong>Paid Amount:</strong></td>
+              <td class="text-end"><strong>@Model.PaidAmount.ToString("C")</strong></td>
+            </tr>
+            @{
+              var remaining = (Model.FinalAmount??Model.TotalAmount)-Model.PaidAmount;
+            }
+            <tr class="@(remaining>0 ? "text-danger" : "text-success")">
+              <td><strong>Remaining:</strong></td>
+              <td class="text-end"><strong>@remaining.ToString("C")</strong></td>
+            </tr>
+          </table>
+
+          
+        </div>
+      </div>
+
+      <!-- الإجراءات -->
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="bi bi-gear"></i> Actions</h5>
+        </div>
+        <div class="card-body">
+          @if(Model.Status==ApplicationCore.Entities.Enums.RentalContractStatus.Open)
+          {
+            @if(remaining>0)
+            {
+              <a asp-controller="Payment" asp-action="MakePayment" asp-route-rentalId="@Model.Id"
+                 class="btn btn-success w-100 mb-2">
+                <i class="bi bi-credit-card"></i> Make Payment
+              </a>
+            }
+
+            <a asp-action="Extend" asp-route-id="@Model.Id" class="btn btn-warning w-100 mb-2">
+              <i class="bi bi-clock-history"></i> Extend Contract
+            </a>
+
+            <a asp-action="Close" asp-route-id="@Model.Id" class="btn btn-primary w-100 mb-2">
+              <i class="bi bi-check-circle"></i> Close Contract
+            </a>
+
+            <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#cancelModal">
+              <i class="bi bi-x-circle"></i> Cancel Contract
+            </button>
+          }
+          else
+          {
+            <div class="alert alert-info mb-0">
+              <i class="bi bi-info-circle"></i> Contract is @Model.Status.ToString().ToLower()
+            </div>
+          }
+
+          <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-3">
+            <i class="bi bi-arrow-left"></i> Back to List
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Cancel Contract</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form asp-action="Cancel" method="post">
+        <input type="hidden" name="rentalId" value="@Model.Id" />
+        <div class="modal-body">
+          <p>Are you sure you want to cancel this rental contract?</p>
+          <div class="alert alert-warning">
+            <strong>Note:</strong> Cancellation fees may apply based on your cancellation policy.
+          </div>
+          <div class="mb-3">
+            <label for="reason" class="form-label">Reason (Optional):</label>
+            <textarea class="form-control" id="reason" name="reason" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-x-circle"></i> Cancel Contract
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

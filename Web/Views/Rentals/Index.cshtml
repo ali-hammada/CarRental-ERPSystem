@@ -1,0 +1,121 @@
+﻿@model IEnumerable<ApplicationCore.Entities.RentalContract>
+
+@{
+  ViewData["Title"]="My Rentals";
+}
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-calendar-check"></i> My Rental Contracts</h2>
+    <a asp-controller="Car" asp-action="Index" class="btn btn-primary">
+      <i class="bi bi-plus-circle"></i> New Rental
+    </a>
+  </div>
+
+  @if(TempData["Success"]!=null)
+  {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="bi bi-check-circle"></i> @TempData["Success"]
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  }
+
+  @if(TempData["Error"]!=null)
+  {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  }
+
+  @if(Model!=null&&Model.Any())
+  {
+    <div class="row">
+      @foreach(var rental in Model)
+      {
+        <div class="col-md-6 col-lg-4 mb-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-header bg-@GetStatusColor(rental.Status) text-white">
+              <h5 class="mb-0">
+                <i class="bi bi-car-front"></i> @rental.Car?.Model
+                <span class="badge bg-light text-dark float-end">@rental.Status</span>
+              </h5>
+            </div>
+            <div class="card-body">
+              <p class="card-text">
+                <strong>Start:</strong> @rental.StartDate.ToString("MMM dd, yyyy")<br>
+                <strong>End:</strong> @rental.EndDate.ToString("MMM dd, yyyy")<br>
+                <strong>Daily Price:</strong> @rental.DailyPrice.ToString("C")<br>
+                <strong>Total:</strong> @rental.TotalAmount.ToString("C")
+              </p>
+
+              @if(rental.Status==ApplicationCore.Entities.Enums.RentalContractStatus.Open)
+              {
+                <div class="progress mb-2">
+                  <div class="progress-bar @GetPaymentProgressColor(rental)"
+                       style="width: @GetPaymentPercentage(rental)%">
+                    @GetPaymentPercentage(rental)% Paid
+                  </div>
+                </div>
+                <small class="text-muted">
+                  Paid: @rental.PaidAmount.ToString("C") / @rental.TotalAmount.ToString("C")
+                </small>
+              }
+            </div>
+            <div class="card-footer bg-transparent">
+              <a asp-action="Details" asp-route-rentalId="@rental.Id" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-eye"></i> Details
+              </a>
+
+              @if(rental.Status==ApplicationCore.Entities.Enums.RentalContractStatus.Open)
+              {
+                <a asp-controller="Payment" asp-action="MakePayment" asp-route-rentalId="@rental.Id"
+                   class="btn btn-sm btn-success">
+                  <i class="bi bi-credit-card"></i> Pay
+                </a>
+                <a asp-action="Extend" asp-route-rentalId="@rental.Id" class="btn btn-sm btn-warning">
+                  <i class="bi bi-clock-history"></i> Extend
+                </a>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+  else
+  {
+    <div class="alert alert-info text-center">
+      <i class="bi bi-info-circle"></i> You don't have any rental contracts yet.
+      <a asp-controller="Car" asp-action="Index" class="alert-link">Browse available cars</a>
+    </div>
+  }
+</div>
+
+@functions {
+  string GetStatusColor(ApplicationCore.Entities.Enums.RentalContractStatus status)
+  {
+    return status switch
+    {
+      ApplicationCore.Entities.Enums.RentalContractStatus.Open => "primary",
+      ApplicationCore.Entities.Enums.RentalContractStatus.Closed => "success",
+      ApplicationCore.Entities.Enums.RentalContractStatus.Cancelled => "danger",
+      ApplicationCore.Entities.Enums.RentalContractStatus.Draft => "secondary",
+      _ => "secondary"
+    };
+  }
+
+  int GetPaymentPercentage(ApplicationCore.Entities.RentalContract rental)
+  {
+    if(rental.TotalAmount==0) return 0;
+    return (int)((rental.PaidAmount/rental.TotalAmount)*100);
+  }
+
+  string GetPaymentProgressColor(ApplicationCore.Entities.RentalContract rental)
+  {
+    var percentage = GetPaymentPercentage(rental);
+    if(percentage>=100) return "bg-success";
+    if(percentage>=50) return "bg-warning";
+    return "bg-danger";
+  }
+}

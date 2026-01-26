@@ -3,49 +3,303 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PortFolio | @ViewData["Title"] </title>
+  <title>@ViewData["Title"] - Car Rental System</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-  <link href="~/css/bootstrap.min (3).css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
 
   <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
   <link rel="stylesheet" href="~/PortFolio.styles.css" asp-append-version="true" />
+
+  <style>
+    :root {
+      --primary-color: #0d6efd;
+      --secondary-color: #6c757d;
+      --success-color: #198754;
+      --danger-color: #dc3545;
+      --warning-color: #ffc107;
+      --info-color: #0dcaf0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      flex: 1;
+    }
+
+    .navbar {
+      box-shadow: 0 2px 4px rgba(0,0,0,.08);
+      padding: 1rem 0;
+    }
+
+    .navbar-brand {
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: var(--primary-color) !important;
+    }
+
+      .navbar-brand i {
+        margin-right: 0.5rem;
+      }
+
+    .nav-link {
+      font-weight: 500;
+      transition: color 0.3s ease;
+      padding: 0.5rem 1rem !important;
+    }
+
+      .nav-link:hover {
+        color: var(--primary-color) !important;
+      }
+
+      .nav-link.active {
+        color: var(--primary-color) !important;
+        border-bottom: 2px solid var(--primary-color);
+      }
+
+    .dropdown-menu {
+      box-shadow: 0 4px 6px rgba(0,0,0,.1);
+      border: none;
+      margin-top: 0.5rem;
+    }
+
+    .dropdown-item {
+      padding: 0.75rem 1.5rem;
+      transition: background-color 0.2s ease;
+    }
+
+      .dropdown-item:hover {
+        background-color: #f8f9fa;
+      }
+
+      .dropdown-item i {
+        margin-right: 0.5rem;
+        width: 20px;
+      }
+
+    footer {
+      background-color: #f8f9fa;
+      padding: 2rem 0;
+      margin-top: 3rem;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+  </style>
 </head>
 <body>
   <header>
-    <nav class="navbar navbar-expand-lg bg-body-tertiary">
-      <div class="container-fluid">
-        <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">PortFolio</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                aria-expanded="false" aria-label="Toggle navigation">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white">
+      <div class="container">
+        <!-- Logo/Brand -->
+        <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+          <i class="bi bi-car-front-fill"></i> CarRental
+        </a>
+
+        <!-- Mobile Toggle -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-          <ul class="navbar-nav flex-grow-1">
-            <li class="nav-item">
-              <a class="nav-link text-dark" asp-controller="Cars" asp-action="Index">Cars</a>
-            </li>
 
+        <!-- Navigation Links -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link" asp-controller="Home" asp-action="Index">
+                <i class="bi bi-house-door"></i> Home
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" asp-controller="Car" asp-action="Index">
+                <i class="bi bi-car-front"></i> Browse Cars
+              </a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-calendar-check"></i> My Rentals
+              </a>
+              <ul class="dropdown-menu">
+                <li>
+                  <a class="dropdown-item" asp-controller="Rentals" asp-action="Index">
+                    <i class="bi bi-list-ul"></i> All Rentals
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" asp-controller="Rentals" asp-action="Active">
+                    <i class="bi bi-clock"></i> Active Rentals
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <a class="dropdown-item" asp-controller="Rentals" asp-action="History">
+                    <i class="bi bi-clock-history"></i> Rental History
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" asp-controller="Payment" asp-action="Index">
+                <i class="bi bi-credit-card"></i> Payments
+              </a>
+            </li>
+          </ul>
+
+          <!-- User Menu -->
+          <ul class="navbar-nav">
+            @if(User.Identity?.IsAuthenticated==true)
+            {
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button"
+                   data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="bi bi-person-circle"></i>
+                  @User.Identity.Name
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <a class="dropdown-item" asp-controller="Rentals" asp-action="Index">
+                      <i class="bi bi-calendar-check"></i> My Rentals
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" asp-controller="Payment" asp-action="Index">
+                      <i class="bi bi-credit-card"></i> Payments
+                    </a>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
+                      @Html.AntiForgeryToken()
+                      <button type="submit" class="dropdown-item text-danger">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                      </button>
+                    </form>
+                  </li>
+                </ul>
+              </li>
+            }
+            else
+            {
+              <li class="nav-item">
+                <a class="nav-link" asp-controller="Auth" asp-action="Login">
+                  <i class="bi bi-box-arrow-in-right"></i> Login
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="btn btn-primary ms-2" asp-controller="Auth" asp-action="Register">
+                  <i class="bi bi-person-plus"></i> Sign Up
+                </a>
+              </li>
+            }
           </ul>
         </div>
       </div>
     </nav>
   </header>
-  <div class="container">
-    <main role="main" class="pb-3">
-      @RenderBody()
-    </main>
-  </div>
-
-  <footer class="border-top footer text-muted">
+  <!-- Main Content -->
+  <main role="main" class="py-4">
     <div class="container">
-      &copy; 2026 - PortFolio - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+      @RenderBody()
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-top">
+    <div class="container">
+      <div class="row py-4">
+        <div class="col-md-4 mb-3">
+          <h5 class="fw-bold">
+            <i class="bi bi-car-front-fill text-primary"></i> CarRental
+          </h5>
+          <p class="text-muted small">
+            Your trusted partner for quality car rentals.
+            Drive with confidence and comfort.
+          </p>
+        </div>
+        <div class="col-md-4 mb-3">
+          <h6 class="fw-bold">Quick Links</h6>
+          <ul class="list-unstyled small">
+            <li><a href="#" class="text-muted text-decoration-none">About Us</a></li>
+            <li><a href="#" class="text-muted text-decoration-none">Contact</a></li>
+            <li><a href="#" class="text-muted text-decoration-none">Terms of Service</a></li>
+            <li>
+              <a asp-controller="Home" asp-action="Privacy" class="text-muted text-decoration-none">
+                Privacy Policy
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="col-md-4 mb-3">
+          <h6 class="fw-bold">Contact Us</h6>
+          <p class="text-muted small mb-1">
+            <i class="bi bi-telephone"></i> +1 (555) 123-4567
+          </p>
+          <p class="text-muted small mb-1">
+            <i class="bi bi-envelope"></i> info@carrental.com
+          </p>
+          <p class="text-muted small">
+            <i class="bi bi-geo-alt"></i> 123 Main St, City, State 12345
+          </p>
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col-md-6">
+          <p class="text-muted small mb-0">
+            &copy; @DateTime.Now.Year CarRental System. All rights reserved.
+          </p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <a href="#" class="text-muted me-3"><i class="bi bi-facebook"></i></a>
+          <a href="#" class="text-muted me-3"><i class="bi bi-twitter"></i></a>
+          <a href="#" class="text-muted me-3"><i class="bi bi-instagram"></i></a>
+          <a href="#" class="text-muted"><i class="bi bi-linkedin"></i></a>
+        </div>
+      </div>
     </div>
   </footer>
+
+  <!-- Scripts -->
   <script src="~/lib/jquery/dist/jquery.min.js"></script>
   <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
   <script src="~/js/site.js" asp-append-version="true"></script>
+
+  <script>
+    $(document).ready(function() {
+        var currentPath = window.location.pathname.toLowerCase();
+        $('.navbar-nav .nav-link').each(function() {
+            var href = $(this).attr('href');
+            if (href && currentPath.indexOf(href.toLowerCase()) !== -1 && href !== '/') {
+                $(this).addClass('active');
+            }
+        });
+    });
+  </script>
+
   @await RenderSectionAsync("Scripts",required: false)
 </body>
 </html>
