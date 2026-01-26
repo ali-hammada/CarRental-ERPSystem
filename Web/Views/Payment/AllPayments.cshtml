@@ -1,0 +1,67 @@
+﻿@model IEnumerable<ApplicationCore.Entities.Payment>
+
+@{
+  ViewData["Title"]="All Payments";
+}
+
+<div class="container mt-4">
+
+  <h3 class="mb-4">
+    <i class="bi bi-cash-stack"></i> All My Payments
+  </h3>
+
+  <a asp-action="Index" class="btn btn-outline-secondary mb-3">
+    ← Back to Rentals
+  </a>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+
+      <table class="table table-striped">
+
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Contract</th>
+            <th>Amount</th>
+            <th>Purpose</th>
+            <th>Method</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @foreach(var p in Model)
+          {
+            <tr>
+              <td>@p.Id</td>
+
+              <td>
+                #@p.RentalContractId
+              </td>
+
+              <td class="text-success fw-bold">
+                @p.Amount.ToString("C")
+              </td>
+
+              <td>@p.Purpose</td>
+              <td>@p.Method</td>
+
+              <td>@p.PaymentDate.ToShortDateString()</td>
+            </tr>
+          }
+        </tbody>
+
+      </table>
+
+      @if(!Model.Any())
+      {
+        <div class="alert alert-info text-center">
+          No payments yet.
+        </div>
+      }
+
+    </div>
+  </div>
+
+</div>

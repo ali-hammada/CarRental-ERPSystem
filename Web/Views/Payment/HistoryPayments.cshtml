@@ -1,0 +1,68 @@
+﻿@model IEnumerable<ApplicationCore.Entities.Payment>
+
+@{
+  ViewData["Title"]="Payment History";
+}
+
+<div class="container mt-4">
+
+  <h3 class="mb-3">
+    <i class="bi bi-clock-history"></i> Contract Payments
+  </h3>
+
+  <a asp-action="Index" class="btn btn-outline-secondary mb-3">
+    ← Back
+  </a>
+
+  <table class="table table-bordered table-hover shadow-sm">
+
+    <thead class="table-light">
+      <tr>
+        <th>#</th>
+        <th>Amount</th>
+        <th>Purpose</th>
+        <th>Method</th>
+        <th>Status</th>
+        <th>Date</th>
+        <th></th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @foreach(var p in Model)
+      {
+        <tr>
+          <td>@p.Id</td>
+
+          <td class="fw-bold text-success">
+            @p.Amount.ToString("C")
+          </td>
+
+          <td>@p.Purpose</td>
+          <td>@p.Method</td>
+          <td>@p.Status</td>
+
+          <td>
+            @p.PaymentDate.ToString("yyyy-MM-dd HH:mm")
+          </td>
+
+          <td>
+            <a asp-action="Receipt" asp-route-paymentId="@p.Id"
+               class="btn btn-sm btn-outline-primary">
+              Receipt
+            </a>
+          </td>
+        </tr>
+      }
+    </tbody>
+
+  </table>
+
+  @if(!Model.Any())
+  {
+    <div class="alert alert-info text-center">
+      No payments found.
+    </div>
+  }
+
+</div>

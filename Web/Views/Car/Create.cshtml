@@ -1,0 +1,89 @@
+﻿@model ApplicationCore.Entities.Car
+
+@{
+  var isEdit = Model!=null&&Model.Id!=0;
+  ViewData["Title"]=isEdit ? "Edit Car" : "Add New Car";
+}
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">
+            <i class="bi bi-car-front-fill"></i> @(isEdit ? "Edit Car" : "Add New Car")
+          </h4>
+        </div>
+        <div class="card-body">
+
+          @if(TempData["Error"]!=null)
+          {
+            <div class="alert alert-danger alert-dismissible fade show">
+              <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          }
+
+          <form asp-action="@(isEdit ? "Edit" : "Create")" method="post">
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+              <label asp-for="Model" class="form-label">Model</label>
+              <input asp-for="Model" class="form-control" required />
+              <span asp-validation-for="Model" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+              <label asp-for="Year" class="form-label">Year</label>
+              <input asp-for="Year" type="number" class="form-control" required />
+              <span asp-validation-for="Year" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+              <label asp-for="PricePerDay" class="form-label">Price per Day</label>
+              <input asp-for="PricePerDay" type="number" step="0.01" class="form-control" required />
+              <span asp-validation-for="PricePerDay" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+              <label asp-for="PlateNumber" class="form-label">Plate Number</label>
+              <input asp-for="PlateNumber" class="form-control" required />
+              <span asp-validation-for="PlateNumber" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+              <label asp-for="Status" class="form-label">Status</label>
+              <select asp-for="Status" class="form-select">
+                <option value="Available">Available</option>
+                <option value="Rented">Rented</option>
+               
+              </select>
+              <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+<<<<<<< HEAD
+            <div class="mb-3">
+              <label class="form-label">Car Image</label>
+              <input type="file" name="image" class="form-control" accept="image/*">
+            </div>
+=======
+>>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
+
+            <div class="d-flex justify-content-end gap-2">
+              <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> @(isEdit ? "Update Car" : "Add Car")
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+  @await Html.PartialAsync("_ValidationScriptsPartial")
+}

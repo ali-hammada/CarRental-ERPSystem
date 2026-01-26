@@ -1,0 +1,106 @@
+﻿@model IEnumerable<ApplicationCore.Entities.Payment>
+
+@{
+  ViewData["Title"]="Payment History";
+}
+
+<div class="container mt-4">
+
+  <h3 class="mb-3">
+    <i class="bi bi-clock-history"></i> Contract Payments
+  </h3>
+
+  <a asp-action="Index" class="btn btn-outline-secondary mb-3">
+    ← Back
+  </a>
+
+  <table class="table table-bordered table-hover shadow-sm">
+
+    <thead class="table-light">
+      <tr>
+        <th>#</th>
+        <th>Amount</th>
+        <th>Purpose</th>
+        <th>Method</th>
+        <th>Status</th>
+        <th>Date</th>
+        <th class="text-center">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @foreach(var p in Model)
+      {
+        <tr>
+          <td><strong>@p.Id</strong></td>
+
+          <td class="fw-bold text-success">
+            @p.Amount.ToString("C")
+          </td>
+          <td>
+            <span class="badge bg-info text-dark">@p.Purpose</span>
+          </td>
+          <td>
+            <span class="badge bg-primary">@p.Method</span>
+          </td>
+          <td>
+            <span class="badge bg-@@(p.Status=="Completed" ? "success" : "warning")">@p.Status</span>
+          </td>
+          <td>
+            <small>
+              @p.PaymentDate.ToString("MMM dd, yyyy")<br>
+              <span class="text-muted">@p.PaymentDate.ToString("hh:mm tt")</span>
+            </small>
+          </td>
+
+          <td class="text-center">
+            <div class="btn-group btn-group-sm" role="group">
+              <a asp-action="Receipt" asp-route-paymentId="@p.Id"
+                 class="btn btn-outline-primary" title="View Receipt">
+                <i class="bi bi-eye"></i> View
+              </a>
+
+              <a asp-action="Receipt" asp-route-paymentId="@p.Id"
+                 target="_blank"
+                 class="btn btn-outline-success" title="Print Receipt"
+                 onclick="window.open('@Url.Action("Receipt","Payment",new { paymentId = p.Id })', '_blank').print(); return false;">
+                <i class="bi bi-printer"></i> Print
+              </a>
+            </div>
+          </td>
+        </tr>
+      }
+    </tbody>
+
+  </table>
+
+  @if(!Model.Any())
+  {
+    <div class="alert alert-info text-center py-5">
+      <i class="bi bi-receipt fs-1 text-muted mb-3"></i>
+      <h5>No payments found</h5>
+      <p class="mb-0">You don't have any payment records yet.</p>
+    </div>
+  }
+
+</div>
+
+@section Scripts {
+  <style>
+    .btn-group-sm > .btn {
+      padding: 0.3rem 0.6rem;
+      font-size: 0.85rem;
+    }
+
+    .table th {
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+    }
+
+    .badge {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.8rem;
+    }
+  </style>
+}

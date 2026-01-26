@@ -18,7 +18,6 @@ namespace InFrastructure.UnitOfWork
       Customers=new GenericRepository<Customer>(_context);
       RentalContracts=new GenericRepository<RentalContract>(_context);
       Payments=new GenericRepository<Payment>(_context);
-
     }
 
     public ICarRepository Cars { get; }
@@ -29,6 +28,24 @@ namespace InFrastructure.UnitOfWork
 
     public IGenericRepository<Payment> Payments { get; }
 
-    public Task<int> SaveChangesAsync() => _context.SaveChangesAsync();
+    public async Task BeginTransactionAsync()
+    {
+      await _context.Database.BeginTransactionAsync();
+    }
+
+    public async Task CommitAsync()
+    {
+      await _context.Database.CommitTransactionAsync();
+    }
+
+    public async Task RollbackAsync()
+    {
+      await _context.Database.RollbackTransactionAsync();
+    }
+
+    public Task<int> SaveChangesAsync()
+    {
+      return _context.SaveChangesAsync();
+    }
   }
 }

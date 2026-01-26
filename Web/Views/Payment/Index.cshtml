@@ -1,0 +1,131 @@
+﻿@model IEnumerable<ApplicationCore.Entities.RentalContract>
+
+@{
+  ViewData["Title"]="Payments";
+}
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-credit-card"></i> My Payments</h2>
+    <a asp-action="History" class="btn btn-outline-primary">
+      <i class="bi bi-clock-history"></i> Payment History
+    </a>
+  </div>
+
+  @if(TempData["Success"]!=null)
+  {
+    <div class="alert alert-success alert-dismissible fade show">
+      <i class="bi bi-check-circle"></i> @TempData["Success"]
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  }
+
+  @if(TempData["Error"]!=null)
+  {
+    <div class="alert alert-danger alert-dismissible fade show">
+      <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  }
+
+  @if(Model!=null&&Model.Any())
+  {
+    <div class="row">
+      @foreach(var rental in Model)
+      {
+        var amountDue = rental.FinalAmount??rental.TotalAmount;
+        var remaining = amountDue-rental.PaidAmount;
+        var percentPaid = amountDue>0 ? (int)((rental.PaidAmount/amountDue)*100) : 0;
+
+        <div class="col-md-6 col-lg-4 mb-4">
+          <div class="card h-100 shadow-sm border-@(remaining>0 ? "warning" : "success")">
+            <div class="card-header bg-@(remaining>0 ? "warning" : "success") text-white">
+              <h6 class="mb-0">
+                <i class="bi bi-car-front"></i> Contract #@rental.Id
+              </h6>
+              <small> @rental.Car?.Model</small>
+            </div>
+            <div class="card-body">
+              <div class="mb-3">
+                <small class="text-muted">Period</small>
+                <p class="mb-0">
+                  @rental.StartDate.ToString("MMM dd") - @rental.EndDate.ToString("MMM dd, yyyy")
+                </p>
+              </div>
+
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <small class="text-muted">Payment Progress</small>
+                  <small class="fw-bold">@percentPaid%</small>
+                </div>
+                <div class="progress" style="height: 8px;">
+                  <div class="progress-bar bg-@(percentPaid>=100 ? "success" : percentPaid>=50 ? "warning" : "danger")"
+                       style="width: @percentPaid%"></div>
+                </div>
+              </div>
+
+              <div class="row text-center mb-3">
+                <div class="col-6 border-end">
+                  <small class="text-muted d-block">Paid</small>
+                  <strong class="text-success">@rental.PaidAmount.ToString("C")</strong>
+                </div>
+                <div class="col-6">
+                  <small class="text-muted d-block">Remaining</small>
+                  <strong class="text-@(remaining>0 ? "danger" : "success")">
+                    @remaining.ToString("C")
+                  </strong>
+                </div>
+              </div>
+
+              @if(remaining>0)
+              {
+                <div class="alert alert-warning py-2 mb-0">
+                  <small>
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Amount Due:</strong> @amountDue.ToString("C")
+                  </small>
+                </div>
+              }
+              else
+              {
+                <div class="alert alert-success py-2 mb-0">
+                  <small>
+                    <i class="bi bi-check-circle"></i>
+                    <strong>Fully Paid</strong>
+                  </small>
+                </div>
+              }
+            </div>
+            <div class="card-footer bg-transparent">
+              <div class="d-grid gap-2">
+                @if(remaining>0)
+                {
+                  <a asp-action="MakePayment" asp-route-rentalId="@rental.Id"
+                     class="btn btn-success btn-sm">
+                    <i class="bi bi-credit-card"></i> Make Payment
+                  </a>
+                }
+                <a asp-controller="Rentals" asp-action="Details" asp-route-id="@rental.Id"
+                   class="btn btn-outline-secondary btn-sm">
+                  <i class="bi bi-eye"></i> View Details
+                </a>
+                <a asp-action="History" asp-route-rentalId="@rental.Id"
+                   class="btn btn-outline-primary btn-sm">
+                  <i class="bi bi-list"></i> Payment History
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+  else
+  {
+    <div class="alert alert-info text-center">
+      <i class="bi bi-info-circle"></i> No active rentals requiring payment.
+      <br>
+      <a asp-controller="Car" asp-action="Index" class="alert-link">Browse available cars</a>
+    </div>
+  }
+</div>
