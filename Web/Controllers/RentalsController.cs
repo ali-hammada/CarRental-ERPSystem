@@ -184,6 +184,62 @@ namespace Web.Controllers
 
       return View(model);
     }
+    // GET: Close - عرض صفحة إغلاق العقد
+    [HttpGet]
+    public async Task<IActionResult> Close(int rentalId)
+    {
+      int customerId = GetCurrentCustomerId();
+      var rental = await _rentalServices.GetRentalByIdAsync(rentalId);
+
+      if(rental==null||rental.CustomerId!=customerId)
+      {
+        TempData["Error"]="Rental not found";
+        return RedirectToAction("Index");
+      }
+
+      if(rental.Status!=ApplicationCore.Entities.Enums.RentalContractStatus.Open)
+      {
+        TempData["Error"]="Only active rentals can be closed";
+        return RedirectToAction("Details",new { rentalId = rentalId });
+      }
+
+      // تحميل بيانات السيارة
+      var car = await _carServices.GetByIdAsync(rental.CarId);
+      ViewBag.Rental=rental;
+      ViewBag.Car=car;
+
+      var model = new RentalCloseDto
+      {
+        RentalId=rental.Id
+      };
+
+      return View(model);
+    }
+
+    // POST: Close - معالجة إغلاق العقد
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Close(RentalCloseDto request)
+    {
+      int customerId = GetCurrentCustomerId();
+
+      var result = await _rentalServices.CloseContractAsync(request,customerId);
+
+      if(!result.Success)
+      {
+        TempData["Error"]=result.Content;
+
+        // إعادة تحميل البيانات لعرضها في الصفحة
+        var rental = await _rentalServices.GetRentalByIdAsync(request.RentalId);
+        ViewBag.Rental=rental;
+        ViewBag.Car=await _carServices.GetByIdAsync(rental?.CarId??0);
+
+        return View(request);
+      }
+
+      TempData["Success"]=result.Content;
+      return RedirectToAction("Index");
+    }
 
 
     [HttpPost]
