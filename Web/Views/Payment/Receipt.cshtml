@@ -1,110 +1,181 @@
-﻿@model IEnumerable<ApplicationCore.Entities.Payment>
+﻿@model ApplicationCore.Entities.Payment;
 
 @{
-  ViewData["Title"]="Payment History";
+  ViewData["Title"]="Payment Receipt";
 }
 
 <div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
 
-  <h3 class="mb-3">
-    <i class="bi bi-clock-history"></i> Contract Payments
-  </h3>
+      <div class="card shadow-sm">
+        <div class="card-header bg-success text-white text-center py-4">
+          <h3 class="mb-0">
+            <i class="bi bi-receipt"></i> Payment Receipt
+          </h3>
+          <p class="mb-0 mt-2">Receipt #@Model.Id</p>
+        </div>
+        <div class="card-body p-5">
 
-  <a asp-action="Index" class="btn btn-outline-secondary mb-3">
-    ← Back
-  </a>
+          <!-- Receipt Header -->
+          <div class="text-center mb-4">
+            <h4 class="text-primary fw-bold">CarRental System</h4>
+            <p class="text-muted small mb-0">123 Main Street, City, State 12345</p>
+            <p class="text-muted small">Phone: (555) 123-4567 | Email: info@carrental.com</p>
+          </div>
 
-  <table class="table table-bordered table-hover shadow-sm">
+          <hr>
 
-    <thead class="table-light">
-      <tr>
-        <th>#</th>
-        <th>Amount</th>
-        <th>Purpose</th>
-        <th>Method</th>
-        <th>Status</th>
-        <th>Date</th>
-        <th class="text-center">Actions</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      @foreach(var p in Model)
-      {
-        <tr>
-          <td><strong>@p.Id</strong></td>
-
-          <td class="fw-bold text-success">
-            @p.Amount.ToString("C")
-          </td>
-
-          <td>
-            <span class="badge bg-info text-dark">@p.Purpose</span>
-          </td>
-
-          <td>
-            <span class="badge bg-primary">@p.Method</span>
-          </td>
-
-          <td>
-            <span class="badge bg-@@(p.Status=="Completed" ? "success" : "warning")">@p.Status</span>
-          </td>
-
-          <td>
-            <small>
-              @p.PaymentDate.ToString("MMM dd, yyyy")<br>
-              <span class="text-muted">@p.PaymentDate.ToString("hh:mm tt")</span>
-            </small>
-          </td>
-
-          <td class="text-center">
-            <div class="btn-group btn-group-sm" role="group">
-              <a asp-action="Receipt" asp-route-paymentId="@p.Id"
-                 class="btn btn-outline-primary" title="View Receipt">
-                <i class="bi bi-eye"></i> View
-              </a>
-
-              <a asp-action="Receipt" asp-route-paymentId="@p.Id"
-                 target="_blank"
-                 class="btn btn-outline-success" title="Print Receipt"
-                 onclick="window.open('@Url.Action("Receipt","Payment",new { paymentId = p.Id })', '_blank').print(); return false;">
-                <i class="bi bi-printer"></i> Print
-              </a>
+          <!-- Payment Details -->
+          <div class="row mb-4">
+            <div class="col-6">
+              <p class="mb-1"><strong>Payment Date:</strong></p>
+              <p class="text-muted">@Model.PaymentDate.ToString("MMMM dd, yyyy")</p>
             </div>
-          </td>
-        </tr>
-      }
-    </tbody>
+            <div class="col-6 text-end">
+              <p class="mb-1"><strong>Payment Time:</strong></p>
+              <p class="text-muted">@Model.PaymentDate.ToString("hh:mm tt")</p>
+            </div>
+          </div>
 
-  </table>
+          <div class="row mb-4">
+            <div class="col-6">
+              <p class="mb-1"><strong>Rental Contract:</strong></p>
+              <p class="text-muted">#@Model.RentalContractId</p>
+            </div>
+            <div class="col-6 text-end">
+              <p class="mb-1"><strong>Payment Method:</strong></p>
+              <p class="text-muted">@Model.Method</p>
+            </div>
+          </div>
 
-  @if(!Model.Any())
-  {
-    <div class="alert alert-info text-center py-5">
-      <i class="bi bi-receipt fs-1 text-muted mb-3"></i>
-      <h5>No payments found</h5>
-      <p class="mb-0">You don't have any payment records yet.</p>
+          <hr>
+
+          <!-- Payment Status Badge -->
+          <div class="text-center mb-4">
+            @if(Model.Purpose==ApplicationCore.Entities.Enums.PaymentPurpose.Partial)
+            {
+              <span class="badge bg-warning text-dark fs-5 px-4 py-2">
+                <i class="bi bi-cash-coin"></i> Partial Payment
+              </span>
+            }
+            else
+            {
+              <span class="badge bg-success fs-5 px-4 py-2">
+                <i class="bi bi-check-circle"></i> Full Payment
+              </span>
+            }
+          </div>
+
+          <!-- Detailed Amount Section -->
+          <div class="bg-light p-4 rounded mb-4">
+            <div class="row mb-3">
+              <div class="col-6">
+                <p class="mb-0"><strong>Rental Total Amount:</strong></p>
+              </div>
+              <div class="col-6 text-end">
+                <h5 class="mb-0 text-primary fw-bold">@Model.RentalContract.TotalAmount.ToString("C")</h5>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-6">
+                <p class="mb-0"><strong>Previously Paid:</strong></p>
+              </div>
+              <div class="col-6 text-end">
+                @{
+                  var previouslyPaid = Model.RentalContract.PaidAmount-Model.Amount;
+                }
+                <h5 class="mb-0 text-muted">@(previouslyPaid>0 ? previouslyPaid.ToString("C") : "0.00")</h5>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-6">
+                <p class="mb-0"><strong>Current Payment:</strong></p>
+              </div>
+              <div class="col-6 text-end">
+                <h4 class="mb-0 text-success fw-bold">@Model.Amount.ToString("C")</h4>
+              </div>
+            </div>
+
+            <hr class="my-3">
+
+            <div class="row mb-3">
+              <div class="col-6">
+                <p class="mb-0"><strong>Total Paid to Date:</strong></p>
+              </div>
+              <div class="col-6 text-end">
+                <h5 class="mb-0 text-info fw-bold">@Model.RentalContract.PaidAmount.ToString("C")</h5>
+              </div>
+            </div>
+
+            <hr class="my-3">
+
+            <div class="row">
+              <div class="col-6">
+                <h5 class="mb-0"><strong>Amount Remaining:</strong></h5>
+              </div>
+              <div class="col-6 text-end">
+                @{
+                  var amountRemaining = Model.RentalContract.TotalAmount-Model.RentalContract.PaidAmount;
+                  var finalAmount = Model.RentalContract.FinalAmount??Model.RentalContract.TotalAmount;
+                  var remaining = finalAmount-Model.RentalContract.PaidAmount;
+                }
+                @if(remaining>0)
+                {
+                  <h4 class="mb-0 text-danger fw-bold">@remaining.ToString("C")</h4>
+                }
+                else
+                {
+                  <h4 class="mb-0 text-success fw-bold">Fully Paid</h4>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="text-center text-muted small mt-4">
+            <p class="mb-1">Thank you for your payment!</p>
+            <p class="mb-0">This is a computer-generated receipt and does not require a signature.</p>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+            <button onclick="window.print()" class="btn btn-outline-primary">
+              <i class="bi bi-printer"></i> Print Receipt
+            </button>
+            <a asp-controller="Rentals" asp-action="Details" asp-route-id="@Model.RentalContractId"
+               class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left"></i> Back to Rental
+            </a>
+            @if(Model.Purpose==ApplicationCore.Entities.Enums.PaymentPurpose.Partial&&remaining>0)
+            {
+              <a asp-controller="Payment" asp-action="MakePayment" asp-route-rentalId="@Model.RentalContractId"
+                 class="btn btn-success">
+                <i class="bi bi-cash"></i> Make Another Payment
+              </a>
+            }
+          </div>
+
+        </div>
+      </div>
+
     </div>
-  }
-
+  </div>
 </div>
 
 @section Scripts {
   <style>
-    .btn-group-sm > .btn {
-      padding: 0.3rem 0.6rem;
-      font-size: 0.85rem;
-    }
+    @@media print {
+      .btn, nav, footer {
+        display: none !important;
+      }
 
-    .table th {
-      font-weight: 600;
-      text-transform: uppercase;
-      font-size: 0.85rem;
-    }
-
-    .badge {
-      padding: 0.4rem 0.6rem;
-      font-size: 0.8rem;
+      .card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+      }
     }
   </style>
 }

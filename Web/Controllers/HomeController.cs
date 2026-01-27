@@ -40,7 +40,6 @@ namespace Web.Controllers
     {
       int customerId = GetCurrentCustomerId();
 
-      // جلب جميع البيانات المطلوبة
       var rentals = await _rentalServices.GetCustomerRentalsAsync(customerId);
       var payments = await _paymentServices.GetAllCustomerPaymentsAsync(customerId);
       foreach(var rental in rentals)
@@ -48,7 +47,6 @@ namespace Web.Controllers
         var car = await _carServices.GetByIdAsync(rental.CarId);
         rental.Car=car;
       }
-      // حساب الإحصائيات
       var activeRentals = rentals.Where(r => r.Status==RentalContractStatus.Open).ToList();
       var completedRentals = rentals.Where(r =>
           r.Status==RentalContractStatus.Closed||
@@ -78,13 +76,13 @@ namespace Web.Controllers
         var monthName = monthDate.ToString("MMM yyyy");
         months.Add(monthName);
 
-        // عدد العقود في هذا الشهر
+        // عدد العقود في الشهر
         var rentalCount = rentals.Count(r =>
             r.StartDate.Year==monthDate.Year&&
             r.StartDate.Month==monthDate.Month);
         rentalsPerMonth.Add(rentalCount);
 
-        // مجموع المدفوعات في هذا الشهر
+        // مجموع المدفوعات في الشهر
         var paymentSum = payments.Where(p =>
             p.PaymentDate.Year==monthDate.Year&&
             p.PaymentDate.Month==monthDate.Month).Sum(p => p.Amount);

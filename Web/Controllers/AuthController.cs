@@ -16,10 +16,6 @@ namespace Web.Controllers
     {
       _authService=authService;
     }
-
-    // ============================================
-    // REGISTER
-    // ============================================
     [HttpGet]
     public IActionResult Register()
     {
@@ -61,10 +57,6 @@ namespace Web.Controllers
       TempData["Success"]="Registration successful! Please login.";
       return RedirectToAction(nameof(Login));
     }
-
-    // ============================================
-    // LOGIN
-    // ============================================
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {
@@ -99,9 +91,6 @@ namespace Web.Controllers
       return RedirectToAction("Index","Home");
     }
 
-    // ============================================
-    // LOGOUT
-    // ============================================
     [HttpPost]
     [Authorize]
     [ValidateAntiForgeryToken]
@@ -112,9 +101,6 @@ namespace Web.Controllers
       return RedirectToAction(nameof(Login));
     }
 
-    // ============================================
-    // HELPER METHOD
-    // ============================================
     private async Task SignInUserAsync(ApplicationCore.Entities.Customer customer)
     {
       var claims = new List<Claim>
@@ -127,7 +113,7 @@ namespace Web.Controllers
 
       var claimsIdentity = new ClaimsIdentity(
           claims,
-          CookieAuthenticationDefaults.AuthenticationScheme); // ✅ مهم جداً
+          CookieAuthenticationDefaults.AuthenticationScheme);
 
       var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
@@ -139,7 +125,7 @@ namespace Web.Controllers
       };
 
       await HttpContext.SignInAsync(
-          CookieAuthenticationDefaults.AuthenticationScheme, // ✅ نفس الاسم
+          CookieAuthenticationDefaults.AuthenticationScheme,
           claimsPrincipal,
           authProperties);
     }

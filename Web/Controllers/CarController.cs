@@ -16,14 +16,12 @@ namespace Web.Controllers
       _carServices=carServices;
     }
 
-    // عرض كل العربيات
     public async Task<IActionResult> Index()
     {
       var cars = await _carServices.GetAllCarsAsync();
       return View(cars);
     }
 
-    // صفحة إضافة عربية
     [HttpGet]
     public IActionResult Create()
     {
@@ -31,7 +29,7 @@ namespace Web.Controllers
       return View(car);
     }
 
-    // إضافة عربية جديدة
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Car car)
@@ -51,13 +49,12 @@ namespace Web.Controllers
       var car = await _carServices.GetByIdAsync(id);
       if(car==null)
       {
-        TempData["Error"]="Car not found";
         return RedirectToAction("Index");
       }
       return View(car);
     }
 
-    // حذف عربية
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
@@ -75,7 +72,6 @@ namespace Web.Controllers
       return RedirectToAction("Index");
     }
 
-    // تغيير حالة العربية (Available <-> Rented)
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ChangeStatus(int id,CarStatus status)

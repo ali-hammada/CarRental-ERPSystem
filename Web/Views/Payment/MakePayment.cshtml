@@ -195,8 +195,6 @@
 
             const remainingEl = document.getElementById('summaryRemaining');
             remainingEl.textContent = formatCurrency(remainingAfter);
-
-            // تغيير اللون بناءً على تصفير المديونية
             remainingEl.className = remainingAfter > 0 ? 'text-danger fw-bold' : 'text-success fw-bold';
 
             paymentSummary.style.display = 'block';

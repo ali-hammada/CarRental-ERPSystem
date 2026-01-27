@@ -2,6 +2,7 @@
 {
   public enum PaymentPurpose
   {
+
     Partial,
     Final,
     Penalty

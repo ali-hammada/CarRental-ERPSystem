@@ -25,7 +25,6 @@ namespace Web.Controllers
 
       var rentals = await _rentalService.GetCustomerRentalsAsync(customerId);
 
-      // فلتر العقود اللي محتاجة دفع
       var unpaidRentals = rentals.Where(r =>
           r.Status==RentalContractStatus.Open||
           (r.FinalAmount??r.TotalAmount)>r.PaidAmount
@@ -83,14 +82,12 @@ namespace Web.Controllers
 
       if(rentalId.HasValue)
       {
-        // تاريخ مدفوعات عقد معين
         var payments = await _paymentService.GetContractPaymentsAsync(rentalId.Value,customerId);
         ViewBag.RentalId=rentalId.Value;
         return View(payments);
       }
       else
       {
-        // تاريخ كل المدفوعات
         var allPayments = await _paymentService.GetAllCustomerPaymentsAsync(customerId);
         return View("AllPayments",allPayments);
       }
@@ -104,7 +101,7 @@ namespace Web.Controllers
       if(payment==null)
       {
         TempData["Error"]="Payment not found";
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction("Index");
       }
 
       return View(payment);
