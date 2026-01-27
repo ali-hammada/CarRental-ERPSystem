@@ -30,13 +30,8 @@ namespace InFrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-<<<<<<< HEAD
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-=======
                     b.Property<byte[]>("ImageUrl")
                         .HasColumnType("varbinary(max)");
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
 
                     b.Property<string>("Model")
                         .IsRequired()

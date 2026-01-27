@@ -145,66 +145,15 @@
   }
 
   <script>
-<<<<<<< HEAD
-    // تأكد من وجود rental
-    @if(ViewBag.Rental!=null)
-    {
-        var rental = ViewBag.Rental as ApplicationCore.Entities.RentalContract;
-        <text>
-          const dailyPrice = @rental.DailyPrice;
-          const currentTotal = @rental.TotalAmount;
-          const currentEndDate = new Date('@rental.EndDate.ToString("yyyy-MM-dd")');
-        </text>
-    }
-    else
-    {
-        <text>
-          const dailyPrice = 0;
-          const currentTotal = 0;
-          const currentEndDate = new Date();
-        </text>
-    }
-
-=======
     const dailyPrice = @(rental?.DailyPrice??0);
     const currentTotal = @(rental?.TotalAmount??0);
     const currentEndDate = new Date('@rental?.EndDate.ToString("yyyy-MM-dd")');
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
     const newEndDateInput = document.querySelector('[name="NewEndDate"]');
     const extensionCostDiv = document.getElementById('extensionCost');
     const extraDaysEl = document.getElementById('extraDays');
     const extraCostEl = document.getElementById('extraCost');
     const newTotalEl = document.getElementById('newTotal');
 
-<<<<<<< HEAD
-    if(newEndDateInput) {
-        newEndDateInput.addEventListener('change', function() {
-            const newEndDate = new Date(this.value);
-
-            if (newEndDate > currentEndDate) {
-                const extraDays = Math.ceil((newEndDate - currentEndDate) / (1000 * 60 * 60 * 24));
-                const extraCost = extraDays * dailyPrice;
-                const newTotal = currentTotal + extraCost;
-
-                extraDaysEl.textContent = extraDays;
-                extraCostEl.textContent = new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: 'USD'
-                }).format(extraCost);
-                newTotalEl.textContent = new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: 'USD'
-                }).format(newTotal);
-
-                extensionCostDiv.style.display = 'block';
-            } else {
-                extensionCostDiv.style.display = 'none';
-            }
-        });
-    }
-  </script>
-}
-=======
     newEndDateInput.addEventListener('change', function() {
         const newEndDate = new Date(this.value);
 
@@ -230,4 +179,3 @@
     });
   </script>
 }
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e

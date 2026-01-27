@@ -16,13 +16,10 @@ namespace Web.Controllers
     {
       _authService=authService;
     }
-<<<<<<< HEAD
-=======
 
     // ============================================
     // REGISTER
     // ============================================
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
     [HttpGet]
     public IActionResult Register()
     {
@@ -64,13 +61,10 @@ namespace Web.Controllers
       TempData["Success"]="Registration successful! Please login.";
       return RedirectToAction(nameof(Login));
     }
-<<<<<<< HEAD
-=======
 
     // ============================================
     // LOGIN
     // ============================================
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {
@@ -104,13 +98,10 @@ namespace Web.Controllers
 
       return RedirectToAction("Index","Home");
     }
-<<<<<<< HEAD
-=======
 
     // ============================================
     // LOGOUT
     // ============================================
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
     [HttpPost]
     [Authorize]
     [ValidateAntiForgeryToken]
@@ -120,13 +111,10 @@ namespace Web.Controllers
       TempData["Info"]="You have been logged out successfully.";
       return RedirectToAction(nameof(Login));
     }
-<<<<<<< HEAD
-=======
 
     // ============================================
     // HELPER METHOD
     // ============================================
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
     private async Task SignInUserAsync(ApplicationCore.Entities.Customer customer)
     {
       var claims = new List<Claim>

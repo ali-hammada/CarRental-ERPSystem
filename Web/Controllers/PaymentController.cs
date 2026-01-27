@@ -73,11 +73,7 @@ namespace Web.Controllers
       }
 
       TempData["Success"]=result.message;
-<<<<<<< HEAD
-      return RedirectToAction("Details","Rentals",new { id = rentalId });
-=======
       return RedirectToAction("Details","Rental",new { id = rentalId });
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
     }
 
     [HttpGet]

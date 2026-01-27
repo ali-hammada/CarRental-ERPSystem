@@ -3,10 +3,6 @@ using Application.Services.Interfaces;
 using ApplicationCore.Entities.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-<<<<<<< HEAD
-using Web.ViewModels;
-=======
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
 
 namespace Web.Controllers
 {
@@ -53,18 +49,10 @@ namespace Web.Controllers
       if(car==null||car.Status!=CarStatus.Available)
       {
         TempData["Error"]="Car not available";
-<<<<<<< HEAD
-        return View("Index");
-
-      }
-
-
-=======
         return RedirectToAction("Index","Car");
       }
 
       ViewBag.Car=car;
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
 
       return View(new RentalRequestDTO
       {
@@ -110,47 +98,6 @@ namespace Web.Controllers
 
       return RedirectToAction("Index");
     }
-<<<<<<< HEAD
-    [HttpGet]
-    public async Task<IActionResult> Close(int rentalId)
-    {
-      int customerId = GetCurrentCustomerId();
-      var rental = await _rentalServices.GetRentalByIdAsync(rentalId);
-
-      if(rental==null||rental.CustomerId!=customerId)
-      {
-        TempData["Error"]="Rental not found";
-        return RedirectToAction("Index");
-      }
-
-      ViewBag.Rental=rental;
-
-      var model = new RentalCloseDto
-      {
-        RentalId=rental.Id
-      };
-
-      return View(model);
-    }
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Close(RentalCloseDto request)
-    {
-
-      int customerId = GetCurrentCustomerId();
-      var result = await _rentalServices.CloseContractAsync(request,customerId);
-
-      if(!result.Success)
-      {
-        ModelState.AddModelError("",result.Content);
-        return View(request);
-      }
-
-      TempData["Success"]="Contract Closed successfully!";
-      return RedirectToAction("Index");
-    }
-=======
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
 
     [HttpGet]
     public async Task<IActionResult> Pay(int rentalId)
@@ -224,14 +171,8 @@ namespace Web.Controllers
         TempData["Error"]="Rental not found";
         return RedirectToAction("Index");
       }
-<<<<<<< HEAD
-
-      ViewBag.Rental=rental;
-      ViewBag.Car=rental.Car;
-=======
       var car = await _carServices.GetByIdAsync(rental.CarId);
       ViewBag.Car=car;
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
 
       var model = new ExtendRentalDto
       {
@@ -266,32 +207,7 @@ namespace Web.Controllers
       return RedirectToAction("Details",new { rentalId = result.id });
     }
 
-<<<<<<< HEAD
-    [HttpGet]
-    public async Task<IActionResult> Active()
-    {
-      int customerId = GetCurrentCustomerId();
-      var rentals = await _rentalServices.GetCustomerRentalsAsync(customerId);
-
-      var activeRentals = rentals
-          .Where(r => r.Status==ApplicationCore.Entities.Enums.RentalContractStatus.Open)
-          .ToList();
-      foreach(var rental in activeRentals)
-      {
-        var car = await _carServices.GetByIdAsync(rental.CarId);
-        rental.Car=car;
-      }
-      var model = new ActiveRentalsViewModel
-      {
-        Rentals=activeRentals,
-
-      };
-
-      return View(model);
-    }
-=======
 
 
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
   }
 }

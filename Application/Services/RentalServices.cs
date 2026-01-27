@@ -227,25 +227,9 @@ namespace Application.Services
 
     }
 
-<<<<<<< HEAD
-    public async Task<RentalContract?> GetRentalByIdAsync(int reantalId)
-    {
-      var rental = await _rentalContract.GetByIdAsync(reantalId);
-
-      if(rental!=null)
-      {
-        // تحميل السيارة بشكل منفصل
-        var car = await _carRepo.GetByIdAsync(rental.CarId);
-        rental.Car=car;
-
-      }
-
-      return rental;
-=======
     public async Task<RentalContract> GetRentalByIdAsync(int reantalId)
     {
       return await _rentalContract.GetByIdAsync(reantalId);
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
     }
 
     public async Task<List<RentalContract>> GetCustomerRentalsAsync(int customerId)

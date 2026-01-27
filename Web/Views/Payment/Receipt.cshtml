@@ -10,28 +10,20 @@
 
       <div class="card shadow-sm">
         <div class="card-header bg-success text-white text-center py-4">
-<<<<<<< HEAD
-=======
           <h3 class="mb-0">
             <i class="bi bi-receipt"></i> Payment Receipt
           </h3>
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
           <p class="mb-0 mt-2">Receipt #@Model.Id</p>
         </div>
         <div class="card-body p-5">
 
           <!-- Receipt Header -->
           <div class="text-center mb-4">
-<<<<<<< HEAD
-            <h4 class="text-primary fw-bold">CarRental</h4>
-          </div>
-=======
             <h4 class="text-primary fw-bold">CarRental System</h4>
             <p class="text-muted small mb-0">123 Main Street, City, State 12345</p>
             <p class="text-muted small">Phone: (555) 123-4567 | Email: info@carrental.com</p>
           </div>
 
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
           <hr>
 
           <!-- Payment Details -->
@@ -59,50 +51,6 @@
 
           <hr>
 
-<<<<<<< HEAD
-          <!-- Payment Status Badge -->
-          <div class="text-center mb-4">
-            @if(Model.Purpose==ApplicationCore.Entities.Enums.PaymentPurpose.Partial)
-            {
-              <span class="badge bg-warning text-dark fs-5 px-4 py-2">
-                <i class="bi bi-cash-coin"></i> Partial Payment
-              </span>
-            }
-            else
-            {
-              <span class="badge bg-success fs-5 px-4 py-2">
-                <i class="bi bi-check-circle"></i> Full Payment
-              </span>
-            }
-          </div>
-
-          <!-- Detailed Amount Section -->
-          <div class="bg-light p-4 rounded mb-4">
-            <div class="row mb-3">
-              <div class="col-6">
-                <p class="mb-0"><strong>Rental Total Amount:</strong></p>
-              </div>
-              <div class="col-6 text-end">
-                <h5 class="mb-0 text-primary fw-bold">@Model.RentalContract.TotalAmount.ToString("C")</h5>
-              </div>
-            </div>
-
-            <div class="row mb-3">
-              <div class="col-6">
-                <p class="mb-0"><strong>Previously Paid:</strong></p>
-              </div>
-              <div class="col-6 text-end">
-                @{
-                  var previouslyPaid = Model.RentalContract.PaidAmount-Model.Amount;
-                }
-                <h5 class="mb-0 text-muted">@(previouslyPaid>0 ? previouslyPaid.ToString("C") : "0.00")</h5>
-              </div>
-            </div>
-
-            <div class="row mb-3">
-              <div class="col-6">
-                <p class="mb-0"><strong>Current Payment:</strong></p>
-=======
           <!-- Amount Section -->
           <div class="bg-light p-4 rounded mb-4">
             <div class="row mb-2">
@@ -125,49 +73,11 @@
             <div class="row">
               <div class="col-6">
                 <h5 class="mb-0"><strong>Amount Paid:</strong></h5>
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
               </div>
               <div class="col-6 text-end">
                 <h4 class="mb-0 text-success fw-bold">@Model.Amount.ToString("C")</h4>
               </div>
             </div>
-<<<<<<< HEAD
-
-            <hr class="my-3">
-
-            <div class="row mb-3">
-              <div class="col-6">
-                <p class="mb-0"><strong>Total Paid to Date:</strong></p>
-              </div>
-              <div class="col-6 text-end">
-                <h5 class="mb-0 text-info fw-bold">@Model.RentalContract.PaidAmount.ToString("C")</h5>
-              </div>
-            </div>
-
-            <hr class="my-3">
-
-            <div class="row">
-              <div class="col-6">
-                <h5 class="mb-0"><strong>Amount Remaining:</strong></h5>
-              </div>
-              <div class="col-6 text-end">
-                @{
-                  var amountRemaining = Model.RentalContract.TotalAmount-Model.RentalContract.PaidAmount;
-                  var finalAmount = Model.RentalContract.FinalAmount??Model.RentalContract.TotalAmount;
-                  var remaining = finalAmount-Model.RentalContract.PaidAmount;
-                }
-                @if(remaining>0)
-                {
-                  <h4 class="mb-0 text-danger fw-bold">@remaining.ToString("C")</h4>
-                }
-                else
-                {
-                  <h4 class="mb-0 text-success fw-bold">Fully Paid</h4>
-                }
-              </div>
-            </div>
-=======
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
           </div>
 
           <!-- Footer -->
@@ -181,24 +91,10 @@
             <button onclick="window.print()" class="btn btn-outline-primary">
               <i class="bi bi-printer"></i> Print Receipt
             </button>
-<<<<<<< HEAD
-            <a asp-controller="Rentals" asp-action="Details" asp-route-id="@Model.RentalContractId"
-               class="btn btn-outline-secondary">
-              <i class="bi bi-arrow-left"></i> Back to Rental
-            </a>
-            @if(Model.Purpose==ApplicationCore.Entities.Enums.PaymentPurpose.Partial&&remaining>0)
-            {
-              <a asp-controller="Payment" asp-action="MakePayment" asp-route-rentalId="@Model.RentalContractId"
-                 class="btn btn-success">
-                <i class="bi bi-cash"></i> Make Another Payment
-              </a>
-            }
-=======
             <a asp-controller="Rental" asp-action="Details" asp-route-id="@Model.RentalContractId"
                class="btn btn-outline-secondary">
               <i class="bi bi-arrow-left"></i> Back to Rental
             </a>
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
           </div>
 
         </div>
@@ -211,11 +107,7 @@
 @section Scripts {
   <style>
     @@media print {
-<<<<<<< HEAD
-      .btn, nav, footer {
-=======
       .btn, .card-header, nav, footer {
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
         display: none !important;
       }
 

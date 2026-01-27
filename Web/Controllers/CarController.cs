@@ -56,35 +56,6 @@ namespace Web.Controllers
       }
       return View(car);
     }
-<<<<<<< HEAD
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id,Car car)
-    {
-      if(id!=car.Id)
-      {
-        TempData["Error"]="Invalid car ID";
-        return RedirectToAction("Index");
-      }
-
-      if(!ModelState.IsValid)
-        return View(car);
-
-      try
-      {
-        await _carServices.UpdateCarAsync(car);
-        TempData["Success"]="Car updated successfully!";
-        return RedirectToAction("Index");
-      }
-      catch(Exception ex)
-      {
-        TempData["Error"]="An error occurred while updating the car: "+ex.Message;
-        return View(car);
-      }
-    }
-
-=======
->>>>>>> bb34bdc6388bf2d2af71bac74f7c565120e5082e
 
     // حذف عربية
     [HttpPost]
