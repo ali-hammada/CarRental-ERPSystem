@@ -217,6 +217,12 @@ namespace Web.Controllers
       var activeRentals = rentals
           .Where(r => r.Status==ApplicationCore.Entities.Enums.RentalContractStatus.Open)
           .ToList();
+      // تحميل بيانات السيارة لكل عقد
+      foreach(var rental in activeRentals)
+      {
+        var car = await _carServices.GetByIdAsync(rental.CarId);
+        rental.Car=car;
+      }
 
       // بحث بسيط
       if(!string.IsNullOrWhiteSpace(searchTerm))
