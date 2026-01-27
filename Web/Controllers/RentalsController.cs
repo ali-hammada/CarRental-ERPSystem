@@ -3,6 +3,7 @@ using Application.Services.Interfaces;
 using ApplicationCore.Entities.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Web.ViewModels;
 
 namespace Web.Controllers
 {
@@ -207,7 +208,35 @@ namespace Web.Controllers
       return RedirectToAction("Details",new { rentalId = result.id });
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Active(string? searchTerm)
+    {
+      int customerId = GetCurrentCustomerId();
+      var rentals = await _rentalServices.GetCustomerRentalsAsync(customerId);
 
+      var activeRentals = rentals
+          .Where(r => r.Status==ApplicationCore.Entities.Enums.RentalContractStatus.Open)
+          .ToList();
+
+      // بحث بسيط
+      if(!string.IsNullOrWhiteSpace(searchTerm))
+      {
+        var term = searchTerm.ToLower();
+        activeRentals=activeRentals.Where(r =>
+            (r.Car?.Model?.ToLower().Contains(term)??false)||
+            (r.Car?.PlateNumber?.ToLower().Contains(term)??false)||
+            r.Id.ToString().Contains(term)
+        ).ToList();
+      }
+
+      var model = new ActiveRentalsViewModel
+      {
+        Rentals=activeRentals,
+        SearchTerm=searchTerm
+      };
+
+      return View(model);
+    }
 
   }
 }
