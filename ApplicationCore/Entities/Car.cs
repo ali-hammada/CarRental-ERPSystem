@@ -8,6 +8,7 @@ namespace ApplicationCore.Entities
     public string Model { get; set; } = null!;
     public int Year { get; set; }
     public decimal PricePerDay { get; set; }
+
     public CarStatus Status { get; set; }
     public byte[]? ImageUrl { get; set; }
 
