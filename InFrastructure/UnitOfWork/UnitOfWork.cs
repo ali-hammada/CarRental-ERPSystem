@@ -15,18 +15,23 @@ namespace InFrastructure.UnitOfWork
       _context=context;
 
       Cars=new CarRepository(_context);
-      Customers=new GenericRepository<Customer>(_context);
+      Customer=new CustomerRepository(_context);
       RentalContracts=new GenericRepository<RentalContract>(_context);
       Payments=new GenericRepository<Payment>(_context);
+      Employee=new GenericRepository<Employees>(_context);
     }
 
     public ICarRepository Cars { get; }
 
-    public IGenericRepository<Customer> Customers { get; }
+    public ICustomerRepository Customer { get; }
 
     public IGenericRepository<RentalContract> RentalContracts { get; }
 
     public IGenericRepository<Payment> Payments { get; }
+
+    public IGenericRepository<Employees> Employee { get; private set; }
+
+
 
     public async Task BeginTransactionAsync()
     {

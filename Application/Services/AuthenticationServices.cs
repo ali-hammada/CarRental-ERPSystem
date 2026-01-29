@@ -9,59 +9,60 @@ namespace Application.Services
 {
   public class AuthenticationServices:IAuthenticationServices
   {
-    private readonly ICustomerRepository _customerRepository;
+    private readonly IEmployeeRepository _employeeRepository;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly ITokenServices _tokenService;
 
-    public AuthenticationServices(ICustomerRepository customerRepository,IUnitOfWork unitOfWork,ITokenServices tokenService)
+    public AuthenticationServices(
+        IEmployeeRepository employeeRepository,
+        IUnitOfWork unitOfWork)
     {
-      _customerRepository=customerRepository;
-      _tokenService=tokenService;
+      _employeeRepository=employeeRepository;
       _unitOfWork=unitOfWork;
-
     }
+
 
     public async Task<(bool success, string message)> RegisterAsync(RegisterDto dto)
     {
-      var ExistingCustomer = await _customerRepository.GetByEmail(dto.Email);
-      if(ExistingCustomer==null)
+      var existingEmployee = await _employeeRepository.GetByEmailAsync(dto.Email);
+
+      if(existingEmployee!=null)
+        return (false, "Employee with this email already exists.");
+
+      var employee = new Employees
       {
-        var newCustomer = new Customer
-        {
-          Name=dto.Name,
-          Email=dto.Email,
-          Phone=dto.Phone,
-          DrivingLicenseNumber=dto.DrivingLicenseNumber??"",
-          LicenseExpiryDate=dto.LicenseExpiryDate,
+        FullName=dto.Name,
+        Email=dto.Email,
+        Phone=dto.Phone,
+        Role="Admin"
+      };
 
-        };
-        var hasher = new PasswordHasher<Customer>();
-        string hashedPassword = hasher.HashPassword(newCustomer,dto.Password);
-        newCustomer.PasswordHash=hashedPassword;
+      var hasher = new PasswordHasher<Employees>();
+      employee.PasswordHash=hasher.HashPassword(employee,dto.Password);
 
-        await _customerRepository.AddAsync(newCustomer);
-        await _unitOfWork.SaveChangesAsync();
+      await _employeeRepository.AddAsync(employee);
+      await _unitOfWork.SaveChangesAsync();
 
-        return (true, "Registration successful.");
-      }
-      return (false, "Customer with this email already exists.");
+      return (true, "Registration successful.");
     }
-    public async Task<(bool success, string message, Customer? customer)> LogInAsync(LoginDto dto)
+
+    public async Task<(bool success, string message, Employees? employee)> LogInAsync(LoginDto dto)
     {
-      var customer = await _customerRepository.GetByEmail(dto.Email);
-      if(customer==null)
-        return (false, "Customer Does not Exist Yet.", null);
-      var hasher = new PasswordHasher<Customer>();
-      var result = hasher.VerifyHashedPassword(customer,customer.PasswordHash,dto.Password);
+      var employee = await _employeeRepository.GetByEmailAsync(dto.Email);
+
+      if(employee==null)
+        return (false, "Employee does not exist.", null);
+
+      var hasher = new PasswordHasher<Employees>();
+
+      var result = hasher.VerifyHashedPassword(
+          employee,
+          employee.PasswordHash,
+          dto.Password);
 
       if(result==PasswordVerificationResult.Failed)
-        return (false, "Invalid Email or Password", null);
-      var token = _tokenService.GenerateToken(customer);
-      return (true, token, customer);
+        return (false, "Invalid email or password.", null);
 
-
+      return (true, "Login successful", employee);
     }
-
-
   }
 }

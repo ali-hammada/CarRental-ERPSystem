@@ -49,17 +49,21 @@ namespace Web.Controllers
       }
       var activeRentals = rentals.Where(r => r.Status==RentalContractStatus.Open).ToList();
       var completedRentals = rentals.Where(r =>
-          r.Status==RentalContractStatus.Closed||
+          r.Status==RentalContractStatus.Closed).ToList();
+      var cancelledRentalls = rentals.Where(r =>
           r.Status==RentalContractStatus.Cancelled).ToList();
+
 
       var viewModel = new DashboardViewModel
       {
         TotalRentals=rentals.Count,
         ActiveRentals=activeRentals.Count,
         CompletedRentals=completedRentals.Count,
+        CancelledRentals=cancelledRentalls.Count,
         TotalPaidAmount=payments.Sum(p => p.Amount),
         TotalPayments=payments.Count,
-        CarsRented=rentals.Select(r => r.CarId).Distinct().Count(),
+        CarsRented=activeRentals.Select(r => r.CarId).Distinct().Count(),
+        CarsAvailable=activeRentals.Select(r => r.Car.Status!=CarStatus.Rented).Distinct().Count(),
         ActiveContracts=activeRentals.OrderByDescending(r => r.StartDate).Take(5).ToList(),
         RecentPayments=payments.OrderByDescending(p => p.PaymentDate).Take(5).ToList()
       };
@@ -70,7 +74,7 @@ namespace Web.Controllers
       var paymentsPerMonth = new List<decimal>();
 
       var currentDate = DateTime.Now;
-      for(int i = 5;i>=0;i--)
+      for(int i = 6;i>=0;i--)
       {
         var monthDate = currentDate.AddMonths(-i);
         var monthName = monthDate.ToString("MMM yyyy");

@@ -49,12 +49,25 @@ namespace Web.Controllers
       var car = await _carServices.GetByIdAsync(id);
       if(car==null)
       {
+        TempData["Success"]="Car Updated successfully!";
         return RedirectToAction("Index");
       }
       return View(car);
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(Car car)
+    {
+      if(!ModelState.IsValid)
+        return View(car);
 
+
+      await _carServices.UpdateCarAsync(car);
+
+      TempData["Success"]="Car updated successfully!";
+      return RedirectToAction("Index");
+    }
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)

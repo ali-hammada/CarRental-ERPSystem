@@ -11,214 +11,10 @@
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
-
+  <link rel="stylesheet" href="~/css/portfolio.styles.css" asp-append-version="true" />
   <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-  <link rel="stylesheet" href="~/PortFolio.styles.css" asp-append-version="true" />
 
-  <style>
-    :root {
-      --primary-color: #0d6efd;
-      --secondary-color: #6c757d;
-      --success-color: #198754;
-      --danger-color: #dc3545;
-      --warning-color: #ffc107;
-      --info-color: #0dcaf0;
-      --sidebar-width: 280px;
-      --sidebar-bg: #2c3e50;
-      --sidebar-hover: #34495e;
-      --sidebar-active: #1a252f;
-    }
 
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow-x: hidden;
-    }
-
-    main {
-      flex: 1;
-      margin-right: var(--sidebar-width);
-      padding-top: 60px;
-      transition: margin-right 0.3s ease;
-    }
-
-    /* Sidebar Styles */
-    .sidebar {
-      position: fixed;
-      top: 0;
-      right: 0;
-      height: 100vh;
-      width: var(--sidebar-width);
-      background: var(--sidebar-bg);
-      color: white;
-      z-index: 1000;
-      box-shadow: -2px 0 10px rgba(0,0,0,0.1);
-      transition: transform 0.3s ease;
-    }
-
-    .sidebar-header {
-      padding: 20px;
-      background: rgba(0,0,0,0.2);
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-
-      .sidebar-header h4 {
-        margin: 0;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-    .sidebar-menu {
-      padding: 20px 0;
-      overflow-y: auto;
-      height: calc(100vh - 60px);
-    }
-
-      .sidebar-menu .nav-item {
-        margin-bottom: 5px;
-      }
-
-      .sidebar-menu .nav-link {
-        color: rgba(255,255,255,0.85);
-        padding: 12px 25px;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        transition: all 0.3s ease;
-        border-left: 3px solid transparent;
-      }
-
-        .sidebar-menu .nav-link:hover {
-          color: white;
-          background: var(--sidebar-hover);
-          border-left-color: var(--primary-color);
-        }
-
-        .sidebar-menu .nav-link.active {
-          color: white;
-          background: var(--sidebar-active);
-          border-left-color: var(--primary-color);
-        }
-
-        .sidebar-menu .nav-link i {
-          width: 20px;
-          font-size: 1.1rem;
-        }
-
-      .sidebar-menu .dropdown-toggle::after {
-        margin-left: auto;
-      }
-
-      .sidebar-menu .dropdown-menu {
-        background: var(--sidebar-bg);
-        border: none;
-        box-shadow: -5px 5px 15px rgba(0,0,0,0.2);
-        position: absolute;
-        right: 100%;
-        top: 0;
-        width: var(--sidebar-width);
-        border-radius: 0;
-        padding: 10px 0;
-      }
-
-      .sidebar-menu .dropdown-item {
-        color: rgba(255,255,255,0.85);
-        padding: 10px 25px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-        .sidebar-menu .dropdown-item:hover {
-          color: white;
-          background: var(--sidebar-hover);
-        }
-
-        .sidebar-menu .dropdown-item i {
-          width: 18px;
-        }
-
-      .sidebar-menu .nav-divider {
-        height: 1px;
-        background: rgba(255,255,255,0.1);
-        margin: 10px 20px;
-      }
-
-    .user-section {
-      padding: 15px 25px;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      margin-top: 10px;
-    }
-
-      .user-section .user-info {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: white;
-      }
-
-    .user-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--primary-color);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-
-    /* Responsive Sidebar */
-    @@media (max-width: 992px) {
-      .sidebar
-
-    {
-      transform: translateX(100%);
-    }
-
-    .sidebar.show {
-      transform: translateX(0);
-    }
-
-    main {
-      margin-right: 0;
-    }
-
-    .sidebar-toggle {
-      display: block !important;
-    }
-
-    }
-
-    /* Content Area */
-    .content-wrapper {
-      padding: 20px;
-      min-height: calc(100vh - 60px);
-    }
-
-    footer {
-      background-color: #f8f9fa;
-      padding: 2rem 0;
-      margin-top: 3rem;
-      margin-right: var(--sidebar-width);
-      transition: margin-right 0.3s ease;
-    }
-
-    @@media (max-width: 992px) {
-      footer
-
-    {
-      margin-right: 0;
-    }
-
-    }
-  </style>
 </head>
 <body>
   <!-- Sidebar Menu -->
@@ -226,7 +22,7 @@
     <div class="sidebar-header">
       <h4>
         <i class="bi bi-car-front-fill"></i>
-        <span>CarRental System</span>
+        <span>CarRental</span>
       </h4>
     </div>
 
@@ -241,6 +37,14 @@
         <a class="nav-link" asp-controller="Car" asp-action="Index">
           <i class="bi bi-car-front"></i>
           <span>Cars</span>
+        </a>
+        <a class="nav-link" asp-controller="Employees" asp-action="Index">
+          <i class="bi bi-car-front"></i>
+          <span>Employees</span>
+        </a>
+        <a class="nav-link" asp-controller="Customers" asp-action="Index">
+          <i class="bi bi-people"></i>
+          <span>Customers</span>
         </a>
 
         <a class="nav-link" asp-controller="Rentals" asp-action="Index">
@@ -280,7 +84,7 @@
               </div>
               <div>
                 <div class="fw-bold">@User.Identity.Name</div>
-                <small class="text-muted">Customer</small>
+                <small class="text-muted">Employee</small>
               </div>
             </div>
 
@@ -378,7 +182,6 @@
   <script src="~/js/site.js" asp-append-version="true"></script>
 
   <script>
-    // Active link highlighting
     $(document).ready(function() {
       var currentPath = window.location.pathname.toLowerCase();
       $('.sidebar-menu .nav-link').each(function() {
@@ -389,14 +192,10 @@
       });
     });
 
-    // Print all receipts function
     function printAllReceipts() {
       alert('This will open a page with all your receipts for printing.');
-      // You can redirect to a page that shows all receipts
-      // window.location.href = '/Payment/AllReceipts';
-    }
 
-    // Mobile sidebar toggle
+    }
     function toggleSidebar() {
       $('.sidebar').toggleClass('show');
     }

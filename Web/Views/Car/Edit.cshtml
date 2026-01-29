@@ -1,5 +1,5 @@
-﻿@model ApplicationCore.Entities.Car;
-
+﻿@model ApplicationCore.Entities.Car
+@using ApplicationCore.Entities.Enums
 
 @{
   var isEdit = Model!=null&&Model.Id!=0;
@@ -8,11 +8,12 @@
 
 <div class="container mt-4">
   <div class="row justify-content-center">
-    <div class="col-lg-6">
+    <div class="col-lg-8">
       <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header @(isEdit ? "bg-warning text-dark" : "bg-primary text-white")">
           <h4 class="mb-0">
-            <i class="bi bi-car-front-fill"></i> @(isEdit ? "Edit Car" : "Add New Car")
+            <i class="@(isEdit ? "bi bi-pencil-fill" : "bi bi-car-front-fill")"></i>
+            @(isEdit ? "Edit Car Details" : "Add New Car")
           </h4>
         </div>
         <div class="card-body">
@@ -20,66 +21,141 @@
           @if(TempData["Error"]!=null)
           {
             <div class="alert alert-danger alert-dismissible fade show">
-              <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+              <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
               <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
           }
 
-          <form asp-action="@(isEdit ? "Edit" : "Create")" method="post">
-            <input type="hidden" asp-for="Id" />
-
-            <div class="mb-3">
-              <label asp-for="Model" class="form-label">Model</label>
-              <input asp-for="Model" class="form-control" required />
-              <span asp-validation-for="Model" class="text-danger"></span>
+          @if(TempData["Success"]!=null)
+          {
+            <div class="alert alert-success alert-dismissible fade show">
+              <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
+          }
 
-            <div class="mb-3">
-              <label asp-for="Year" class="form-label">Year</label>
-              <input asp-for="Year" type="number" class="form-control" required />
-              <span asp-validation-for="Year" class="text-danger"></span>
-            </div>
+          <form asp-action="@(isEdit ? "Edit" : "Create")"
+                method="post"
+                enctype="multipart/form-data"
+                id="carForm">
+            @Html.AntiForgeryToken()
 
-            <div class="mb-3">
-              <label asp-for="PricePerDay" class="form-label">Price per Day</label>
-              <input asp-for="PricePerDay" type="number" step="0.01" class="form-control" required />
-              <span asp-validation-for="PricePerDay" class="text-danger"></span>
-            </div>
+            @if(isEdit)
+            {
+              <input type="hidden" asp-for="Id" />
+              <input type="hidden" asp-for="ImageUrl" id="existingImageUrl" />
+            }
 
-            <div class="mb-3">
-              <label asp-for="PlateNumber" class="form-label">Plate Number</label>
-              <input asp-for="PlateNumber" class="form-control" required />
-              <span asp-validation-for="PlateNumber" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-              <label asp-for="Status" class="form-label">Status</label>
-              <select asp-for="Status" class="form-select">
-                <option value="Available">Available</option>
-                <option value="Rented">Rented</option>
-              </select>
-              @if (Model.Status == ApplicationCore.Entities.Enums.CarStatus.Rented)
-              {
-
-                <div class="alert alert-warning">
-                  ⚠️ This car is currently rented. You cannot change its status.
+            <div class="row g-3">
+              <!-- Model -->
+              <div class="col-md-6">
+                <label asp-for="Model" class="form-label">Car Model <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-car-front"></i>
+                  </span>
+                  <input asp-for="Model" class="form-control" required placeholder="e.g., Toyota Camry" />
                 </div>
-              }
+                <span asp-validation-for="Model" class="text-danger"></span>
+              </div>
 
+              <!-- Year -->
+              <div class="col-md-6">
+                <label asp-for="Year" class="form-label">Manufacture Year <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-calendar"></i>
+                  </span>
+                  <input asp-for="Year" type="number" class="form-control" required
+                         min="1900" max="@DateTime.Now.Year" placeholder="@DateTime.Now.Year" />
+                </div>
+                <span asp-validation-for="Year" class="text-danger"></span>
+              </div>
 
-              <span asp-validation-for="Status" class="text-danger"></span>
+              <!-- Plate Number -->
+              <div class="col-md-6">
+                <label asp-for="PlateNumber" class="form-label">Plate Number <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-tag"></i>
+                  </span>
+                  <input asp-for="PlateNumber" class="form-control" required placeholder="ABC-123" id="PlateNumberInput" />
+                </div>
+                <span asp-validation-for="PlateNumber" class="text-danger"></span>
+                <div id="plateExistsMessage" class="text-danger small mt-1" style="display:none;">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i> Plate number already exists!
+                </div>
+              </div>
+
+              <!-- Price Per Day -->
+              <div class="col-md-6">
+                <label asp-for="PricePerDay" class="form-label">Price Per Day ($) <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-cash"></i>
+                  </span>
+                  <input asp-for="PricePerDay" type="number" step="0.01" class="form-control" required
+                         min="0" placeholder="0.00" />
+                </div>
+                <span asp-validation-for="PricePerDay" class="text-danger"></span>
+              </div>
+
+              <!-- Status -->
+              <div class="col-md-12">
+                <label asp-for="Status" class="form-label">Current Status <span class="text-danger">*</span></label>
+                <select asp-for="Status" class="form-select" required id="statusSelect">
+                  <option value="">Select Status</option>
+                  <option value="@CarStatus.Available">Available</option>
+                  <option value="@CarStatus.Rented">Rented</option>
+        
+                </select>
+                <span asp-validation-for="Status" class="text-danger"></span>
+
+                @if(isEdit&&Model.Status==CarStatus.Rented)
+                {
+                  <div class="alert alert-warning mt-2 mb-0">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    This car is currently rented. Status will update automatically when rental ends.
+                  </div>
+                }
+              </div>
+
+              <!-- Car Image -->
+              <div class="col-md-12">
+                <label class="form-label">Car Image</label>
+                <div class="card border-dashed" style="border-width: 2px;">
+                  <div class="card-body text-center p-4">
+                    <div id="imagePreviewContainer" class="mb-3">
+                      @if(isEdit&&!string.IsNullOrEmpty(Model.ImageUrl))
+                      {
+                        <img src="@Model.ImageUrl" id="imagePreview" class="img-thumbnail rounded" style="max-height: 200px; object-fit: contain;" alt="Car Image">
+                      }
+                      else
+                      {
+                        <div id="imagePreview" class="text-muted py-4">
+                          <i class="bi bi-cloud-upload fs-1 mb-2 d-block"></i>
+                          <span>Click to upload car image</span>
+                        </div>
+                      }
+                    </div>
+                    <input type="file" name="image" id="imageInput" class="form-control d-none" accept="image/*">
+                    <button type="button" class="btn btn-outline-primary" id="uploadBtn">
+                      <i class="bi bi-images me-1"></i> @(isEdit ? "Change Image" : "Upload Image")
+                    </button>
+                    <p class="text-muted small mt-2 mb-0">Recommended size: 800x600px. JPG, PNG, or GIF</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="mb-3">
-              <label class="form-label">Car Image</label>
-              <input type="file" name="image" class="form-control" accept="image/*">
-            </div>
+
+            <hr class="my-4">
 
             <div class="d-flex justify-content-end gap-2">
               <a asp-action="Index" class="btn btn-secondary">
-                <i class="bi bi-x-circle"></i> Cancel
+                <i class="bi bi-x-circle me-1"></i> Cancel
               </a>
-              <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-circle"></i> @(isEdit ? "Update Car" : "Add Car")
+              <button type="submit" class="btn @(isEdit ? "btn-warning" : "btn-primary")" id="submitBtn">
+                <i class="bi bi-check-circle me-1"></i> @(isEdit ? "Update Car" : "Add Car")
               </button>
             </div>
           </form>
@@ -91,5 +167,86 @@
 </div>
 
 @section Scripts {
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('carForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const imageInput = document.getElementById('imageInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const plateNumberInput = document.getElementById('PlateNumberInput');
+        const plateExistsMessage = document.getElementById('plateExistsMessage');
+        const statusSelect = document.getElementById('statusSelect');
+
+        // Image upload handling
+        uploadBtn.addEventListener('click', function() {
+            imageInput.click();
+        });
+
+        imageInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    if (imagePreview.tagName === 'IMG') {
+                        imagePreview.src = event.target.result;
+                    } else {
+                        imagePreview.innerHTML = `<img src="${event.target.result}" class="img-thumbnail rounded" style="max-height: 200px; object-fit: contain;">`;
+                    }
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        // Plate number duplicate check (Create mode only)
+        @if(!isEdit)
+        {
+              <text>
+              plateNumberInput.addEventListener('blur', function () {
+                  if (this.value) {
+                      checkFieldExists('PlateNumber', this.value, plateExistsMessage);
+                  }
+              });
+              </text>
+        }
+
+        // Disable status change if currently rented (Edit mode)
+        @if(isEdit&&Model.Status==CarStatus.Rented)
+        {
+              <text>
+              statusSelect.disabled = true;
+              </text>
+        }
+
+        // Form submission
+        form.addEventListener('submit', function (e) {
+            // Disable button during processing
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Processing...';
+        });
+
+        // Function to check if field exists
+        async function checkFieldExists(field, value, messageElement) {
+            try {
+                const response = await fetch(`/Car/Check${field}Exists`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ [field.toLowerCase().replace('number', '')]: value })
+                });
+
+                const result = await response.json();
+                if (result.exists) {
+                    messageElement.style.display = 'block';
+                } else {
+                    messageElement.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error checking field:', error);
+            }
+        }
+    });
+  </script>
   @await Html.PartialAsync("_ValidationScriptsPartial")
 }

@@ -47,10 +47,10 @@ namespace Web.Controllers
         Password=model.Password
       });
 
-      if(loginResult.success&&loginResult.customer!=null)
+      if(loginResult.success&&loginResult.employee!=null)
       {
-        await SignInUserAsync(loginResult.customer);
-        TempData["Success"]=$"Welcome to CarRental, {loginResult.customer.Name}!";
+        await SignInUserAsync(loginResult.employee);
+        TempData["Success"]=$"Welcome to CarRental, {loginResult.employee.FullName}!";
         return RedirectToAction("Index","Home");
       }
 
@@ -76,14 +76,14 @@ namespace Web.Controllers
 
       var result = await _authService.LogInAsync(model);
 
-      if(!result.success||result.customer==null)
+      if(!result.success||result.employee==null)
       {
         ModelState.AddModelError(string.Empty,result.message);
         return View(model);
       }
 
-      await SignInUserAsync(result.customer);
-      TempData["Success"]=$"Welcome back, {result.customer.Name}!";
+      await SignInUserAsync(result.employee);
+      TempData["Success"]=$"Welcome back, {result.employee.FullName}!";
 
       if(!string.IsNullOrEmpty(returnUrl)&&Url.IsLocalUrl(returnUrl))
         return Redirect(returnUrl);
@@ -101,15 +101,16 @@ namespace Web.Controllers
       return RedirectToAction(nameof(Login));
     }
 
-    private async Task SignInUserAsync(ApplicationCore.Entities.Customer customer)
+    private async Task SignInUserAsync(ApplicationCore.Entities.Employees employee)
     {
       var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, customer.Id.ToString()),
-                new Claim(ClaimTypes.Name, customer.Name),
-                new Claim(ClaimTypes.Email, customer.Email),
-                new Claim("CustomerId", customer.Id.ToString())
-            };
+    {
+        new Claim(ClaimTypes.NameIdentifier, employee.Id.ToString()),
+        new Claim(ClaimTypes.Name, employee.FullName),
+        new Claim(ClaimTypes.Email, employee.Email),
+        new Claim(ClaimTypes.Role, employee.Role),
+        new Claim("EmployeeId", employee.Id.ToString())
+    };
 
       var claimsIdentity = new ClaimsIdentity(
           claims,
@@ -129,5 +130,6 @@ namespace Web.Controllers
           claimsPrincipal,
           authProperties);
     }
+
   }
 }

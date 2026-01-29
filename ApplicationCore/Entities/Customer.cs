@@ -9,7 +9,6 @@
     public string DrivingLicenseNumber { get; set; } = null!;
     public DateTime LicenseExpiryDate { get; set; }
 
-    // 1-N RentalContracts
     public ICollection<RentalContract> RentalContracts { get; set; } = new List<RentalContract>();
   }
 

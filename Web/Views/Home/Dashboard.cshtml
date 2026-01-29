@@ -31,7 +31,7 @@
   <!-- Statistics Cards -->
   <div class="row g-4 mb-4">
     <!-- Total Rentals -->
-    <div class="col-xl-2 col-md-4 col-sm-6">
+    <div class="col-xl-4 col-md-4 col-sm-6">
       <div class="card shadow-sm border-0 h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center">
@@ -48,7 +48,7 @@
     </div>
 
     <!-- Active Rentals -->
-    <div class="col-xl-2 col-md-4 col-sm-6">
+    <div class="col-xl-4 col-md-4 col-sm-6">
       <div class="card shadow-sm border-0 h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center">
@@ -65,7 +65,7 @@
     </div>
 
     <!-- Completed Rentals -->
-    <div class="col-xl-2 col-md-4 col-sm-6">
+    <div class="col-xl-4 col-md-4 col-sm-6">
       <div class="card shadow-sm border-0 h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center">
@@ -80,9 +80,25 @@
         </div>
       </div>
     </div>
+    <!-- Cancelled Rentals -->
+    <div class="col-xl-4 col-md-4 col-sm-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-1 small">Cancelled</p>
+              <h2 class="mb-0 fw-bold text-danger">@Model.CancelledRentals</h2>
+            </div>
+            <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-3">
+              <i class="bi bi-x-circle-fill fs-4"></i>
+            </div>
+          </div>
+        </div>  
+      </div>
+    </div>
 
     <!-- Total Paid -->
-    <div class="col-xl-2 col-md-4 col-sm-6">
+    <div class="col-xl-4 col-md-4 col-sm-6">
       <div class="card shadow-sm border-0 h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center">
@@ -99,7 +115,7 @@
     </div>
 
     <!-- Total Payments -->
-    <div class="col-xl-2 col-md-4 col-sm-6">
+    <div class="col-xl-4 col-md-4 col-sm-6">
       <div class="card shadow-sm border-0 h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center">
@@ -116,7 +132,7 @@
     </div>
 
     <!-- Cars Rented -->
-    <div class="col-xl-2 col-md-4 col-sm-6">
+    <div class="col-xl-4 col-md-4 col-sm-6">
       <div class="card shadow-sm border-0 h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center">
@@ -124,14 +140,32 @@
               <p class="text-muted mb-1 small">CARS RENTED</p>
               <h2 class="mb-0 fw-bold text-purple">@Model.CarsRented</h2>
             </div>
-            <div class="bg-purple bg-opacity-10 text-purple p-3 rounded-3">
+            <div class="bg-secondary bg-opacity-10 text-bg-secondary p-3 rounded-3">
               <i class="bi bi-truck fs-4"></i>
             </div>
           </div>
         </div>
       </div>
     </div>
+  
+    <!-- Cars Available -->
+  <div class="col-xl-4 col-md-4 col-sm-6">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <p class="text-muted mb-1 small">CARS Available</p>
+            <h2 class="mb-0 fw-bold text-success">@Model.CarsAvailable</h2>
+          </div>
+          <div class="bg-success bg-opacity-10 text-success p-3 rounded-3">
+            <i class="bi bi-truck fs-4"></i>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
+</div>
 
   <!-- Charts Section -->
   <div class="row g-4 mb-4">
@@ -255,7 +289,7 @@
               <h5 class="text-muted">No active contracts</h5>
               <p class="text-muted small mt-2">Start a new rental to see it here</p>
               <a asp-controller="Car" asp-action="Index" class="btn btn-primary mt-3">
-                <i class="bi bi-car-front me-1"></i> Browse Cars
+                <i class="bi bi-car-front me-1"></i>  Cars
               </a>
             </div>
           }
@@ -334,7 +368,7 @@
             <div class="col-md-3 col-sm-6">
               <a asp-controller="Car" asp-action="Index" class="btn btn-outline-primary w-100 py-4 d-flex flex-column align-items-center">
                 <i class="bi bi-car-front fs-3 mb-2"></i>
-                <span class="fw-bold">Browse Cars</span>
+                <span class="fw-bold">Cars</span>
               </a>
             </div>
             <div class="col-md-3 col-sm-6">

@@ -11,6 +11,7 @@ namespace InFrastructure.Data
     public DbSet<Customer> Customers { get; set; } = null!;
     public DbSet<RentalContract> RentalContracts { get; set; } = null!;
     public DbSet<Payment> Payments { get; set; } = null!;
+    public DbSet<Employees> Employee { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,109 +1,224 @@
 ﻿@using ApplicationCore.Entities.Enums
 @model IEnumerable<ApplicationCore.Entities.Car>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h3>Cars</h3>
-  <a asp-controller="Car" asp-action="Create" class="btn btn-success">
-    <i class="bi bi-plus-circle"></i> Add New Car
-  </a>
-</div>
-
-@if(!Model.Any())
-{
-  <div class="alert alert-info">
-    No cars available yet. Click "Add New Car" to create one.
-  </div>
+@{
+  ViewData["Title"]="Cars Management";
 }
-else
-{
-  <div class="row">
-    @foreach(var car in Model)
-    {
-      <div class="col-md-4 mb-3">
-        <div class="card h-100 shadow-sm border-0">
-          <div class="card-img-top" style="height: 200px; overflow: hidden; background-color: #f8f9fa;">
-            @if(!string.IsNullOrEmpty(car.ImageUrl))
-            {
-              <img src="@car.ImageUrl"
-                   alt="@car.Model"
-                   class="w-100 h-100 object-fit-cover"
-                   style="object-fit: cover;">
-            }
-            else
-            {
-              <div class="w-100 h-100 d-flex align-items-center justify-content-center">
-                <i class="bi bi-car-front fs-1 text-secondary"></i>
-              </div>
-            }
-          </div>
 
-          <div class="card-body">
-            <h5 class="card-title mb-2">
-              <strong>@car.Model</strong>
-              <span class="badge bg-info text-dark ms-2">@car.Year</span>
-            </h5>
-
-            <div class="mb-3">
-              <p class="mb-1">
-                <i class="bi bi-tag"></i> <strong>Plate:</strong> @car.PlateNumber
-              </p>
-              <p class="mb-1">
-                <i class="bi bi-cash"></i> <strong>Price:</strong> @car.PricePerDay.ToString("C") / day
-              </p>
-              <p class="mb-0">
-                <i class="bi bi-info-circle"></i> <strong>Status:</strong>
-                <span class="badge bg-@(car.Status==CarStatus.Available ? "success" : "secondary")">
-                  @car.Status
-                </span>
-              </p>
+<div class="container-fluid mt-4">
+  <!-- Header Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-primary text-white shadow-sm border-0">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h3 class="mb-1">
+                <i class="bi bi-car-front-fill me-2"></i> Cars Management
+              </h3>
+              <p class="mb-0 opacity-90">Manage your vehicle fleet efficiently</p>
             </div>
-
-            <div class="d-grid gap-2">
-              @if(car.Status==ApplicationCore.Entities.Enums.CarStatus.Available)
-              {
-                <a asp-controller="Rentals"
-                   asp-action="Open"
-                   asp-route-carId="@car.Id"
-                   class="btn btn-primary">
-                  <i class="bi bi-car-front"></i> Rent Now
-                </a>
-              }
-              else
-              {
-                <button class="btn btn-secondary"
-                        disabled
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title="This car is not available for rent">
-                  <i class="bi bi-car-front"></i> Rent Now
-                </button>
-              }
-
-              <a asp-controller="Car"
-                 asp-action="Edit"
-                 asp-route-id="@car.Id"
-                 class="btn btn-warning">
-                <i class="bi bi-pencil-square"></i> Edit
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+              <a asp-action="Create" class="btn btn-light btn-lg">
+                <i class="bi bi-plus-circle me-1"></i> Add New Car
               </a>
-
-              <form asp-controller="Car"
-                    asp-action="Delete"
-                    asp-route-id="@car.Id"
-                    method="post"
-                    class="d-grid"
-                    onsubmit="return confirm('Are you sure you want to delete this car?');">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-danger">
-                  <i class="bi bi-trash"></i> Delete
-                </button>
-              </form>
-            </div>
-
-             
             </div>
           </div>
         </div>
-     
-    }
+      </div>
+    </div>
   </div>
+
+  <!-- Alert Messages -->
+  @if(TempData["Success"]!=null)
+  {
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="alert alert-success alert-dismissible fade show">
+          <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if(TempData["Error"]!=null)
+  {
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="alert alert-danger alert-dismissible fade show">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Cars Grid -->
+  @if(!Model.Any())
+  {
+    <div class="row">
+      <div class="col-12">
+        <div class="card shadow-sm border-0">
+          <div class="card-body">
+            <div class="text-center py-5">
+              <div class="mb-3">
+                <i class="bi bi-car-front fs-1 text-muted"></i>
+              </div>
+              <h5 class="text-muted">No cars found in the fleet</h5>
+              <p class="text-muted small mt-2">Add your first car to get started</p>
+              <a asp-action="Create" class="btn btn-primary mt-3">
+                <i class="bi bi-plus-circle me-1"></i> Add New Car
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+  else
+  {
+    <div class="row g-4">
+      @foreach(var car in Model)
+      {
+        <div class="col-xl-4 col-md-6">
+          <div class="card shadow-sm border-0 h-100">
+            <!-- Car Image -->
+            <div class="position-relative" style="height: 200px; overflow: hidden;">
+              @if(!string.IsNullOrEmpty(car.ImageUrl))
+              {
+                <img src="@car.ImageUrl"
+                     alt="@car.Model"
+                     class="w-100 h-100 object-fit-cover">
+              }
+              else
+              {
+                <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
+                  <i class="bi bi-car-front fs-1 text-secondary"></i>
+                </div>
+              }
+              <!-- Status Badge Overlay -->
+              <div class="position-absolute top-0 end-0 m-2">
+                <span class="badge bg-@(car.Status==CarStatus.Available ? "success" : "danger") fs-6 py-2 px-3 shadow">
+                  <i class="bi bi-@(car.Status==CarStatus.Available ? "check-circle" : "x-circle") me-1"></i>
+                  @car.Status
+                </span>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <h5 class="card-title mb-0 fw-bold">@car.Model</h5>
+                <span class="badge bg-info text-dark fs-6">@car.Year</span>
+              </div>
+
+              <div class="mb-3">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
+                    <i class="bi bi-tag fs-6"></i>
+                  </div>
+                  <div>
+                    <small class="text-muted">Plate Number</small>
+                    <p class="mb-0 fw-bold">@car.PlateNumber</p>
+                  </div>
+                </div>
+
+                <div class="d-flex align-items-center mb-2">
+                  <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
+                    <i class="bi bi-cash fs-6"></i>
+                  </div>
+                  <div>
+                    <small class="text-muted">Price Per Day</small>
+                    <p class="mb-0 fw-bold">@car.PricePerDay.ToString("C")</p>
+                  </div>
+                </div>
+
+                <div class="d-flex align-items-center">
+                  <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
+                    <i class="bi bi-info-circle fs-6"></i>
+                  </div>
+                  <div>
+                    <small class="text-muted">Status</small>
+                    <p class="mb-0 fw-bold">
+                      <span class="badge bg-@(car.Status==CarStatus.Available ? "success" : "secondary")">
+                        @car.Status
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="d-grid gap-2">
+                @if(car.Status==CarStatus.Available)
+                {
+                  <a asp-controller="Rentals"
+                     asp-action="Open"
+                     asp-route-carId="@car.Id"
+                     class="btn btn-primary">
+                    <i class="bi bi-key-fill me-1"></i> Rent Now
+                  </a>
+                }
+                else
+                {
+                  <button class="btn btn-secondary" disabled
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title="This car is currently rented">
+                    <i class="bi bi-car-front me-1"></i> Currently Rented
+                  </button>
+                }
+
+                <a asp-action="Edit" asp-route-id="@car.Id" class="btn btn-warning">
+                  <i class="bi bi-pencil-fill me-1"></i> Edit Car
+                </a>
+
+                <form asp-action="Delete" asp-route-id="@car.Id" method="post"
+                      onsubmit="return confirm('Are you sure you want to delete this car? This action cannot be undone.');">
+                  @Html.AntiForgeryToken()
+                  <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash-fill me-1"></i> Delete Car
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@section Scripts {
+  <style>
+    .bg-gradient-primary {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    }
+
+    .card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+      .card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+      }
+
+    .badge {
+      text-transform: capitalize;
+    }
+
+    .object-fit-cover {
+      object-fit: cover;
+    }
+  </style>
+  <script>
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+  </script>
 }

@@ -33,14 +33,20 @@ namespace Web
      });
       builder.Services.AddControllersWithViews();
       builder.Services.AddAntiforgery();
+      builder.Services.AddScoped<ICustomerRepository,CustomerRepository>();
       builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
+
+      builder.Services.AddScoped<ICustomerServices,CustomerServices>();
+      builder.Services.AddScoped<IEmployeeServices,EmployeeServices>();
+      builder.Services.AddScoped<IEmployeeRepository,EmployeeRepository>();
+
       builder.Services.AddScoped<ICarServices,CarServices>();
       builder.Services.AddScoped<ITokenServices,TokenServices>();
       builder.Services.AddScoped<IRentalServices,RentalServices>();
       builder.Services.AddScoped(typeof(IGenericRepository<>),typeof(GenericRepository<>));
       builder.Services.AddScoped<IAuthenticationServices,AuthenticationServices>();
       builder.Services.AddScoped<IPaymentServices,PaymentServices>();
-      builder.Services.AddScoped<ICustomerRepository,CustomerRepository>();
+
       builder.Services.AddScoped<IRentalContractRepository,RentalContractRepository>();
       builder.Services.AddScoped<ICarRepository,CarRepository>();
       builder.Services.AddDbContext<AppDbContext>(options =>
