@@ -1,163 +1,166 @@
 ﻿@model ApplicationCore.Entities.Payment;
 
 @{
-  ViewData["Title"]="Payment Receipt";
+  ViewData["Title"] = "Payment Receipt";
 }
 
 <div class="container mt-4">
   <div class="row justify-content-center">
     <div class="col-lg-8">
 
-      <div class="card shadow-sm">
-        <div class="card-header bg-success text-white text-center py-4">
-          <h3 class="mb-0">
-            <i class="bi bi-receipt"></i> Payment Receipt
-          </h3>
-          <p class="mb-0 mt-2">Receipt #@Model.Id</p>
-        </div>
-        <div class="card-body p-5">
-
-          <!-- Receipt Header -->
-          <div class="text-center mb-4">
-            <h4 class="text-primary fw-bold">CarRental System</h4>
-            <p class="text-muted small mb-0">123 Main Street, City, State 12345</p>
-            <p class="text-muted small">Phone: (555) 123-4567 | Email: info@carrental.com</p>
+      <!-- Receipt Container with ID for printing -->
+      <div id="receipt-container">
+        <div class="card shadow-sm">
+          <div class="card-header bg-success text-white text-center py-4">
+            <h3 class="mb-0">
+              <i class="bi bi-receipt"></i> Payment Receipt
+            </h3>
+            <p class="mb-0 mt-2">Receipt #@Model.Id</p>
           </div>
+          <div class="card-body p-5">
 
-          <hr>
-
-          <!-- Payment Details -->
-          <div class="row mb-4">
-            <div class="col-6">
-              <p class="mb-1"><strong>Payment Date:</strong></p>
-              <p class="text-muted">@Model.PaymentDate.ToString("MMMM dd, yyyy")</p>
+            <!-- Receipt Header -->
+            <div class="text-center mb-4">
+              <h4 class="text-primary fw-bold">CarRental System</h4>
+              <p class="text-muted small mb-0">123 Main Street, City, State 12345</p>
+              <p class="text-muted small">Phone: (555) 123-4567 | Email: info@carrental.com</p>
             </div>
-            <div class="col-6 text-end">
-              <p class="mb-1"><strong>Payment Time:</strong></p>
-              <p class="text-muted">@Model.PaymentDate.ToString("hh:mm tt")</p>
-            </div>
-          </div>
 
-          <div class="row mb-4">
-            <div class="col-6">
-              <p class="mb-1"><strong>Rental Contract:</strong></p>
-              <p class="text-muted">#@Model.RentalContractId</p>
-            </div>
-            <div class="col-6 text-end">
-              <p class="mb-1"><strong>Payment Method:</strong></p>
-              <p class="text-muted">@Model.Method</p>
-            </div>
-          </div>
+            <hr>
 
-          <hr>
-
-          <!-- Payment Status Badge -->
-          <div class="text-center mb-4">
-            @if(Model.Purpose==ApplicationCore.Entities.Enums.PaymentPurpose.Partial)
-            {
-              <span class="badge bg-warning text-dark fs-5 px-4 py-2">
-                <i class="bi bi-cash-coin"></i> Partial Payment
-              </span>
-            }
-            else
-            {
-              <span class="badge bg-success fs-5 px-4 py-2">
-                <i class="bi bi-check-circle"></i> Full Payment
-              </span>
-            }
-          </div>
-
-          <!-- Detailed Amount Section -->
-          <div class="bg-light p-4 rounded mb-4">
-            <div class="row mb-3">
+            <!-- Payment Details -->
+            <div class="row mb-4">
               <div class="col-6">
-                <p class="mb-0"><strong>Rental Total Amount:</strong></p>
+                <p class="mb-1"><strong>Payment Date:</strong></p>
+                <p class="text-muted">@Model.PaymentDate.ToString("MMMM dd, yyyy")</p>
               </div>
               <div class="col-6 text-end">
-                <h5 class="mb-0 text-primary fw-bold">@Model.RentalContract.TotalAmount.ToString("C")</h5>
+                <p class="mb-1"><strong>Payment Time:</strong></p>
+                <p class="text-muted">@Model.PaymentDate.ToString("hh:mm tt")</p>
               </div>
             </div>
 
-            <div class="row mb-3">
+            <div class="row mb-4">
               <div class="col-6">
-                <p class="mb-0"><strong>Previously Paid:</strong></p>
+                <p class="mb-1"><strong>Rental Contract:</strong></p>
+                <p class="text-muted">#@Model.RentalContractId</p>
               </div>
               <div class="col-6 text-end">
-                @{
-                  var previouslyPaid = Model.RentalContract.PaidAmount-Model.Amount;
-                }
-                <h5 class="mb-0 text-muted">@(previouslyPaid>0 ? previouslyPaid.ToString("C") : "0.00")</h5>
+                <p class="mb-1"><strong>Payment Method:</strong></p>
+                <p class="text-muted">@Model.Method</p>
               </div>
             </div>
 
-            <div class="row mb-3">
-              <div class="col-6">
-                <p class="mb-0"><strong>Current Payment:</strong></p>
+            <hr>
+
+            <!-- Payment Status Badge -->
+            <div class="text-center mb-4">
+              @if (Model.Purpose == ApplicationCore.Entities.Enums.PaymentPurpose.Partial)
+              {
+                <span class="badge bg-warning text-dark fs-5 px-4 py-2">
+                  <i class="bi bi-cash-coin"></i> Partial Payment
+                </span>
+              }
+              else
+              {
+                <span class="badge bg-success fs-5 px-4 py-2">
+                  <i class="bi bi-check-circle"></i> Full Payment
+                </span>
+              }
+            </div>
+
+            <!-- Detailed Amount Section -->
+            <div class="bg-light p-4 rounded mb-4">
+              <div class="row mb-3">
+                <div class="col-6">
+                  <p class="mb-0"><strong>Rental Total Amount:</strong></p>
+                </div>
+                <div class="col-6 text-end">
+                  <h5 class="mb-0 text-primary fw-bold">@Model.RentalContract.TotalAmount.ToString("C")</h5>
+                </div>
               </div>
-              <div class="col-6 text-end">
-                <h4 class="mb-0 text-success fw-bold">@Model.Amount.ToString("C")</h4>
+
+              <div class="row mb-3">
+                <div class="col-6">
+                  <p class="mb-0"><strong>Previously Paid:</strong></p>
+                </div>
+                <div class="col-6 text-end">
+                  @{
+                    var previouslyPaid = Model.RentalContract.PaidAmount - Model.Amount;
+                  }
+                  <h5 class="mb-0 text-muted">@(previouslyPaid > 0 ? previouslyPaid.ToString("C") : "0.00")</h5>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-6">
+                  <p class="mb-0"><strong>Current Payment:</strong></p>
+                </div>
+                <div class="col-6 text-end">
+                  <h4 class="mb-0 text-success fw-bold">@Model.Amount.ToString("C")</h4>
+                </div>
+              </div>
+
+              <hr class="my-3">
+
+              <div class="row mb-3">
+                <div class="col-6">
+                  <p class="mb-0"><strong>Total Paid to Date:</strong></p>
+                </div>
+                <div class="col-6 text-end">
+                  <h5 class="mb-0 text-info fw-bold">@Model.RentalContract.PaidAmount.ToString("C")</h5>
+                </div>
+              </div>
+
+              <hr class="my-3">
+
+              <div class="row">
+                <div class="col-6">
+                  <h5 class="mb-0"><strong>Amount Remaining:</strong></h5>
+                </div>
+                <div class="col-6 text-end">
+                  @{
+                    var amountRemaining = Model.RentalContract.TotalAmount - Model.RentalContract.PaidAmount;
+                    var finalAmount = Model.RentalContract.FinalAmount ?? Model.RentalContract.TotalAmount;
+                    var remaining = finalAmount - Model.RentalContract.PaidAmount;
+                  }
+                  @if (remaining > 0)
+                  {
+                    <h4 class="mb-0 text-danger fw-bold">@remaining.ToString("C")</h4>
+                  }
+                  else
+                  {
+                    <h4 class="mb-0 text-success fw-bold">Fully Paid</h4>
+                  }
+                </div>
               </div>
             </div>
 
-            <hr class="my-3">
-
-            <div class="row mb-3">
-              <div class="col-6">
-                <p class="mb-0"><strong>Total Paid to Date:</strong></p>
-              </div>
-              <div class="col-6 text-end">
-                <h5 class="mb-0 text-info fw-bold">@Model.RentalContract.PaidAmount.ToString("C")</h5>
-              </div>
+            <!-- Footer -->
+            <div class="text-center text-muted small mt-4">
+              <p class="mb-1">Thank you for your payment!</p>
+              <p class="mb-0">This is a computer-generated receipt and does not require a signature.</p>
             </div>
 
-            <hr class="my-3">
-
-            <div class="row">
-              <div class="col-6">
-                <h5 class="mb-0"><strong>Amount Remaining:</strong></h5>
-              </div>
-              <div class="col-6 text-end">
-                @{
-                  var amountRemaining = Model.RentalContract.TotalAmount-Model.RentalContract.PaidAmount;
-                  var finalAmount = Model.RentalContract.FinalAmount??Model.RentalContract.TotalAmount;
-                  var remaining = finalAmount-Model.RentalContract.PaidAmount;
-                }
-                @if(remaining>0)
-                {
-                  <h4 class="mb-0 text-danger fw-bold">@remaining.ToString("C")</h4>
-                }
-                else
-                {
-                  <h4 class="mb-0 text-success fw-bold">Fully Paid</h4>
-                }
-              </div>
-            </div>
-          </div>
-
-          <!-- Footer -->
-          <div class="text-center text-muted small mt-4">
-            <p class="mb-1">Thank you for your payment!</p>
-            <p class="mb-0">This is a computer-generated receipt and does not require a signature.</p>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
-            <button onclick="window.print()" class="btn btn-outline-primary">
-              <i class="bi bi-printer"></i> Print Receipt
-            </button>
-            <a asp-controller="Rentals" asp-action="Details" asp-route-id="@Model.RentalContractId"
-               class="btn btn-outline-secondary">
-              <i class="bi bi-arrow-left"></i> Back to Rental
-            </a>
-            @if(Model.Purpose==ApplicationCore.Entities.Enums.PaymentPurpose.Partial&&remaining>0)
-            {
-              <a asp-controller="Payment" asp-action="MakePayment" asp-route-rentalId="@Model.RentalContractId"
-                 class="btn btn-success">
-                <i class="bi bi-cash"></i> Make Another Payment
+            <!-- Action Buttons -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+              <button onclick="window.print()" class="btn btn-outline-primary">
+                <i class="bi bi-printer"></i> Print Receipt
+              </button>
+              <a asp-controller="Rentals" asp-action="Details" asp-route-id="@Model.RentalContractId"
+                 class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Rental
               </a>
-            }
-          </div>
+              @if (Model.Purpose == ApplicationCore.Entities.Enums.PaymentPurpose.Partial && remaining > 0)
+              {
+                <a asp-controller="Payment" asp-action="MakePayment" asp-route-rentalId="@Model.RentalContractId"
+                   class="btn btn-success">
+                  <i class="bi bi-cash"></i> Make Another Payment
+                </a>
+              }
+            </div>
 
+          </div>
         </div>
       </div>
 
@@ -168,14 +171,67 @@
 @section Scripts {
   <style>
     @@media print {
-      .btn, nav, footer {
+      body * {
+        visibility: hidden;
+      }
+      #receipt-container,
+      #receipt-container * {
+        visibility: visible;
+      }
+
+  
+      #receipt-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 70%;
+        margin: 0;
+        padding: 0;
+      }
+
+      #receipt-container .btn {
         display: none !important;
       }
 
-      .card {
+     
+      #receipt-container .card {
         box-shadow: none !important;
-        border: 1px solid #ddd !important;
+        border: 1px solid #000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
+
+ 
+      nav,
+      .sidebar,
+      .navbar,
+      footer,
+      .main-header,
+      .main-footer {
+        display: none !important;
+      }
+
+   
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+   
+      #receipt-container {
+        font-size: 12pt;
+        line-height: 1.5;
+      }
+
+      .container,
+      .row,
+      .col-* {
+        width: 70% !important;
+        max-width: 70% !important;
+        flex: 0 0 100% !important;
+      }
+
+     
     }
   </style>
 }

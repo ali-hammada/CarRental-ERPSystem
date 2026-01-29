@@ -10,7 +10,7 @@ namespace Application.Services.Interfaces
     Task<(bool success, string message, decimal remaining)> GetRemainingAmountAsync(int rentalContractId,int customerId);
     Task<List<Payment>> GetContractPaymentsAsync(int rentalContractId,int customerId);
     Task<Payment?> GetPaymentByIdAsync(int paymentId,int customerId);
-    Task<List<Payment>> GetAllCustomerPaymentsAsync(int customerId);
+    Task<List<Payment>> GetAllEmployeesPaymentsAsync(int customerId);
 
 
 

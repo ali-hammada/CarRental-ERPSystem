@@ -4,6 +4,7 @@ using ApplicationCore.Entities;
 using ApplicationCore.Entities.Enums;
 using ApplicationCore.Interfaces;
 using ApplicationCore.Interfaces.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services
 {
@@ -22,7 +23,7 @@ namespace Application.Services
     }
 
     //open contract 
-    public async Task<(bool Success, string Content, int id)> OpenRequestRentalAsync(RentalRequestDTO request,int CustomerId)
+    public async Task<(bool Success, string Content, int id)> OpenRequestRentalAsync(RentalRequestDTO request,int employeeId)
     {
       var car = await _carRepo.GetByIdAsync(request.CarId);
 
@@ -52,7 +53,7 @@ namespace Application.Services
       var rental = new RentalContract
       {
         CarId=request.CarId,
-        CustomerId=CustomerId,
+        EmployeeId=employeeId,
         StartDate=request.StartDate,
         EndDate=request.EndDate,
         DailyPrice=dailyPrice,
@@ -70,13 +71,13 @@ namespace Application.Services
 
     }
 
-    public async Task<(bool Success, string Content, int id)> CancelRentalAsync(int rentalId,int customerId,string? reason = null)
+    public async Task<(bool Success, string Content, int id)> CancelRentalAsync(int rentalId,int employeeId,string? reason = null)
     {
       var contract = await _rentalRepo.GetByIdAsync(rentalId);
       if(contract==null)
         return (false, "Contract doesn't exist", 0);
 
-      if(contract.CustomerId!=customerId)
+      if(contract.EmployeeId!=employeeId)
         return (false, "You are not allowed to cancel this contract", 0);
 
       if(contract.Status!=RentalContractStatus.Open)
@@ -134,7 +135,7 @@ namespace Application.Services
       return (true, message, rentalId);
     }
     // Extend the contract 
-    public async Task<(bool Success, string Content, int id)> ExtendContractAsync(ExtendRentalDto extend,int customerId)
+    public async Task<(bool Success, string Content, int id)> ExtendContractAsync(ExtendRentalDto extend,int employeeId)
     {
       var existingContract = await _rentalRepo.GetByIdAsync(extend.RentalId);
       if(existingContract==null)
@@ -143,7 +144,7 @@ namespace Application.Services
       if(existingContract.Status!=RentalContractStatus.Open)
         return (false, "Only Open contracts can be extended", 0);
 
-      if(existingContract.CustomerId!=customerId)
+      if(existingContract.EmployeeId!=employeeId)
         return (false, "You are not allowed to modify this contract", 0);
 
       if(!extend.NewEndDate.HasValue||extend.NewEndDate.Value<=existingContract.EndDate)
@@ -176,7 +177,7 @@ namespace Application.Services
 
 
     //Close contract Function 
-    public async Task<(bool Success, string Content, int id)> CloseContractAsync(RentalCloseDto request,int customerId)
+    public async Task<(bool Success, string Content, int id)> CloseContractAsync(RentalCloseDto request,int employeeId)
     {
       var rental = await _rentalRepo.GetByIdAsync(request.RentalId);
       if(rental==null)
@@ -185,7 +186,7 @@ namespace Application.Services
       if(rental.Status!=RentalContractStatus.Open)
         return (false, "Only OPEN contracts can be closed", 0);
 
-      if(rental.CustomerId!=customerId)
+      if(rental.EmployeeId!=employeeId)
         return (false, "You are not allowed to close this contract", 0);
 
       var car = await _carRepo.GetByIdAsync(rental.CarId);
@@ -232,14 +233,26 @@ namespace Application.Services
       return await _rentalContract.GetByIdAsync(reantalId);
     }
 
-    public async Task<List<RentalContract>> GetCustomerRentalsAsync(int customerId)
+    public async Task<List<RentalContract>> GetEmployeesRentalsAsync(int employeeId)
     {
       var allRentals = _rentalRepo.GetAll();
 
       return allRentals
-          .Where(r => r.CustomerId==customerId)
+          .Where(r => r.EmployeeId==employeeId)
           .OrderByDescending(r => r.StartDate)
           .ToList();
+    }
+
+    public async Task<List<RentalContract>> GetEmployeesRentalsWithCarsAsync(int employeeId)
+    {
+      return await _unitOfWork.RentalContracts
+       .GetAll()
+       .Include(r => r.Car)
+       .Include(r => r.Employee)
+       .ThenInclude(c => c.RentalContracts)
+       .Where(r => r.EmployeeId==employeeId)
+       .OrderByDescending(r => r.StartDate)
+       .ToListAsync();
     }
   }
 }

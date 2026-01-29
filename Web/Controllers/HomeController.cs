@@ -20,33 +20,29 @@ namespace Web.Controllers
       _carServices=carServices;
     }
 
-    private int GetCurrentCustomerId()
+    private int GetCurrentEmployeeId()
     {
-      var customerIdClaim = User.FindFirst("CustomerId")?.Value
+      var employeeIdClaim = User.FindFirst("EmployeeId")?.Value
                          ??User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-      if(string.IsNullOrEmpty(customerIdClaim))
+      if(string.IsNullOrEmpty(employeeIdClaim))
         throw new UnauthorizedAccessException("User not authenticated");
 
-      return int.Parse(customerIdClaim);
+      return int.Parse(employeeIdClaim);
     }
 
-    public async Task<IActionResult> Index()
+    public IActionResult Index()
     {
-      return RedirectToAction("Dashboard");
+      return RedirectToAction(nameof(Dashboard));
     }
 
     public async Task<IActionResult> Dashboard()
     {
-      int customerId = GetCurrentCustomerId();
+      int employeeId = GetCurrentEmployeeId();
 
-      var rentals = await _rentalServices.GetCustomerRentalsAsync(customerId);
-      var payments = await _paymentServices.GetAllCustomerPaymentsAsync(customerId);
-      foreach(var rental in rentals)
-      {
-        var car = await _carServices.GetByIdAsync(rental.CarId);
-        rental.Car=car;
-      }
+      var rentals = await _rentalServices.GetEmployeesRentalsWithCarsAsync(employeeId);
+      var payments = await _paymentServices.GetAllEmployeesPaymentsAsync(employeeId);
+
       var activeRentals = rentals.Where(r => r.Status==RentalContractStatus.Open).ToList();
       var completedRentals = rentals.Where(r =>
           r.Status==RentalContractStatus.Closed).ToList();

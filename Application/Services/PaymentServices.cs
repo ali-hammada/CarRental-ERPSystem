@@ -23,10 +23,8 @@ namespace Application.Services
       _unitOfWork=unitOfWork;
     }
 
-    public async Task<(bool success, string message, int PaymentId)> MakePaymentAsync(int rentalContractId,decimal amount,PaymentPurpose purpose,PaymentMethod method,int customerId)
+    public async Task<(bool success, string message, int PaymentId)> MakePaymentAsync(int rentalContractId,decimal amount,PaymentPurpose purpose,PaymentMethod method,int employeeId)
     {
-
-
       var contract = await _rentalRepo.GetByIdAsync(rentalContractId);
       if(contract==null)
         return (false, "Contract does not exist", 0);
@@ -34,7 +32,7 @@ namespace Application.Services
       if(amount<=0)
         return (false, "Payment amount must be greater than zero", 0);
 
-      if(contract.CustomerId!=customerId)
+      if(contract.EmployeeId!=employeeId)
         return (false, "Only the contract owner is allowed to make payments", 0);
 
 
@@ -143,13 +141,13 @@ namespace Application.Services
       }
 
     }
-    public async Task<(bool success, string message, decimal remaining)> GetRemainingAmountAsync(int rentalContractId,int customerId)
+    public async Task<(bool success, string message, decimal remaining)> GetRemainingAmountAsync(int rentalContractId,int employeeId)
     {
       var contract = await _rentalRepo.GetByIdAsync(rentalContractId);
       if(contract==null)
         return (false, "Contract doesn't exist", 0);
 
-      if(contract.CustomerId!=customerId)
+      if(contract.EmployeeId!=employeeId)
         return (false, "Unauthorized", 0);
 
       decimal amountDue = contract.FinalAmount??contract.TotalAmount;
@@ -158,10 +156,10 @@ namespace Application.Services
       return (true, $"Remaining amount: {remaining:C}", remaining);
     }
 
-    public async Task<List<Payment>> GetContractPaymentsAsync(int rentalContractId,int customerId)
+    public async Task<List<Payment>> GetContractPaymentsAsync(int rentalContractId,int employeeId)
     {
       var contract = await _rentalRepo.GetByIdAsync(rentalContractId);
-      if(contract==null||contract.CustomerId!=customerId)
+      if(contract==null||contract.EmployeeId!=employeeId)
         return new List<Payment>();
 
       var allPayments = _payRepo.GetAll();
@@ -171,32 +169,24 @@ namespace Application.Services
           .ToList();
     }
 
-    public async Task<Payment?> GetPaymentByIdAsync(int paymentId,int customerId)
+    public async Task<Payment?> GetPaymentByIdAsync(int paymentId,int employeeId)
     {
       var payment = await _payRepo.GetByIdAsync(paymentId);
       if(payment==null)
         return null;
 
       var contract = await _rentalRepo.GetByIdAsync(payment.RentalContractId);
-      if(contract==null||contract.CustomerId!=customerId)
+      if(contract==null||contract.EmployeeId!=employeeId)
         return null;
 
       return payment;
     }
-    public async Task<Customer?> GetCurrentCustomer(int paymentId,int customerId)
-    {
-      var contracts = _rentalRepo.GetAll();
-      var contract = contracts.FirstOrDefault(c => c.CustomerId==customerId);
 
-      return contract?.Customer;
-
-    }
-
-    public async Task<List<Payment>> GetAllCustomerPaymentsAsync(int customerId)
+    public async Task<List<Payment>> GetAllEmployeesPaymentsAsync(int employeeId)
     {
       var rentalIds =
           _rentalRepo.GetAll()
-          .Where(r => r.CustomerId==customerId)
+          .Where(r => r.EmployeeId==employeeId)
           .Select(r => r.Id);
 
       return await _payRepo.GetAll()

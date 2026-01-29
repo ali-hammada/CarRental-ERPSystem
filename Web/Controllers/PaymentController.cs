@@ -20,10 +20,10 @@ namespace Web.Controllers
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-      int customerId = GetCurrentCustomerId();
+      int employeeId = GetCurrentEmployeeId();
 
 
-      var rentals = await _rentalService.GetCustomerRentalsAsync(customerId);
+      var rentals = await _rentalService.GetEmployeesRentalsAsync(employeeId);
 
       var unpaidRentals = rentals.Where(r =>
           r.Status==RentalContractStatus.Open||
@@ -36,9 +36,9 @@ namespace Web.Controllers
     [HttpGet]
     public async Task<IActionResult> MakePayment(int rentalId)
     {
-      int customerId = GetCurrentCustomerId();
+      int employeeId = GetCurrentEmployeeId();
 
-      var (success, message, remaining)=await _paymentService.GetRemainingAmountAsync(rentalId,customerId);
+      var (success, message, remaining)=await _paymentService.GetRemainingAmountAsync(rentalId,employeeId);
 
       if(!success)
       {
@@ -56,47 +56,47 @@ namespace Web.Controllers
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> MakePayment(int rentalId,decimal amount,PaymentPurpose purpose,PaymentMethod method)
     {
-      int customerId = GetCurrentCustomerId();
+      int employeeId = GetCurrentEmployeeId();
 
-      var result = await _paymentService.MakePaymentAsync(rentalId,amount,purpose,method,customerId);
+      var result = await _paymentService.MakePaymentAsync(rentalId,amount,purpose,method,employeeId);
 
       if(!result.success)
       {
         TempData["Error"]=result.message;
         ViewBag.RentalId=rentalId;
 
-        var (_, __, remaining)=await _paymentService.GetRemainingAmountAsync(rentalId,customerId);
+        var (_, __, remaining)=await _paymentService.GetRemainingAmountAsync(rentalId,employeeId);
         ViewBag.RemainingAmount=remaining;
 
         return View();
       }
 
       TempData["Success"]=result.message;
-      return RedirectToAction("Details","Rental",new { id = rentalId });
+      return RedirectToAction("Details","Rentals",new { rentalId = rentalId });
     }
 
     [HttpGet]
     public async Task<IActionResult> History(int? rentalId = null)
     {
-      int customerId = GetCurrentCustomerId();
+      int employeeId = GetCurrentEmployeeId();
 
       if(rentalId.HasValue)
       {
-        var payments = await _paymentService.GetContractPaymentsAsync(rentalId.Value,customerId);
+        var payments = await _paymentService.GetContractPaymentsAsync(rentalId.Value,employeeId);
         ViewBag.RentalId=rentalId.Value;
         return View(payments);
       }
       else
       {
-        var allPayments = await _paymentService.GetAllCustomerPaymentsAsync(customerId);
+        var allPayments = await _paymentService.GetAllEmployeesPaymentsAsync(employeeId);
         return View("AllPayments",allPayments);
       }
     }
     [HttpGet]
     public async Task<IActionResult> Receipt(int paymentId)
     {
-      int customerId = GetCurrentCustomerId();
-      var payment = await _paymentService.GetPaymentByIdAsync(paymentId,customerId);
+      int employeeId = GetCurrentEmployeeId();
+      var payment = await _paymentService.GetPaymentByIdAsync(paymentId,employeeId);
 
       if(payment==null)
       {
@@ -108,15 +108,15 @@ namespace Web.Controllers
     }
 
 
-    private int GetCurrentCustomerId()
+    private int GetCurrentEmployeeId()
     {
-      var customerIdClaim = User.FindFirst("CustomerId")?.Value
+      var employeeIdClaim = User.FindFirst("CustomerId")?.Value
                          ??User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-      if(string.IsNullOrEmpty(customerIdClaim))
+      if(string.IsNullOrEmpty(employeeIdClaim))
         throw new UnauthorizedAccessException("User is not authenticated");
 
-      return int.Parse(customerIdClaim);
+      return int.Parse(employeeIdClaim);
     }
   }
 }

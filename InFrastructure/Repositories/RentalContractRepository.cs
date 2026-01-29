@@ -20,9 +20,9 @@ namespace InFrastructure.Repositories
       return _dbSet.Where(r => r.Status==RentalContractStatus.Open);
     }
 
-    public IQueryable<RentalContract> GetContractByCustomer(int customerId)
+    public IQueryable<RentalContract> GetContractByCustomer(int employeeId)
     {
-      return _dbSet.Where(r => r.CustomerId==customerId);
+      return _dbSet.Where(r => r.EmployeeId==employeeId);
     }
 
     public Task<bool> HasActiveRentalAsync(int carId,DateTime? start,DateTime? end)

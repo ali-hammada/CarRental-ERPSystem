@@ -17,21 +17,21 @@ namespace InFrastructure.Data
     {
       base.OnModelCreating(modelBuilder);
 
-      // Car 1-N RentalContracts
+
       modelBuilder.Entity<RentalContract>()
-          .HasOne(r => r.Car)
-          .WithMany(c => c.RentalContracts)
-          .HasForeignKey(r => r.CarId)
+           .HasOne(r => r.Car)
+           .WithMany(c => c.RentalContracts)
+           .HasForeignKey(r => r.CarId)
+           .OnDelete(DeleteBehavior.Restrict);
+
+
+      modelBuilder.Entity<RentalContract>()
+          .HasOne(r => r.Employee)
+          .WithMany(e => e.RentalContracts)
+          .HasForeignKey(r => r.EmployeeId)
           .OnDelete(DeleteBehavior.Restrict);
 
-      // Customer 1-N RentalContracts
-      modelBuilder.Entity<RentalContract>()
-          .HasOne(r => r.Customer)
-          .WithMany(c => c.RentalContracts)
-          .HasForeignKey(r => r.CustomerId)
-          .OnDelete(DeleteBehavior.Restrict);
 
-      // RentalContract 1-N Payments
       modelBuilder.Entity<Payment>()
           .HasOne(p => p.RentalContract)
           .WithMany(r => r.Payments)

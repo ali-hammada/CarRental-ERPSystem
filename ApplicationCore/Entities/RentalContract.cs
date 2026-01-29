@@ -7,8 +7,8 @@ namespace ApplicationCore.Entities
     public int CarId { get; set; }
     public Car Car { get; set; } = null!;
 
-    public int CustomerId { get; set; }
-    public Customer Customer { get; set; } = null!;
+    public int EmployeeId { get; set; }
+    public Employees Employee { get; set; }
 
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }

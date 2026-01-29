@@ -24,20 +24,20 @@ namespace Web.Controllers
     }
 
     // معرفه العميل الحالي 
-    private int GetCurrentCustomerId()
+    private int GetCurrentEmployeeId()
     {
-      var customerIdClaim = User.FindFirst("CustomerId")?.Value
+      var employeeIdClaim = User.FindFirst("EmployeeId")?.Value
                          ??User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-      if(string.IsNullOrEmpty(customerIdClaim))
+      if(string.IsNullOrEmpty(employeeIdClaim))
         throw new UnauthorizedAccessException("User not authenticated");
 
-      return int.Parse(customerIdClaim);
+      return int.Parse(employeeIdClaim);
     }
     public async Task<IActionResult> Index()
     {
-      int customerId = GetCurrentCustomerId();
-      var rentals = await _rentalServices.GetCustomerRentalsAsync(customerId);
+      int customerId = GetCurrentEmployeeId();
+      var rentals = await _rentalServices.GetEmployeesRentalsAsync(customerId);
       return View(rentals);
     }
     [HttpGet]
@@ -67,7 +67,7 @@ namespace Web.Controllers
       if(!ModelState.IsValid)
         return View(request);
 
-      int customerId = GetCurrentCustomerId();
+      int customerId = GetCurrentEmployeeId();
       var result = await _rentalServices.OpenRequestRentalAsync(request,customerId);
 
       if(!result.Success)
@@ -85,7 +85,7 @@ namespace Web.Controllers
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Cancel(int rentalId,string? reason)
     {
-      int customerId = GetCurrentCustomerId();
+      int customerId = GetCurrentEmployeeId();
       var result = await _rentalServices.CancelRentalAsync(rentalId,customerId,reason);
 
       if(!result.Success)
@@ -103,16 +103,16 @@ namespace Web.Controllers
     [HttpGet]
     public async Task<IActionResult> Pay(int rentalId)
     {
-      int customerId = GetCurrentCustomerId();
+      int employeeId = GetCurrentEmployeeId();
       var rental = await _rentalServices.GetRentalByIdAsync(rentalId);
 
-      if(rental==null||rental.CustomerId!=customerId)
+      if(rental==null||rental.EmployeeId!=employeeId)
       {
         TempData["Error"]="Rental not found";
         return RedirectToAction("Index");
       }
 
-      var remaining = await _paymentServices.GetRemainingAmountAsync(rentalId,customerId);
+      var remaining = await _paymentServices.GetRemainingAmountAsync(rentalId,employeeId);
       ViewBag.RentalId=rentalId;
       ViewBag.RemainingAmount=remaining.remaining;
 
@@ -123,14 +123,14 @@ namespace Web.Controllers
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Pay(int rentalId,decimal amount,PaymentPurpose purpose,PaymentMethod method)
     {
-      int customerId = GetCurrentCustomerId();
+      int employeeId = GetCurrentEmployeeId();
 
-      var result = await _paymentServices.MakePaymentAsync(rentalId,amount,purpose,method,customerId);
+      var result = await _paymentServices.MakePaymentAsync(rentalId,amount,purpose,method,employeeId);
 
       if(!result.success)
       {
         TempData["Error"]=result.message;
-        var remaining = await _paymentServices.GetRemainingAmountAsync(rentalId,customerId);
+        var remaining = await _paymentServices.GetRemainingAmountAsync(rentalId,employeeId);
         ViewBag.RentalId=rentalId;
         ViewBag.RemainingAmount=remaining.remaining;
         return View();
@@ -143,16 +143,16 @@ namespace Web.Controllers
     [HttpGet]
     public async Task<IActionResult> Details(int rentalId)
     {
-      int customerId = GetCurrentCustomerId();
+      int employeeId = GetCurrentEmployeeId();
       var rental = await _rentalServices.GetRentalByIdAsync(rentalId);
 
-      if(rental==null||rental.CustomerId!=customerId)
+      if(rental==null||rental.EmployeeId!=employeeId)
       {
         TempData["Error"]="Rental not found";
         return RedirectToAction("Index");
       }
 
-      var payments = await _paymentServices.GetContractPaymentsAsync(rentalId,customerId);
+      var payments = await _paymentServices.GetContractPaymentsAsync(rentalId,employeeId);
       ViewBag.Payments=payments;
       return View(rental);
     }
@@ -162,11 +162,11 @@ namespace Web.Controllers
     [HttpGet]
     public async Task<IActionResult> Extend(int rentalId)
     {
-      int customerId = GetCurrentCustomerId();
+      int employeeId = GetCurrentEmployeeId();
 
       var rental = await _rentalServices.GetRentalByIdAsync(rentalId);
 
-      if(rental==null||rental.CustomerId!=customerId)
+      if(rental==null||rental.EmployeeId!=employeeId)
       {
         TempData["Error"]="Rental not found";
         return RedirectToAction("Index");
@@ -187,10 +187,10 @@ namespace Web.Controllers
     [HttpGet]
     public async Task<IActionResult> Close(int rentalId)
     {
-      int customerId = GetCurrentCustomerId();
+      int employeeId = GetCurrentEmployeeId();
       var rental = await _rentalServices.GetRentalByIdAsync(rentalId);
 
-      if(rental==null||rental.CustomerId!=customerId)
+      if(rental==null||rental.EmployeeId!=employeeId)
       {
         TempData["Error"]="Rental not found";
         return RedirectToAction("Index");
@@ -220,9 +220,9 @@ namespace Web.Controllers
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Close(RentalCloseDto request)
     {
-      int customerId = GetCurrentCustomerId();
+      int employeeId = GetCurrentEmployeeId();
 
-      var result = await _rentalServices.CloseContractAsync(request,customerId);
+      var result = await _rentalServices.CloseContractAsync(request,employeeId);
 
       if(!result.Success)
       {
@@ -246,9 +246,9 @@ namespace Web.Controllers
       if(!ModelState.IsValid)
         return View(extend);
 
-      int customerId = GetCurrentCustomerId();
+      int employeeId = GetCurrentEmployeeId();
 
-      var result = await _rentalServices.ExtendContractAsync(extend,customerId);
+      var result = await _rentalServices.ExtendContractAsync(extend,employeeId);
 
       if(!result.Success)
       {
@@ -264,8 +264,8 @@ namespace Web.Controllers
     [HttpGet]
     public async Task<IActionResult> Active(string? searchTerm)
     {
-      int customerId = GetCurrentCustomerId();
-      var rentals = await _rentalServices.GetCustomerRentalsAsync(customerId);
+      int employeeId = GetCurrentEmployeeId();
+      var rentals = await _rentalServices.GetEmployeesRentalsAsync(employeeId);
 
       var activeRentals = rentals
           .Where(r => r.Status==ApplicationCore.Entities.Enums.RentalContractStatus.Open)

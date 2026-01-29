@@ -8,6 +8,8 @@ namespace ApplicationCore.Interfaces
     ICarRepository Cars { get; }
     ICustomerRepository Customer { get; }
     IGenericRepository<Employees> Employee { get; }
+    IGenericRepository<RentalContract> RentalContracts { get; }
+
     Task BeginTransactionAsync();
     Task CommitAsync();
     Task RollbackAsync();

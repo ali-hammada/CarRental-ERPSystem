@@ -12,6 +12,7 @@ namespace Application.Services.Interfaces
     Task<(bool Success, string Content, int id)> CloseContractAsync(RentalCloseDto request,int customerId);
 
     Task<bool> HasActiveRentalAsync(int carId,DateTime start,DateTime end);
-    Task<List<RentalContract>> GetCustomerRentalsAsync(int customerId);
+    Task<List<RentalContract>> GetEmployeesRentalsAsync(int customerId);
+    Task<List<RentalContract>> GetEmployeesRentalsWithCarsAsync(int employeeId);
   }
 }
