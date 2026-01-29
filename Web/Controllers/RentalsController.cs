@@ -119,7 +119,6 @@ namespace Web.Controllers
       return View();
     }
 
-    // دفع عقد - POST
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Pay(int rentalId,decimal amount,PaymentPurpose purpose,PaymentMethod method)
@@ -184,7 +183,7 @@ namespace Web.Controllers
 
       return View(model);
     }
-    // GET: Close - عرض صفحة إغلاق العقد
+
     [HttpGet]
     public async Task<IActionResult> Close(int rentalId)
     {
@@ -216,7 +215,7 @@ namespace Web.Controllers
       return View(model);
     }
 
-    // POST: Close - معالجة إغلاق العقد
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Close(RentalCloseDto request)
@@ -228,8 +227,6 @@ namespace Web.Controllers
       if(!result.Success)
       {
         TempData["Error"]=result.Content;
-
-        // إعادة تحميل البيانات لعرضها في الصفحة
         var rental = await _rentalServices.GetRentalByIdAsync(request.RentalId);
         ViewBag.Rental=rental;
         ViewBag.Car=await _carServices.GetByIdAsync(rental?.CarId??0);
