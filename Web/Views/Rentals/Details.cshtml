@@ -4,6 +4,28 @@
   ViewData["Title"]="Rental Details";
 }
 
+<div class="container-fluid mt-4">
+  <!-- Header Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-primary text-white shadow-sm border-0">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h3 class="mb-1">
+                <i class="bi bi-people-fill me-2"></i> Rental Managment
+              </h3>
+              <p class="mb-0 opacity-90">Manage your Rentals efficiently</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <div class="container mt-4">
   <div class="row">
     <!-- معلومات العقد -->
@@ -212,3 +234,30 @@
     </div>
   </div>
 </div>
+
+  <style>
+    .bg-gradient-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .text-purple {
+      color: #7209b7 !important;
+    }
+
+    .bg-purple {
+      background-color: #7209b7 !important;
+    }
+
+    .table-hover tbody tr:hover {
+      background-color: rgba(67, 97, 238, 0.05);
+    }
+
+    .card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+      .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      }
+  </style>

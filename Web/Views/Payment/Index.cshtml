@@ -4,13 +4,30 @@
   ViewData["Title"]="Payments";
 }
 
-<div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-credit-card"></i> My Payments</h2>
-    <a asp-action="History" class="btn btn-outline-primary">
-      <i class="bi bi-clock-history"></i> Payment History
-    </a>
+<!-- Header Section -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card bg-gradient-primary text-white shadow-sm border-0">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <h3 class="mb-1">
+              <i class="bi bi-car-front-fill me-2"></i> My Payments
+            </h3>
+            <p class="mb-0 opacity-90">Manage your vehicle fleet efficiently</p>
+          </div>
+          <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a asp-action="History" class="btn btn-light btn-lg">
+              <i class="bi bi-clock-history"></i>  Payment History
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+</div>
+
+<div class="container mt-4">
 
   @if(TempData["Success"]!=null)
   {
@@ -129,3 +146,23 @@
     </div>
   }
 </div>
+
+<style>
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: rgba(102, 126, 234, 0.05);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+  }
+
+  .btn-group .btn {
+    transition: all 0.2s ease;
+  }
+
+    .btn-group .btn:hover {
+      transform: scale(1.1);
+    }
+</style>
