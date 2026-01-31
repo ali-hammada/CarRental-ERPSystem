@@ -168,38 +168,34 @@
 </div>
 
   <!-- Charts Section -->
-  <div class="row g-4 mb-4">
-    <!-- Monthly Rentals Chart -->
-    <div class="col-lg-6">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 text-primary">
-            <i class="bi bi-graph-up me-2"></i> Monthly Rentals
-          </h5>
-          <span class="badge bg-primary">Last 6 Months</span>
+ <div class="row g-4 mb-4">
+        <!-- المخططات -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header">
+                    <h5 class="mb-0 text-primary">
+                        <i class="bi bi-graph-up me-2"></i> العقود الشهرية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="rentalsChart" height="250"></canvas>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-          <canvas id="rentalsChart" height="250"></canvas>
-        </div>
-      </div>
-    </div>
 
-    <!-- Monthly Payments Chart -->
-    <div class="col-lg-6">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 text-success">
-            <i class="bi bi-graph-up-arrow me-2"></i> Monthly Payments
-          </h5>
-          <span class="badge bg-success">Last 6 Months</span>
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header">
+                    <h5 class="mb-0 text-success">
+                        <i class="bi bi-graph-up-arrow me-2"></i> المدفوعات الشهرية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="paymentsChart" height="250"></canvas>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-          <canvas id="paymentsChart" height="250"></canvas>
-        </div>
-      </div>
     </div>
-  </div>
-
   <!-- Active Contracts & Recent Payments -->
   <div class="row g-4 mb-4">
     <!-- Active Contracts -->
@@ -354,53 +350,14 @@
     </div>
   </div>
 
-  <!-- Quick Actions -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card shadow-sm border-0">
-        <div class="card-header bg-white border-0">
-          <h5 class="mb-0 text-primary">
-            <i class="bi bi-lightning me-2"></i> Quick Actions
-          </h5>
-        </div>
-        <div class="card-body">
-          <div class="row g-3">
-            <div class="col-md-3 col-sm-6">
-              <a asp-controller="Car" asp-action="Index" class="btn btn-outline-primary w-100 py-4 d-flex flex-column align-items-center">
-                <i class="bi bi-car-front fs-3 mb-2"></i>
-                <span class="fw-bold">Cars</span>
-              </a>
-            </div>
-            <div class="col-md-3 col-sm-6">
-              <a asp-controller="Rentals" asp-action="Index" class="btn btn-outline-info w-100 py-4 d-flex flex-column align-items-center">
-                <i class="bi bi-calendar-check fs-3 mb-2"></i>
-                <span class="fw-bold">My Rentals</span>
-              </a>
-            </div>
-            <div class="col-md-3 col-sm-6">
-              <a asp-controller="Payment" asp-action="Index" class="btn btn-outline-success w-100 py-4 d-flex flex-column align-items-center">
-                <i class="bi bi-credit-card fs-3 mb-2"></i>
-                <span class="fw-bold">Payments</span>
-              </a>
-            </div>
-            <div class="col-md-3 col-sm-6">
-              <a asp-controller="Home" asp-action="Contact" class="btn btn-outline-secondary w-100 py-4 d-flex flex-column align-items-center">
-                <i class="bi bi-headset fs-3 mb-2"></i>
-                <span class="fw-bold">Support</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  
 </div>
 
 @section Scripts {
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
   <script>
-    // Monthly Rentals Chart
+    
     const rentalsCtx = document.getElementById('rentalsChart').getContext('2d');
     new Chart(rentalsCtx, {
         type: 'line',
@@ -445,7 +402,7 @@
         }
     });
 
-    // Monthly Payments Chart
+    
     const paymentsCtx = document.getElementById('paymentsChart').getContext('2d');
     new Chart(paymentsCtx, {
         type: 'bar',
