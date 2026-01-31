@@ -2,6 +2,7 @@
 using ApplicationCore.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NToastNotify;
 
 namespace Web.Controllers
 {
@@ -9,12 +10,13 @@ namespace Web.Controllers
   public class CustomersController:Controller
   {
     private readonly ICustomerServices _customerServices;
+    private readonly IToastNotification _toast;
 
-    public CustomersController(ICustomerServices customerServices)
+    public CustomersController(ICustomerServices customerServices,IToastNotification toast)
     {
       _customerServices=customerServices;
+      _toast=toast;
     }
-
 
     public async Task<IActionResult> Index()
     {
@@ -23,12 +25,13 @@ namespace Web.Controllers
         var customers = await _customerServices.GetAllCustomersAsync();
         return View(customers);
       }
-      catch(Exception ex)
+      catch
       {
-        TempData["Error"]="حدث خطأ أثناء تحميل قائمة العملاء: "+ex.Message;
+        _toast.AddErrorToastMessage("حدث خطأ أثناء تحميل قائمة العملاء");
         return View(new List<Customer>());
       }
     }
+
     [HttpGet]
     public IActionResult Create()
     {
@@ -41,24 +44,22 @@ namespace Web.Controllers
     {
       if(!ModelState.IsValid)
       {
-        TempData["Error"]="يرجى تصحيح الأخطاء في النموذج.";
+        _toast.AddInfoToastMessage("يرجى تصحيح الأخطاء في النموذج");
         return View(customer);
       }
 
       try
       {
         await _customerServices.AddCustomerAsync(customer);
-        TempData["Success"]="تم إضافة العميل بنجاح!";
+        _toast.AddSuccessToastMessage("تم إضافة العميل بنجاح");
         return RedirectToAction(nameof(Index));
       }
-      catch(Exception ex)
+      catch
       {
-        ModelState.AddModelError("","حدث خطأ أثناء إضافة العميل: "+ex.Message);
-        TempData["Error"]="فشل إضافة العميل: "+ex.Message;
+        _toast.AddErrorToastMessage("فشل إضافة العميل");
         return View(customer);
       }
     }
-
 
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
@@ -68,15 +69,15 @@ namespace Web.Controllers
         var customer = await _customerServices.GetByIdAsync(id);
         if(customer==null)
         {
-          TempData["Error"]="العميل غير موجود!";
+          _toast.AddWarningToastMessage("العميل غير موجود");
           return RedirectToAction(nameof(Index));
         }
 
         return View(customer);
       }
-      catch(Exception ex)
+      catch
       {
-        TempData["Error"]="حدث خطأ أثناء تحميل بيانات العميل: "+ex.Message;
+        _toast.AddErrorToastMessage("حدث خطأ أثناء تحميل بيانات العميل");
         return RedirectToAction(nameof(Index));
       }
     }
@@ -87,35 +88,29 @@ namespace Web.Controllers
     {
       if(!ModelState.IsValid)
       {
-        TempData["Error"]="يرجى تصحيح الأخطاء في النموذج.";
+        _toast.AddInfoToastMessage("يرجى تصحيح الأخطاء في النموذج");
         return View(customer);
       }
 
       try
       {
-
         if(string.IsNullOrWhiteSpace(customer.PasswordHash))
         {
-          var existingCustomer = await _customerServices.GetByIdAsync(customer.Id);
-          if(existingCustomer!=null)
-          {
-            customer.PasswordHash=existingCustomer.PasswordHash;
-          }
+          var existing = await _customerServices.GetByIdAsync(customer.Id);
+          if(existing!=null)
+            customer.PasswordHash=existing.PasswordHash;
         }
 
-        // تعديل العميل
         await _customerServices.UpdateCustomerAsync(customer);
-        TempData["Success"]="تم تحديث بيانات العميل بنجاح!";
+        _toast.AddSuccessToastMessage("تم تحديث بيانات العميل بنجاح");
         return RedirectToAction(nameof(Index));
       }
-      catch(Exception ex)
+      catch
       {
-        ModelState.AddModelError("","حدث خطأ أثناء تحديث العميل: "+ex.Message);
-        TempData["Error"]="فشل تحديث العميل: "+ex.Message;
+        _toast.AddErrorToastMessage("فشل تحديث بيانات العميل");
         return View(customer);
       }
     }
-
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -124,25 +119,18 @@ namespace Web.Controllers
       try
       {
         var result = await _customerServices.DeleteCustomerAsync(id);
+
         if(!result)
-        {
-          TempData["Error"]="العميل لا يمكن حذفه (قد يكون له عقود نشطة)!";
-        }
+          _toast.AddWarningToastMessage("لا يمكن حذف العميل (قد يكون له عقود نشطة)");
         else
-        {
-          TempData["Success"]="تم حذف العميل بنجاح!";
-        }
+          _toast.AddSuccessToastMessage("تم حذف العميل بنجاح");
       }
-      catch(Exception ex)
+      catch
       {
-        TempData["Error"]="فشل حذف العميل: "+ex.Message;
+        _toast.AddErrorToastMessage("فشل حذف العميل");
       }
+
       return RedirectToAction(nameof(Index));
     }
-
-
-
   }
-
 }
-

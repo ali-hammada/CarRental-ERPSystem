@@ -10,7 +10,7 @@
     --sidebar-hover: #34495e;
     --sidebar-active: #1a252f;
     --navbar-height: 60px;
-    --navbar-width: 1505px;
+   
 }
 
 body {
@@ -30,7 +30,6 @@ body {
     left: 0;
     right: 0;
     height: var(--navbar-height);
-    width: var(--navbar-width);
     background: var(--sidebar-bg);
     color: white;
     display: flex;

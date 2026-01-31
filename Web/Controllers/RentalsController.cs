@@ -3,6 +3,7 @@ using Application.Services.Interfaces;
 using ApplicationCore.Entities.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NToastNotify;
 using Web.ViewModels;
 
 namespace Web.Controllers
@@ -13,53 +14,45 @@ namespace Web.Controllers
     private readonly IRentalServices _rentalServices;
     private readonly IPaymentServices _paymentServices;
     private readonly ICarServices _carServices;
+    private readonly IToastNotification _toast;
 
-
-    public RentalsController(IRentalServices rentalServices,IPaymentServices paymentServices,ICarServices carServices)
+    public RentalsController(IRentalServices rentalServices,IPaymentServices paymentServices,ICarServices carServices,IToastNotification toast)
     {
       _rentalServices=rentalServices;
       _paymentServices=paymentServices;
       _carServices=carServices;
-
+      _toast=toast;
     }
 
-    // معرفه العميل الحالي 
     private int GetCurrentEmployeeId()
     {
       var employeeIdClaim = User.FindFirst("EmployeeId")?.Value
                          ??User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
       if(string.IsNullOrEmpty(employeeIdClaim))
         throw new UnauthorizedAccessException("User not authenticated");
-
       return int.Parse(employeeIdClaim);
     }
+
     public async Task<IActionResult> Index()
     {
       int customerId = GetCurrentEmployeeId();
       var rentals = await _rentalServices.GetEmployeesRentalsAsync(customerId);
       return View(rentals);
     }
-    [HttpGet]
 
     [HttpGet]
     public async Task<IActionResult> Open(int carId)
     {
       var car = await _carServices.GetByIdAsync(carId);
-
       if(car==null||car.Status!=CarStatus.Available)
       {
-        TempData["Error"]="Car not available";
+        _toast.AddErrorToastMessage("Car not available");
         return RedirectToAction("Index","Car");
       }
-
       ViewBag.Car=car;
-
-      return View(new RentalRequestDTO
-      {
-        CarId=carId
-      });
+      return View(new RentalRequestDTO { CarId=carId });
     }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Open(RentalRequestDTO request)
@@ -69,34 +62,25 @@ namespace Web.Controllers
 
       int customerId = GetCurrentEmployeeId();
       var result = await _rentalServices.OpenRequestRentalAsync(request,customerId);
-
       if(!result.Success)
       {
-        ModelState.AddModelError("",result.Content);
+        _toast.AddErrorToastMessage(result.Content);
         return View(request);
       }
-
-      TempData["Success"]="Contract opened successfully!";
+      _toast.AddSuccessToastMessage("Contract opened successfully!");
       return RedirectToAction("Index");
     }
 
-    // إلغاء عقد
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Cancel(int rentalId,string? reason)
     {
       int customerId = GetCurrentEmployeeId();
       var result = await _rentalServices.CancelRentalAsync(rentalId,customerId,reason);
-
       if(!result.Success)
-      {
-        TempData["Error"]=result.Content;
-      }
+        _toast.AddErrorToastMessage(result.Content);
       else
-      {
-        TempData["Success"]=result.Content;
-      }
-
+        _toast.AddSuccessToastMessage(result.Content);
       return RedirectToAction("Index");
     }
 
@@ -105,17 +89,14 @@ namespace Web.Controllers
     {
       int employeeId = GetCurrentEmployeeId();
       var rental = await _rentalServices.GetRentalByIdAsync(rentalId);
-
       if(rental==null||rental.EmployeeId!=employeeId)
       {
-        TempData["Error"]="Rental not found";
+        _toast.AddErrorToastMessage("Rental not found");
         return RedirectToAction("Index");
       }
-
       var remaining = await _paymentServices.GetRemainingAmountAsync(rentalId,employeeId);
       ViewBag.RentalId=rentalId;
       ViewBag.RemainingAmount=remaining.remaining;
-
       return View();
     }
 
@@ -124,19 +105,16 @@ namespace Web.Controllers
     public async Task<IActionResult> Pay(int rentalId,decimal amount,PaymentPurpose purpose,PaymentMethod method)
     {
       int employeeId = GetCurrentEmployeeId();
-
       var result = await _paymentServices.MakePaymentAsync(rentalId,amount,purpose,method,employeeId);
-
       if(!result.success)
       {
-        TempData["Error"]=result.message;
+        _toast.AddErrorToastMessage(result.message);
         var remaining = await _paymentServices.GetRemainingAmountAsync(rentalId,employeeId);
         ViewBag.RentalId=rentalId;
         ViewBag.RemainingAmount=remaining.remaining;
         return View();
       }
-
-      TempData["Success"]=result.message;
+      _toast.AddSuccessToastMessage(result.message);
       return RedirectToAction("Index");
     }
 
@@ -145,42 +123,39 @@ namespace Web.Controllers
     {
       int employeeId = GetCurrentEmployeeId();
       var rental = await _rentalServices.GetRentalByIdAsync(rentalId);
-
-      if(rental==null||rental.EmployeeId!=employeeId)
+      if(rental==null)
       {
-        TempData["Error"]="Rental not found";
+        _toast.AddErrorToastMessage("Rental not found");
         return RedirectToAction("Index");
       }
-
+      if(rental.EmployeeId!=employeeId)
+      {
+        _toast.AddErrorToastMessage("you are not the employee");
+        return RedirectToAction("Index");
+      }
       var payments = await _paymentServices.GetContractPaymentsAsync(rentalId,employeeId);
       ViewBag.Payments=payments;
       return View(rental);
     }
 
-
-
     [HttpGet]
     public async Task<IActionResult> Extend(int rentalId)
     {
       int employeeId = GetCurrentEmployeeId();
-
       var rental = await _rentalServices.GetRentalByIdAsync(rentalId);
-
       if(rental==null||rental.EmployeeId!=employeeId)
       {
-        TempData["Error"]="Rental not found";
+        _toast.AddErrorToastMessage("Rental not found");
         return RedirectToAction("Index");
       }
       var car = await _carServices.GetByIdAsync(rental.CarId);
       ViewBag.Car=car;
-
       var model = new ExtendRentalDto
       {
         RentalId=rental.Id,
         NewEndDate=rental.EndDate.AddDays(1),
         Notes=rental.Notes
       };
-
       return View(model);
     }
 
@@ -189,55 +164,40 @@ namespace Web.Controllers
     {
       int employeeId = GetCurrentEmployeeId();
       var rental = await _rentalServices.GetRentalByIdAsync(rentalId);
-
       if(rental==null||rental.EmployeeId!=employeeId)
       {
-        TempData["Error"]="Rental not found";
+        _toast.AddErrorToastMessage("Rental not found");
         return RedirectToAction("Index");
       }
-
-      if(rental.Status!=ApplicationCore.Entities.Enums.RentalContractStatus.Open)
+      if(rental.Status!=RentalContractStatus.Open)
       {
-        TempData["Error"]="Only active rentals can be closed";
+        _toast.AddWarningToastMessage("Only active rentals can be closed");
         return RedirectToAction("Details",new { rentalId = rentalId });
       }
-
-      // تحميل بيانات السيارة
       var car = await _carServices.GetByIdAsync(rental.CarId);
       ViewBag.Rental=rental;
       ViewBag.Car=car;
-
-      var model = new RentalCloseDto
-      {
-        RentalId=rental.Id
-      };
-
+      var model = new RentalCloseDto { RentalId=rental.Id };
       return View(model);
     }
-
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Close(RentalCloseDto request)
     {
       int employeeId = GetCurrentEmployeeId();
-
       var result = await _rentalServices.CloseContractAsync(request,employeeId);
-
       if(!result.Success)
       {
-        TempData["Error"]=result.Content;
+        _toast.AddErrorToastMessage(result.Content);
         var rental = await _rentalServices.GetRentalByIdAsync(request.RentalId);
         ViewBag.Rental=rental;
         ViewBag.Car=await _carServices.GetByIdAsync(rental?.CarId??0);
-
         return View(request);
       }
-
-      TempData["Success"]=result.Content;
+      _toast.AddSuccessToastMessage(result.Content);
       return RedirectToAction("Index");
     }
-
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -247,17 +207,14 @@ namespace Web.Controllers
         return View(extend);
 
       int employeeId = GetCurrentEmployeeId();
-
       var result = await _rentalServices.ExtendContractAsync(extend,employeeId);
-
       if(!result.Success)
       {
-        ModelState.AddModelError("",result.Content);
+        _toast.AddErrorToastMessage(result.Content);
         ViewBag.Car=await _carServices.GetByIdAsync(extend.RentalId);
         return View(extend);
       }
-
-      TempData["Success"]="Rental extended successfully!";
+      _toast.AddSuccessToastMessage("Rental extended successfully!");
       return RedirectToAction("Details",new { rentalId = result.id });
     }
 
@@ -266,24 +223,20 @@ namespace Web.Controllers
     {
       int employeeId = GetCurrentEmployeeId();
       var rentals = await _rentalServices.GetEmployeesRentalsAsync(employeeId);
-
       var activeRentals = rentals
-          .Where(r => r.Status==ApplicationCore.Entities.Enums.RentalContractStatus.Open)
+          .Where(r => r.Status==RentalContractStatus.Open)
           .ToList();
       foreach(var rental in activeRentals)
       {
         var car = await _carServices.GetByIdAsync(rental.CarId);
         rental.Car=car;
       }
-
       var model = new ActiveRentalsViewModel
       {
         Rentals=activeRentals,
         SearchTerm=searchTerm
       };
-
       return View(model);
     }
-
   }
 }

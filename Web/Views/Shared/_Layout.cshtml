@@ -15,6 +15,7 @@
   <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="~/css/portfolio.styles.css" asp-append-version="true" />
   <link rel="stylesheet" href="~/css/rtl.css" asp-append-version="true" />
+  <script src="~/toastr.js"></script>
   <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
 
@@ -23,16 +24,14 @@
 
 
   <nav class="navbar">
-    <div class="navbar-brand">
-      <i class="bi bi-car-front-fill"></i>
-      <span>CarRental System</span>
-    </div>
-
     <div class="navbar-title">
       @ViewData["Title"]
     </div>
-
     <div class="navbar-actions">
+      <span class="nav-link">
+        <i class="bi bi-calendar-check"></i>
+        <span>@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</span>
+      </span>
       @if(User.Identity?.IsAuthenticated==true)
       {
         <div class="dropdown">
@@ -44,12 +43,10 @@
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li>
-      
-
               <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
                
                 @Html.AntiForgeryToken()
-                <span>@User.Identity.Name</span>
+                @User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value 
                 <button type="submit" class="dropdown-item">
                   <i class="bi bi-box-arrow-right"></i> Logout
                 </button>
@@ -66,19 +63,17 @@
         </a>
       }
 
-      <span class="nav-link">
-        <i class="bi bi-calendar-check"></i>
-        <span>@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</span>
-      </span>
+    
+    
     </div>
   </nav>
   <!-- Sidebar Menu -->
   <div class="sidebar">
     <div class="sidebar-header">
-      <h4>
+      <div class="navbar-brand">
         <i class="bi bi-car-front-fill"></i>
-        <span>CarRental</span>
-      </h4>
+        <span>CarRental System</span>
+      </div>
     </div>
 
     <div class="sidebar-menu">
@@ -124,10 +119,6 @@
           <i class="bi bi-receipt"></i>
           <span> Receipts</span>
         </a>
-
-        <div class="nav-divider"></div>
-
-       
       </div>
     </div>
   </div>
@@ -196,8 +187,12 @@
   </footer>
 
   <!-- Scripts -->
+
+  <a href="~/lib/jquery/dist/jquery.min.map">~/lib/jquery/dist/jquery.min.map</a>
   <script src="~/lib/jquery/dist/jquery.min.js"></script>
+  <script src="~/lib/jquery/dist/jquery.js"></script>
   <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="~/js/site.js" asp-append-version="true"></script>
 
   <script>
@@ -221,5 +216,6 @@
   </script>
 
   @await RenderSectionAsync("Scripts",required: false)
+  @await Component.InvokeAsync("NToastNotify")
 </body>
 </html>

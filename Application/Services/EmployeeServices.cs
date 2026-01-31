@@ -45,6 +45,8 @@ public class EmployeeServices:IEmployeeServices
     existing.Phone=employee.Phone;
     existing.Role=employee.Role;
     existing.IsActive=employee.IsActive;
+    if(!string.IsNullOrWhiteSpace(employee.PasswordHash))
+      existing.PasswordHash=employee.PasswordHash;
 
     await _unitOfWork.SaveChangesAsync();
   }

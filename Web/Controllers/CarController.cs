@@ -3,6 +3,7 @@ using ApplicationCore.Entities;
 using ApplicationCore.Entities.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NToastNotify;
 
 namespace Web.Controllers
 {
@@ -10,10 +11,13 @@ namespace Web.Controllers
   public class CarController:Controller
   {
     private readonly ICarServices _carServices;
+    private readonly IToastNotification _toastNotification;
 
-    public CarController(ICarServices carServices)
+    public CarController(ICarServices carServices,IToastNotification toastNotification)
     {
       _carServices=carServices;
+      _toastNotification=toastNotification;
+
     }
 
     public async Task<IActionResult> Index()
@@ -40,7 +44,7 @@ namespace Web.Controllers
       car.Status=CarStatus.Available;
       await _carServices.AddCarAsync(car);
 
-      TempData["Success"]="Car added successfully!";
+      _toastNotification.AddSuccessToastMessage("Car added successfully!");
       return RedirectToAction("Index");
     }
     [HttpGet]
@@ -65,7 +69,7 @@ namespace Web.Controllers
 
       await _carServices.UpdateCarAsync(car);
 
-      TempData["Success"]="Car updated successfully!";
+      _toastNotification.AddSuccessToastMessage("Car updated successfully!");
       return RedirectToAction("Index");
     }
     [HttpPost]
@@ -75,11 +79,11 @@ namespace Web.Controllers
       var result = await _carServices.DeleteCarAsync(id);
       if(!result)
       {
-        TempData["Error"]="Car could not be deleted!";
+        _toastNotification.AddErrorToastMessage("Car could not be deleted!");
       }
       else
       {
-        TempData["Success"]="Car deleted successfully!";
+        _toastNotification.AddSuccessToastMessage("Car deleted successfully!");
       }
 
       return RedirectToAction("Index");

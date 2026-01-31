@@ -1,0 +1,272 @@
+﻿@model Web.ViewModels.EmployeeVM
+
+@{
+  var isEdit = Model!=null&&Model.Id!=0;
+  ViewData["Title"]=isEdit ? "Edit Employee" : "Add New Employee";
+}
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header @(isEdit ? "bg-warning text-dark" : "bg-primary text-white")">
+          <h4 class="mb-0">
+            <i class="@(isEdit ? "bi bi-pencil-fill" : "bi bi-person-plus-fill")"></i>
+            @(isEdit ? "Edit Employee" : "Add New Employee")
+          </h4>
+        </div>
+        <div class="card-body">
+
+          @if(TempData["Error"]!=null)
+          {
+            <div class="alert alert-danger alert-dismissible fade show">
+              <i class="bi bi-exclamation-triangle-fill"></i> @TempData["Error"]
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          }
+
+          @if(TempData["Success"]!=null)
+          {
+            <div class="alert alert-success alert-dismissible fade show">
+              <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          }
+
+          <form asp-action="@(isEdit ? "Edit" : "Create")" method="post" id="employeeForm">
+            @Html.AntiForgeryToken()
+
+            @if(isEdit)
+            {
+              <input type="hidden" asp-for="Id" />
+            }
+
+            <div class="row g-3">
+              <!-- Full Name -->
+              <div class="col-md-12">
+                <label asp-for="FullName" class="form-label">Full Name <span class="text-danger">*</span></label>
+                <input asp-for="FullName" class="form-control" required
+                       placeholder="Enter full name" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+              </div>
+
+              <!-- Email -->
+              <div class="col-md-6">
+                <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-envelope"></i>
+                  </span>
+                  <input asp-for="Email" type="email" class="form-control" required
+                         placeholder="example@domain.com" id="EmailInput" />
+                </div>
+                <span asp-validation-for="Email" class="text-danger"></span>
+                <div id="emailExistsMessage" class="text-danger small mt-1" style="display:none;">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i> Email already exists!
+                </div>
+              </div>
+
+              <!-- Phone -->
+              <div class="col-md-6">
+                <label asp-for="Phone" class="form-label">Phone <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-telephone"></i>
+                  </span>
+                  <input asp-for="Phone" class="form-control" required
+                         placeholder="+1234567890" id="PhoneInput" />
+                </div>
+                <span asp-validation-for="Phone" class="text-danger"></span>
+                <div id="phoneExistsMessage" class="text-danger small mt-1" style="display:none;">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i> Phone already exists!
+                </div>
+              </div>
+
+              <!-- Password Section -->
+              <div class="col-md-6">
+                <label class="form-label">
+                  @(isEdit ? "New Password (leave blank to keep current)" : "Password")
+                  <span class="text-danger">@(isEdit ? "" : "*")</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-lock" id="passwordIcon"></i>
+                  </span>
+                  <input type="password" id="PasswordInput" name="PasswordHash" class="form-control"
+                         @(isEdit ? "" : "required")
+                         placeholder="Enter password" />
+                  <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                    <i class="bi bi-eye" id="eyeIcon"></i>
+                  </button>
+                </div>
+                <span id="passwordError" class="text-danger small"></span>
+              </div>
+
+              <!-- Confirm Password -->
+              <div class="col-md-6">
+                <label class="form-label">
+                  @(isEdit ? "Confirm New Password" : "Confirm Password")
+                  <span class="text-danger">@(isEdit ? "" : "*")</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-lock-fill"></i>
+                  </span>
+                  <input type="password" id="ConfirmPasswordInput" class="form-control"
+                         @(isEdit ? "" : "required")
+                         placeholder="Confirm password" />
+                </div>
+                <span id="passwordMatchError" class="text-danger small" style="display:none;">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i> Passwords do not match!
+                </span>
+              </div>
+
+              <!-- Role -->
+              <div class="col-md-12">
+                <label asp-for="Role" class="form-label">Role <span class="text-danger">*</span></label>
+                <select asp-for="Role" class="form-select" required>
+                  <option value="">Select Role</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Manager">Manager</option>
+                  <option value="Employee">Employee</option>
+                  <option value="HR">HR</option>
+                  <option value="Accountant">Accountant</option>
+                </select>
+                <span asp-validation-for="Role" class="text-danger"></span>
+              </div>
+
+              <!-- IsActive -->
+              <div class="col-12">
+                <div class="form-check form-switch">
+                  <input asp-for="IsActive" class="form-check-input" type="checkbox"
+                         id="isActiveSwitch" @@(isEdit ? "" : "checked" ) />
+                  <label class="form-check-label" for="isActiveSwitch">Active Employee</label>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="d-flex justify-content-end gap-2">
+              <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+              </a>
+              <button type="submit" class="btn @(isEdit ? "btn-warning" : "btn-primary")" id="submitBtn">
+                <i class="bi bi-check-circle"></i> @(isEdit ? "Update Employee" : "Add Employee")
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('employeeForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const passwordInput = document.getElementById('PasswordInput');
+        const confirmPasswordInput = document.getElementById('ConfirmPasswordInput');
+        const passwordMatchError = document.getElementById('passwordMatchError');
+        const togglePasswordBtn = document.getElementById('togglePassword');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const emailInput = document.getElementById('EmailInput');
+        const phoneInput = document.getElementById('PhoneInput');
+        const emailExistsMessage = document.getElementById('emailExistsMessage');
+        const phoneExistsMessage = document.getElementById('phoneExistsMessage');
+
+        // Toggle password visibility
+        if (togglePasswordBtn) {
+            togglePasswordBtn.addEventListener('click', function () {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                confirmPasswordInput.setAttribute('type', type);
+                eyeIcon.classList.toggle('bi-eye');
+                eyeIcon.classList.toggle('bi-eye-slash');
+            });
+        }
+
+        // Validate password match
+        function validatePasswordMatch() {
+            if (passwordInput.value && passwordInput.value !== confirmPasswordInput.value) {
+                passwordMatchError.style.display = 'block';
+                confirmPasswordInput.setCustomValidity('Passwords do not match');
+                return false;
+            } else {
+                passwordMatchError.style.display = 'none';
+                confirmPasswordInput.setCustomValidity('');
+                return true;
+            }
+        }
+
+        confirmPasswordInput.addEventListener('input', validatePasswordMatch);
+        passwordInput.addEventListener('input', validatePasswordMatch);
+
+        // Check email exists (for Create mode only)
+        @if(!isEdit)
+        {
+              <text>
+              emailInput.addEventListener('blur', function () {
+                  if (this.value) {
+                      checkFieldExists('Email', this.value, emailExistsMessage);
+                  }
+              });
+              </text>
+        }
+
+        // Check phone exists (for Create mode only)
+        @if(!isEdit)
+        {
+              <text>
+              phoneInput.addEventListener('blur', function () {
+                  if (this.value) {
+                      checkFieldExists('Phone', this.value, phoneExistsMessage);
+                  }
+              });
+              </text>
+        }
+
+        // Function to check if field exists
+        async function checkFieldExists(field, value, messageElement) {
+            try {
+                const response = await fetch(`/Employees/Check${field}Exists`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ [field.toLowerCase()]: value })
+                });
+
+                const result = await response.json();
+                if (result.exists) {
+                    messageElement.style.display = 'block';
+                } else {
+                    messageElement.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error checking field:', error);
+            }
+        }
+
+        // Form submission
+        form.addEventListener('submit', function (e) {
+            // Validate password match if password is provided
+            if (passwordInput.value || !@isEdit.ToString().ToLower()) {
+                if (!validatePasswordMatch()) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+
+            // Disable button during processing
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Processing...';
+        });
+    });
+  </script>
+  @await Html.PartialAsync("_ValidationScriptsPartial")
+}

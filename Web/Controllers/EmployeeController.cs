@@ -2,6 +2,8 @@
 using ApplicationCore.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NToastNotify;
+using Web.ViewModels;
 
 namespace Web.Controllers
 {
@@ -9,151 +11,182 @@ namespace Web.Controllers
   public class EmployeesController:Controller
   {
     private readonly IEmployeeServices _employeeServices;
+    private readonly IToastNotification _toast;
 
-    public EmployeesController(IEmployeeServices employeeServices)
+    public EmployeesController(IEmployeeServices employeeServices,IToastNotification toast)
     {
       _employeeServices=employeeServices;
+      _toast=toast;
     }
 
+    // ======================= INDEX =======================
     public async Task<IActionResult> Index()
     {
       var employees = await _employeeServices.GetAllAsync();
-      return View(employees);
+      var model = employees.Select(e => new EmployeeVM
+      {
+        Id=e.Id,
+        FullName=e.FullName,
+        Email=e.Email,
+        Phone=e.Phone,
+        Role=e.Role,
+        IsActive=e.IsActive
+      }).ToList();
+
+      return View(model);
     }
 
+    // ======================= CREATE =======================
     [HttpGet]
     public IActionResult Create()
     {
-      return View("Upsert",new Employees());
+      return View(new EmployeeVM());
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(EmployeeVM vm)
+    {
+      if(!ModelState.IsValid)
+      {
+        _toast.AddInfoToastMessage("Please fix validation errors");
+        return View(vm);
+      }
+
+      // تحقق من البريد الإلكتروني المكرر
+      var existing = await _employeeServices.GetByEmailAsync(vm.Email);
+      if(existing!=null)
+      {
+        ModelState.AddModelError("Email","Email already exists");
+        _toast.AddWarningToastMessage("Email already exists");
+        return View(vm);
+      }
+
+      // تحويل ViewModel إلى Entity
+      var employee = new Employees
+      {
+        FullName=vm.FullName,
+        Email=vm.Email,
+        Phone=vm.Phone,
+        Role=vm.Role,
+        IsActive=vm.IsActive,
+        PasswordHash=vm.Password // هنا ممكن تستخدم Hash إذا موجود
+      };
+
+      await _employeeServices.AddAsync(employee);
+
+      _toast.AddSuccessToastMessage("Employee added successfully");
+      return RedirectToAction(nameof(Index));
+    }
+
+    // ======================= EDIT =======================
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
       var employee = await _employeeServices.GetByIdAsync(id);
       if(employee==null)
       {
-        TempData["Error"]="Employee not found!";
-        return RedirectToAction("Index");
+        _toast.AddErrorToastMessage("Employee not found");
+        return RedirectToAction(nameof(Index));
       }
-      return View("Upsert",employee);
+
+      // تحويل Entity إلى ViewModel
+      var vm = new EmployeeVM
+      {
+        Id=employee.Id,
+        FullName=employee.FullName,
+        Email=employee.Email,
+        Phone=employee.Phone,
+        Role=employee.Role,
+        IsActive=employee.IsActive,
+
+      };
+
+      return View(vm);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Employees employee)
+    public async Task<IActionResult> Edit(EmployeeVM vm)
     {
+      // أهم سطر: أزل الـ PasswordHash من الـ validation لأنه مش بيجي من الـ form
+      ModelState.Remove("PasswordHash");
+
       if(!ModelState.IsValid)
       {
-        return View("Upsert",employee);
+        ShowValidationErrors(vm);
+        return View(vm);
       }
 
-      try
+      var employee = await _employeeServices.GetByIdAsync(vm.Id);
+      if(employee==null)
       {
-        // Check for duplicate email
-        var existingByEmail = await _employeeServices.GetByEmailAsync(employee.Email);
-        if(existingByEmail!=null)
-        {
-          ModelState.AddModelError("Email","Email already exists!");
-          TempData["Error"]="Email already exists!";
-          return View("Upsert",employee);
-        }
+        _toast.AddErrorToastMessage("Employee not found");
+        return RedirectToAction(nameof(Index));
+      }
 
-        await _employeeServices.AddAsync(employee);
-        TempData["Success"]="Employee added successfully!";
-        return RedirectToAction("Index");
-      }
-      catch(Exception ex)
+      var existing = await _employeeServices.GetByEmailAsync(vm.Email);
+      if(existing!=null&&existing.Id!=vm.Id)
       {
-        ModelState.AddModelError("",ex.Message);
-        TempData["Error"]="Failed to add employee: "+ex.Message;
-        return View("Upsert",employee);
+        ModelState.AddModelError("Email","Email already exists");
+        _toast.AddWarningToastMessage("Email already exists");
+        return View(vm);
       }
+
+      employee.FullName=vm.FullName;
+      employee.Email=vm.Email;
+      employee.Phone=vm.Phone;
+      employee.Role=vm.Role;
+      employee.IsActive=vm.IsActive;
+
+      if(!string.IsNullOrWhiteSpace(vm.Password))
+        employee.PasswordHash=vm.Password;
+
+      await _employeeServices.UpdateAsync(employee);
+      _toast.AddSuccessToastMessage("Employee updated successfully");
+      return RedirectToAction(nameof(Index));
     }
 
+    // ======================= DELETE =======================
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Employees employee)
-    {
-      if(!ModelState.IsValid)
-      {
-        return View("Upsert",employee);
-      }
-
-      try
-      {
-        // Check email (if changed)
-        var existingByEmail = await _employeeServices.GetByEmailAsync(employee.Email);
-        if(existingByEmail!=null&&existingByEmail.Id!=employee.Id)
-        {
-          ModelState.AddModelError("Email","Email already exists!");
-          TempData["Error"]="Email already exists!";
-          return View("Upsert",employee);
-        }
-
-        // If password is provided, update it
-        if(!string.IsNullOrWhiteSpace(employee.PasswordHash))
-        {
-          // Password will be hashed in the service layer
-        }
-        else
-        {
-          // Keep existing password - retrieve it from database
-          var existingEmployee = await _employeeServices.GetByIdAsync(employee.Id);
-          if(existingEmployee!=null)
-          {
-            employee.PasswordHash=existingEmployee.PasswordHash;
-          }
-        }
-
-        await _employeeServices.UpdateAsync(employee);
-        TempData["Success"]="Employee updated successfully!";
-        return RedirectToAction("Index");
-      }
-      catch(Exception ex)
-      {
-        ModelState.AddModelError("",ex.Message);
-        TempData["Error"]="Failed to update employee: "+ex.Message;
-        return View("Upsert",employee);
-      }
-    }
-
-    [HttpGet]
     public async Task<IActionResult> Delete(int id)
     {
       var employee = await _employeeServices.GetByIdAsync(id);
       if(employee==null)
       {
-        TempData["Error"]="Employee not found!";
-        return RedirectToAction("Index");
+        _toast.AddErrorToastMessage("Employee not found");
+        return RedirectToAction(nameof(Index));
       }
-      return View(employee);
+
+      await _employeeServices.DeleteAsync(id);
+      _toast.AddSuccessToastMessage("Employee deleted successfully");
+      return RedirectToAction(nameof(Index));
     }
 
-    [HttpPost, ActionName("Delete")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int id)
-    {
-      try
-      {
-        await _employeeServices.DeleteAsync(id);
-        TempData["Success"]="Employee deleted successfully!";
-      }
-      catch(Exception ex)
-      {
-        TempData["Error"]="Failed to delete employee: "+ex.Message;
-      }
-      return RedirectToAction("Index");
-    }
-
-    // AJAX methods for checking duplicates
+    // ======================= AJAX CHECK EMAIL =======================
     [HttpPost]
     public async Task<IActionResult> CheckEmailExists(string email)
     {
       var exists = await _employeeServices.GetByEmailAsync(email);
       return Json(new { exists = exists!=null });
     }
+    private void ShowValidationErrors(EmployeeVM vm)
+    {
+      var errors = ModelState.Values
+                  .SelectMany(v => v.Errors)
+                  .Select(e => e.ErrorMessage)
+                  .ToList();
 
-
+      if(errors.Any())
+      {
+        var message = string.Join("<br>",errors);
+        _toast.AddErrorToastMessage(message);
+      }
+      else
+      {
+        _toast.AddInfoToastMessage("Please fix validation errors");
+      }
+    }
   }
 }

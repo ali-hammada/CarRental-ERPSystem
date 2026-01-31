@@ -7,6 +7,7 @@ using InFrastructure.Repositories;
 using InFrastructure.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using NToastNotify;
 
 
 namespace Web
@@ -46,6 +47,13 @@ namespace Web
       builder.Services.AddScoped(typeof(IGenericRepository<>),typeof(GenericRepository<>));
       builder.Services.AddScoped<IAuthenticationServices,AuthenticationServices>();
       builder.Services.AddScoped<IPaymentServices,PaymentServices>();
+      builder.Services.AddMvc().AddNToastNotifyToastr(new ToastrOptions()
+      {
+        ProgressBar=true,
+        PositionClass=ToastPositions.TopLeft,
+        PreventDuplicates=true,
+        CloseButton=true,
+      });
 
       builder.Services.AddScoped<IRentalContractRepository,RentalContractRepository>();
       builder.Services.AddScoped<ICarRepository,CarRepository>();
