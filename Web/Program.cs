@@ -8,6 +8,7 @@ using InFrastructure.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using NToastNotify;
+using System.Security.Claims;
 
 
 namespace Web
@@ -47,6 +48,20 @@ namespace Web
       builder.Services.AddScoped(typeof(IGenericRepository<>),typeof(GenericRepository<>));
       builder.Services.AddScoped<IAuthenticationServices,AuthenticationServices>();
       builder.Services.AddScoped<IPaymentServices,PaymentServices>();
+      builder.Services.AddAuthorization(options =>
+      {
+        options.AddPolicy("AdminOnly",policy =>
+            policy.RequireClaim(ClaimTypes.Role,"Admin"));
+
+        options.AddPolicy("AdminOrManager",policy =>
+            policy.RequireClaim(ClaimTypes.Role,"Admin","Manager"));
+
+        options.AddPolicy("AdminOrHR",policy =>
+            policy.RequireClaim(ClaimTypes.Role,"Admin","HR"));
+
+        options.AddPolicy("AdminOrAccountant",policy =>
+            policy.RequireClaim(ClaimTypes.Role,"Admin","Accountant"));
+      });
       builder.Services.AddMvc().AddNToastNotifyToastr(new ToastrOptions()
       {
         ProgressBar=true,

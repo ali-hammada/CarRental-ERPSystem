@@ -48,6 +48,8 @@ public class EmployeeServices:IEmployeeServices
     if(!string.IsNullOrWhiteSpace(employee.PasswordHash))
       existing.PasswordHash=employee.PasswordHash;
 
+
+    _unitOfWork.Employee.Update(employee);
     await _unitOfWork.SaveChangesAsync();
   }
 

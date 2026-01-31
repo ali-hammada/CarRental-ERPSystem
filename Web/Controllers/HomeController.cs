@@ -2,11 +2,12 @@
 using ApplicationCore.Entities.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Web.ViewModels;
 
 namespace Web.Controllers
 {
-  [Authorize]
+  [Authorize(Policy = "AdminOnly")]
   public class HomeController:Controller
   {
     private readonly IRentalServices _rentalServices;
@@ -23,11 +24,9 @@ namespace Web.Controllers
     private int GetCurrentEmployeeId()
     {
       var employeeIdClaim = User.FindFirst("EmployeeId")?.Value
-                         ??User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
+                         ??User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
       if(string.IsNullOrEmpty(employeeIdClaim))
-        throw new UnauthorizedAccessException("User not authenticated");
-
+        throw new UnauthorizedAccessException("User is not authenticated");
       return int.Parse(employeeIdClaim);
     }
 

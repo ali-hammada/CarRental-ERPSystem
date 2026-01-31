@@ -1,13 +1,14 @@
 ﻿using Application.Services.Interfaces;
 using ApplicationCore.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NToastNotify;
 using Web.ViewModels;
 
 namespace Web.Controllers
 {
-  [Authorize]
+  [Authorize(Policy = "AdminOnly")]
   public class EmployeesController:Controller
   {
     private readonly IEmployeeServices _employeeServices;
@@ -53,7 +54,6 @@ namespace Web.Controllers
         return View(vm);
       }
 
-      // تحقق من البريد الإلكتروني المكرر
       var existing = await _employeeServices.GetByEmailAsync(vm.Email);
       if(existing!=null)
       {
@@ -62,7 +62,6 @@ namespace Web.Controllers
         return View(vm);
       }
 
-      // تحويل ViewModel إلى Entity
       var employee = new Employees
       {
         FullName=vm.FullName,
@@ -70,11 +69,13 @@ namespace Web.Controllers
         Phone=vm.Phone,
         Role=vm.Role,
         IsActive=vm.IsActive,
-        PasswordHash=vm.Password // هنا ممكن تستخدم Hash إذا موجود
       };
 
-      await _employeeServices.AddAsync(employee);
 
+      var hasher = new PasswordHasher<Employees>();
+      employee.PasswordHash=hasher.HashPassword(employee,vm.Password);
+
+      await _employeeServices.AddAsync(employee);
       _toast.AddSuccessToastMessage("Employee added successfully");
       return RedirectToAction(nameof(Index));
     }
@@ -139,9 +140,12 @@ namespace Web.Controllers
       employee.Role=vm.Role;
       employee.IsActive=vm.IsActive;
 
-      if(!string.IsNullOrWhiteSpace(vm.Password))
-        employee.PasswordHash=vm.Password;
 
+      if(!string.IsNullOrWhiteSpace(vm.Password))
+      {
+        var hasher = new PasswordHasher<Employees>();
+        employee.PasswordHash=hasher.HashPassword(employee,vm.Password);
+      }
       await _employeeServices.UpdateAsync(employee);
       _toast.AddSuccessToastMessage("Employee updated successfully");
       return RedirectToAction(nameof(Index));

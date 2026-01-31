@@ -98,7 +98,7 @@ namespace Web.Controllers
 
     private int GetCurrentEmployeeId()
     {
-      var employeeIdClaim = User.FindFirst("CustomerId")?.Value
+      var employeeIdClaim = User.FindFirst("EmployeeId")?.Value
                          ??User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
       if(string.IsNullOrEmpty(employeeIdClaim))
         throw new UnauthorizedAccessException("User is not authenticated");

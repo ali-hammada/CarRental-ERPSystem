@@ -14,6 +14,11 @@ namespace InFrastructure.Repositories
       _Dbcontext=context;
     }
 
+    public async Task<IEnumerable<Employees>> GetAllAsync()
+    {
+      return await _context.Employee.ToListAsync();
+    }
+
     public async Task<Employees?> GetByEmailAsync(string email)
     {
       return await _Dbcontext.Employee
