@@ -1,8 +1,11 @@
 ﻿using Application.Services.Interfaces;
 using ApplicationCore.Entities.Enums;
+using InFrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using System.Security.Claims;
+using Web.Resources;
 using Web.ViewModels;
 
 namespace Web.Controllers
@@ -12,13 +15,16 @@ namespace Web.Controllers
   {
     private readonly IRentalServices _rentalServices;
     private readonly IPaymentServices _paymentServices;
-    private readonly ICarServices _carServices;
+    private readonly AppDbContext _dbContext;
+    private readonly IStringLocalizer<SharedResources> _localizer;
 
-    public HomeController(IRentalServices rentalServices,IPaymentServices paymentServices,ICarServices carServices)
+
+    public HomeController(IRentalServices rentalServices,IPaymentServices paymentServices,AppDbContext dbContext,IStringLocalizer<SharedResources> localizer)
     {
       _rentalServices=rentalServices;
       _paymentServices=paymentServices;
-      _carServices=carServices;
+      _dbContext=dbContext;
+      _localizer=localizer;
     }
 
     private int GetCurrentEmployeeId()
@@ -32,21 +38,50 @@ namespace Web.Controllers
 
     public IActionResult Index()
     {
+      ViewData["Welcome"]=_localizer["Welcome"];
       return RedirectToAction(nameof(Dashboard));
+    }
+    [HttpGet]
+    public async Task<IActionResult> GetPartialRecentPayments(int page = 1,int pageSize = 5)
+    {
+      int employeeId = GetCurrentEmployeeId();
+      var payments = await _paymentServices.GetAllEmployeesPaymentsAsync(employeeId);
+
+      var totalPayments = payments.Count();
+      var recentPayments = _dbContext.Payments.OrderByDescending(p => p.PaymentDate).Skip((page-1)*pageSize).Take(pageSize).ToList();
+      var totlaPages = (int)Math.Ceiling((double)totalPayments/pageSize);
+
+
+      var Vm = new DashboardViewModel
+      {
+        RecentPayments=recentPayments,
+        CurrentPage=page,
+        TotalPages=totlaPages,
+        PageSize=pageSize
+
+      };
+      return PartialView("_RecentPaymentsPartial",Vm);
+
     }
 
     public async Task<IActionResult> Dashboard()
     {
       int employeeId = GetCurrentEmployeeId();
 
+      int page = 1;
+      int pageSize = 5;
       var rentals = await _rentalServices.GetEmployeesRentalsWithCarsAsync(employeeId);
       var payments = await _paymentServices.GetAllEmployeesPaymentsAsync(employeeId);
 
       var activeRentals = rentals.Where(r => r.Status==RentalContractStatus.Open).ToList();
-      var completedRentals = rentals.Where(r =>
-          r.Status==RentalContractStatus.Closed).ToList();
-      var cancelledRentalls = rentals.Where(r =>
-          r.Status==RentalContractStatus.Cancelled).ToList();
+      var completedRentals = rentals.Where(r => r.Status==RentalContractStatus.Closed).ToList();
+      var cancelledRentalls = rentals.Where(r => r.Status==RentalContractStatus.Cancelled).ToList();
+
+      var totalPayments = payments.Count();
+      var recentPayments = _dbContext.Payments.OrderByDescending(p => p.PaymentDate).Skip((page-1)*pageSize).Take(pageSize).ToList();
+      var totlaPages = (int)Math.Ceiling((double)totalPayments/pageSize);
+
+
 
 
       var viewModel = new DashboardViewModel
@@ -60,7 +95,11 @@ namespace Web.Controllers
         CarsRented=activeRentals.Select(r => r.CarId).Distinct().Count(),
         CarsAvailable=activeRentals.Select(r => r.Car.Status!=CarStatus.Rented).Distinct().Count(),
         ActiveContracts=activeRentals.OrderByDescending(r => r.StartDate).Take(5).ToList(),
-        RecentPayments=payments.OrderByDescending(p => p.PaymentDate).Take(5).ToList()
+        RecentPayments=recentPayments,
+        CurrentPage=page,
+        TotalPages=totlaPages,
+        PageSize=pageSize
+
       };
 
 

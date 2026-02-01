@@ -1,5 +1,6 @@
 ﻿using Application.Services.DTO_s;
 using Application.Services.Interfaces;
+using ApplicationCore.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -16,6 +17,7 @@ namespace Web.Controllers
     {
       _authService=authService;
     }
+
     [HttpGet]
     public IActionResult Register()
     {
@@ -40,7 +42,7 @@ namespace Web.Controllers
         return View(model);
       }
 
-      // Login تلقائي
+      // تسجيل الدخول تلقائي بعد التسجيل
       var loginResult = await _authService.LogInAsync(new LoginDto
       {
         Email=model.Email,
@@ -49,7 +51,10 @@ namespace Web.Controllers
 
       if(loginResult.success&&loginResult.employee!=null)
       {
+        // ⚡ مسح أي Cookie/Claims قديمة قبل SignIn
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         await SignInUserAsync(loginResult.employee);
+
         TempData["Success"]=$"Welcome to CarRental, {loginResult.employee.FullName}!";
         return RedirectToAction("Index","Home");
       }
@@ -57,6 +62,7 @@ namespace Web.Controllers
       TempData["Success"]="Registration successful! Please login.";
       return RedirectToAction(nameof(Login));
     }
+
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {
@@ -82,7 +88,11 @@ namespace Web.Controllers
         return View(model);
       }
 
+      // ⚡ مسح أي cookie/claims قديمة قبل SignIn
+      await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
       await SignInUserAsync(result.employee);
+
       TempData["Success"]=$"Welcome back, {result.employee.FullName}!";
 
       if(!string.IsNullOrEmpty(returnUrl)&&Url.IsLocalUrl(returnUrl))
@@ -96,21 +106,26 @@ namespace Web.Controllers
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
+      // مسح الـ Cookie القديم
       await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+      // حذف أي كوكيز متبقية
+      Response.Cookies.Delete(".AspNetCore.Cookies");
+
       TempData["Info"]="You have been logged out successfully.";
       return RedirectToAction(nameof(Login));
     }
 
-    private async Task SignInUserAsync(ApplicationCore.Entities.Employees employee)
+    private async Task SignInUserAsync(Employees employee)
     {
       var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.NameIdentifier, employee.Id.ToString()),
-        new Claim(ClaimTypes.Name, employee.FullName),
-        new Claim(ClaimTypes.Email, employee.Email),
-        new Claim(ClaimTypes.Role, employee.Role),
-        new Claim("EmployeeId", employee.Id.ToString())
-    };
+            {
+                new Claim(ClaimTypes.NameIdentifier, employee.Id.ToString()),
+                new Claim(ClaimTypes.Name, employee.FullName),
+                new Claim(ClaimTypes.Email, employee.Email),
+                new Claim(ClaimTypes.Role, employee.Role),
+                new Claim("EmployeeId", employee.Id.ToString())
+            };
 
       var claimsIdentity = new ClaimsIdentity(
           claims,
@@ -130,6 +145,5 @@ namespace Web.Controllers
           claimsPrincipal,
           authProperties);
     }
-
   }
 }

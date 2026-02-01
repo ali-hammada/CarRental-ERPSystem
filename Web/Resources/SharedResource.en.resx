@@ -1,0 +1,83 @@
+﻿<root>
+	<data name="Welcome" xml:space="preserve">
+    <value>Welcome</value>
+  </data>
+	<data name="WelcomeBack" xml:space="preserve">
+    <value>Welcome Back, {0}!</value>
+  </data>
+	<data name="Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+	<data name="YourPersonalRentalDashboard" xml:space="preserve">
+    <value>Your personal rental dashboard - Track your rentals, payments, and more</value>
+  </data>
+	<data name="TotalRentals" xml:space="preserve">
+    <value>Total Rentals</value>
+  </data>
+	<data name="ActiveRentals" xml:space="preserve">
+    <value>Active Rentals</value>
+  </data>
+	<data name="Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+	<data name="Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+	<data name="TotalPaid" xml:space="preserve">
+    <value>Total Paid</value>
+  </data>
+	<data name="Payments" xml:space="preserve">
+    <value>Payments</value>
+  </data>
+	<data name="CarsRented" xml:space="preserve">
+    <value>Cars Rented</value>
+  </data>
+	<data name="CarsAvailable" xml:space="preserve">
+    <value>Cars Available</value>
+  </data>
+	<data name="MonthlyContracts" xml:space="preserve">
+    <value>Monthly Contracts</value>
+  </data>
+	<data name="MonthlyPayments" xml:space="preserve">
+    <value>Monthly Payments</value>
+  </data>
+	<data name="ActiveContracts" xml:space="preserve">
+    <value>Active Contracts</value>
+  </data>
+	<data name="ViewAll" xml:space="preserve">
+    <value>View All</value>
+  </data>
+	<data name="Contract" xml:space="preserve">
+    <value>Contract</value>
+  </data>
+	<data name="Car" xml:space="preserve">
+    <value>Car</value>
+  </data>
+	<data name="Period" xml:space="preserve">
+    <value>Period</value>
+  </data>
+	<data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+	<data name="Paid" xml:space="preserve">
+    <value>Paid</value>
+  </data>
+	<data name="Remaining" xml:space="preserve">
+    <value>Remaining</value>
+  </data>
+	<data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+	<data name="Days" xml:space="preserve">
+    <value>days</value>
+  </data>
+	<data name="NoActiveContracts" xml:space="preserve">
+    <value>No active contracts</value>
+  </data>
+	<data name="StartNewRental" xml:space="preserve">
+    <value>Start a new rental to see it here</value>
+  </data>
+	<data name="BrowseCars" xml:space="preserve">
+    <value>Browse Cars</value>
+  </data>
+</root>

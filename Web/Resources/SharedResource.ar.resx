@@ -1,0 +1,83 @@
+﻿<root>
+	<data name="Welcome" xml:space="preserve">
+    <value>أهلاً بك</value>
+  </data>
+	<data name="WelcomeBack" xml:space="preserve">
+    <value>أهلاً بك مرة أخرى، {0}!</value>
+  </data>
+	<data name="Dashboard" xml:space="preserve">
+    <value>لوحة التحكم</value>
+  </data>
+	<data name="YourPersonalRentalDashboard" xml:space="preserve">
+    <value>لوحة التحكم الشخصية - تتبع الإيجارات والمدفوعات والمزيد</value>
+  </data>
+	<data name="TotalRentals" xml:space="preserve">
+    <value>إجمالي الإيجارات</value>
+  </data>
+	<data name="ActiveRentals" xml:space="preserve">
+    <value>الإيجارات النشطة</value>
+  </data>
+	<data name="Completed" xml:space="preserve">
+    <value>مكتملة</value>
+  </data>
+	<data name="Cancelled" xml:space="preserve">
+    <value>ملغاة</value>
+  </data>
+	<data name="TotalPaid" xml:space="preserve">
+    <value>إجمالي المدفوع</value>
+  </data>
+	<data name="Payments" xml:space="preserve">
+    <value>المدفوعات</value>
+  </data>
+	<data name="CarsRented" xml:space="preserve">
+    <value>السيارات المؤجرة</value>
+  </data>
+	<data name="CarsAvailable" xml:space="preserve">
+    <value>السيارات المتاحة</value>
+  </data>
+	<data name="MonthlyContracts" xml:space="preserve">
+    <value>العقود الشهرية</value>
+  </data>
+	<data name="MonthlyPayments" xml:space="preserve">
+    <value>المدفوعات الشهرية</value>
+  </data>
+	<data name="ActiveContracts" xml:space="preserve">
+    <value>العقود النشطة</value>
+  </data>
+	<data name="ViewAll" xml:space="preserve">
+    <value>عرض الكل</value>
+  </data>
+	<data name="Contract" xml:space="preserve">
+    <value>العقد</value>
+  </data>
+	<data name="Car" xml:space="preserve">
+    <value>السيارة</value>
+  </data>
+	<data name="Period" xml:space="preserve">
+    <value>الفترة</value>
+  </data>
+	<data name="Total" xml:space="preserve">
+    <value>الإجمالي</value>
+  </data>
+	<data name="Paid" xml:space="preserve">
+    <value>المدفوع</value>
+  </data>
+	<data name="Remaining" xml:space="preserve">
+    <value>المتبقي</value>
+  </data>
+	<data name="Status" xml:space="preserve">
+    <value>الحالة</value>
+  </data>
+	<data name="Days" xml:space="preserve">
+    <value>أيام</value>
+  </data>
+	<data name="NoActiveContracts" xml:space="preserve">
+    <value>لا توجد عقود نشطة</value>
+  </data>
+	<data name="StartNewRental" xml:space="preserve">
+    <value>ابدأ إيجار جديد لتراه هنا</value>
+  </data>
+	<data name="BrowseCars" xml:space="preserve">
+    <value>تصفح السيارات</value>
+  </data>
+</root>

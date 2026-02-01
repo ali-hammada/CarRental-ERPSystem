@@ -1,9 +1,10 @@
-﻿@model Web.ViewModels.DashboardViewModel
+﻿@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Web.Resources.SharedResources> Localizer
+@model Web.ViewModels.DashboardViewModel
 
 @{
   ViewData["Title"]="Dashboard";
 }
-
 <div class="container-fluid mt-4">
   <!-- Welcome Section -->
   <div class="row mb-4">
@@ -36,7 +37,7 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center">
             <div>
-              <p class="text-muted mb-1 small">TOTAL RENTALS</p>
+              <p class="text-muted mb-1 small">@Localizer["TOTAL RENTALS"]</p>
               <h2 class="mb-0 fw-bold">@Model.TotalRentals</h2>
             </div>
             <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-3">
@@ -199,7 +200,7 @@
   <!-- Active Contracts & Recent Payments -->
   <div class="row g-4 mb-4">
     <!-- Active Contracts -->
-    <div class="col-lg-8">
+    <div class="col-lg-12">
       <div class="card shadow-sm border-0 h-100">
         <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
           <h5 class="mb-0 text-warning">
@@ -292,70 +293,43 @@
         </div>
       </div>
     </div>
-
-    <!-- Recent Payments -->
-    <div class="col-lg-4">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 text-success">
-            <i class="bi bi-receipt me-2"></i> Recent Payments
-          </h5>
-          <a asp-controller="Payment" asp-action="Index" class="btn btn-sm btn-outline-success">
-            View All <i class="bi bi-arrow-right ms-1"></i>
-          </a>
-        </div>
-        <div class="card-body">
-          @if(Model.RecentPayments.Any())
-          {
-            <div class="list-group list-group-flush">
-              @foreach(var payment in Model.RecentPayments)
-              {
-                <div class="list-group-item border-start border-4 border-success ps-3">
-                  <div class="d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1">
-                      <div class="d-flex justify-content-between">
-                        <h6 class="mb-1 fw-bold">@payment.Amount.ToString("C")</h6>
-                        <span class="badge bg-light text-dark">@payment.Method</span>
-                      </div>
-                      <p class="mb-1 text-muted small">
-                        <i class="bi bi-receipt me-1"></i> Receipt #@payment.Id
-                      </p>
-                      <p class="mb-1">
-                        <span class="badge bg-light text-dark">@payment.Purpose</span>
-                      </p>
-                      <p class="mb-0 text-muted small">
-                        <i class="bi bi-calendar me-1"></i> @payment.PaymentDate.ToString("MMM dd, yyyy HH:mm")
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              }
-            </div>
-          }
-          else
-          {
-            <div class="text-center py-4">
-              <div class="mb-3">
-                <i class="bi bi-receipt fs-1 text-muted"></i>
-              </div>
-              <h5 class="text-muted">No recent payments</h5>
-              <p class="text-muted small mt-2">Make your first payment to see it here</p>
-              <a asp-controller="Rentals" asp-action="Index" class="btn btn-success mt-3">
-                <i class="bi bi-credit-card me-1"></i> Make Payment
-              </a>
-            </div>
-          }
-        </div>
-      </div>
-    </div>
   </div>
+    <div class="col-lg-4" id="recentPaymentsContainer">
+      @await Html.PartialAsync("_RecentPaymentsPartial",Model)
+    </div>
 
-  
-</div>
+ </div>
+
+
 
 @section Scripts {
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
+
+  <script>
+      $(document).ready(function () {
+        // عند النقر على رابط pagination
+        $(document).on('click', '.ajax-link', function (e) {
+            e.preventDefault();  // منع الإعادة تحميل
+
+            var page = $(this).data('page');
+            var pageSize = $(this).data('pagesize');
+
+            // إرسال AJAX request
+            $.ajax({
+                url: '@Url.Action("GetPartialRecentPayments","Home")',
+                type: 'GET',
+                data: { page: page, pageSize: pageSize },
+                success: function (data) {
+                    $('#recentPaymentsContainer').html(data);  // استبدال المحتوى
+                },
+                error: function () {
+                    alert('Error loading payments. Please try again.');
+                }
+            });
+        });
+    });
+  </script>
   <script>
     
     const rentalsCtx = document.getElementById('rentalsChart').getContext('2d');
@@ -439,6 +413,7 @@
             }
         }
     });
+     
   </script>
 
   <style>
@@ -463,7 +438,7 @@
     }
 
       .card:hover {
-        transform: translateY(-3px);
+        transform: translateY(-1px);
         box-shadow: 0 10px 20px rgba(0,0,0,0.1);
       }
   </style>

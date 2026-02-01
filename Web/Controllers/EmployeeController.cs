@@ -19,8 +19,6 @@ namespace Web.Controllers
       _employeeServices=employeeServices;
       _toast=toast;
     }
-
-    // ======================= INDEX =======================
     public async Task<IActionResult> Index()
     {
       var employees = await _employeeServices.GetAllAsync();
@@ -36,8 +34,6 @@ namespace Web.Controllers
 
       return View(model);
     }
-
-    // ======================= CREATE =======================
     [HttpGet]
     public IActionResult Create()
     {
@@ -79,8 +75,6 @@ namespace Web.Controllers
       _toast.AddSuccessToastMessage("Employee added successfully");
       return RedirectToAction(nameof(Index));
     }
-
-    // ======================= EDIT =======================
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -90,8 +84,6 @@ namespace Web.Controllers
         _toast.AddErrorToastMessage("Employee not found");
         return RedirectToAction(nameof(Index));
       }
-
-      // تحويل Entity إلى ViewModel
       var vm = new EmployeeVM
       {
         Id=employee.Id,
@@ -110,7 +102,6 @@ namespace Web.Controllers
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(EmployeeVM vm)
     {
-      // أهم سطر: أزل الـ PasswordHash من الـ validation لأنه مش بيجي من الـ form
       ModelState.Remove("PasswordHash");
 
       if(!ModelState.IsValid)
@@ -147,11 +138,11 @@ namespace Web.Controllers
         employee.PasswordHash=hasher.HashPassword(employee,vm.Password);
       }
       await _employeeServices.UpdateAsync(employee);
-      _toast.AddSuccessToastMessage("Employee updated successfully");
+      _toast.AddSuccessToastMessage($"{employee.FullName} updated successfully");
       return RedirectToAction(nameof(Index));
     }
 
-    // ======================= DELETE =======================
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
@@ -168,7 +159,6 @@ namespace Web.Controllers
       return RedirectToAction(nameof(Index));
     }
 
-    // ======================= AJAX CHECK EMAIL =======================
     [HttpPost]
     public async Task<IActionResult> CheckEmailExists(string email)
     {

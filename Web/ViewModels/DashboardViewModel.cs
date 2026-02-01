@@ -13,6 +13,9 @@ namespace Web.ViewModels
     public int TotalPayments { get; set; }
     public int CarsRented { get; set; }
     public int CarsAvailable { get; set; }
+    public int CurrentPage { get; set; }
+    public int TotalPages { get; set; }
+    public int PageSize { get; set; }
 
     // العقود النشطة
     public List<RentalContract> ActiveContracts { get; set; } = new();
