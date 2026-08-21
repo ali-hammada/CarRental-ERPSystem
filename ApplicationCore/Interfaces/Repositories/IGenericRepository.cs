@@ -1,8 +1,11 @@
-public interface IGenericRepository<T> where T : class
+namespace ApplicationCore.Interfaces.Repositories
 {
-  IQueryable<T> GetAll();
-  Task<T> GetByIdAsync(int id);
-  Task AddAsync(T Entity);
-  void Update(T Entity);
-  void Delete(T Entity);
+    public interface IGenericRepository<T> where T : class
+    {
+        IQueryable<T> GetAll();
+        Task<T?> GetByIdAsync(int id);
+        Task AddAsync(T entity);
+        void Update(T entity);
+        void Delete(T entity);
+    }
 }

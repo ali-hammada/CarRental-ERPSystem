@@ -1,18 +1,31 @@
-﻿using ApplicationCore.Entities.Enums;
+using ApplicationCore.Enums;
 
 namespace ApplicationCore.Entities
 {
-  public class Car:EntityBase
-  {
-    public string PlateNumber { get; set; } = null!;
-    public string Model { get; set; } = null!;
-    public int Year { get; set; }
-    public decimal PricePerDay { get; set; }
+    public class Car : EntityBase
+    {
+        public string PlateNumber { get; set; } = null!;
+        public string Model { get; set; } = null!;
+        public int Year { get; set; }
+        public decimal PricePerDay { get; set; }
+        public CarStatus Status { get; set; } = CarStatus.Available;
+        public string? ImageUrl { get; set; }
 
-    public CarStatus Status { get; set; }
-    public string? ImageUrl { get; set; }
+        public int? CategoryId { get; set; }
+        public CarCategory? Category { get; set; }
 
+        public int CurrentOdometer { get; set; } = 0;
+        public string FuelType { get; set; } = "Gasoline";
+        public string Transmission { get; set; } = "Automatic";
+        public string? Color { get; set; }
 
-    public ICollection<RentalContract> RentalContracts { get; set; } = new List<RentalContract>();
-  }
+        // Live GPS Telemetry
+        public double? CurrentLatitude { get; set; }
+        public double? CurrentLongitude { get; set; }
+        public DateTime? LastLocationUpdate { get; set; }
+
+        public ICollection<RentalContract> RentalContracts { get; set; } = new List<RentalContract>();
+        public ICollection<MaintenanceLog> MaintenanceLogs { get; set; } = new List<MaintenanceLog>();
+        public ICollection<CarLocationLog> LocationLogs { get; set; } = new List<CarLocationLog>();
+    }
 }

@@ -1,4 +1,4 @@
-﻿@model ApplicationCore.Entities.Payment;
+@model ApplicationCore.Entities.Payment;
 
 @{
   ViewData["Title"] = "Payment Receipt";
@@ -55,7 +55,7 @@
 
             <!-- Payment Status Badge -->
             <div class="text-center mb-4">
-              @if (Model.Purpose == ApplicationCore.Entities.Enums.PaymentPurpose.Partial)
+              @if (Model.Purpose == ApplicationCore.Enums.PaymentPurpose.Partial)
               {
                 <span class="badge bg-warning text-dark fs-5 px-4 py-2">
                   <i class="bi bi-cash-coin"></i> Partial Payment
@@ -151,7 +151,7 @@
                  class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Back to Rental
               </a>
-              @if (Model.Purpose == ApplicationCore.Entities.Enums.PaymentPurpose.Partial && remaining > 0)
+              @if (Model.Purpose == ApplicationCore.Enums.PaymentPurpose.Partial && remaining > 0)
               {
                 <a asp-controller="Payment" asp-action="MakePayment" asp-route-rentalId="@Model.RentalContractId"
                    class="btn btn-success">

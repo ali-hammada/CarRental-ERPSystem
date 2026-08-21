@@ -1,445 +1,261 @@
-﻿@using Microsoft.Extensions.Localization
-@inject IStringLocalizer<Web.Resources.SharedResources> Localizer
-@model Web.ViewModels.DashboardViewModel
+@using Application.Providers
+@model DashboardMetricsDto
 
 @{
-  ViewData["Title"]="Dashboard";
+    ViewData["Title"] = "Executive ERP Dashboard";
 }
-<div class="container-fluid mt-4">
-  <!-- Welcome Section -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card bg-gradient-primary text-white shadow-sm border-0">
-        <div class="card-body">
-          <div class="row align-items-center">
-            <div class="col-md-8">
-              <h3 class="mb-1">
-                <i class="bi bi-speedometer2 me-2"></i> Welcome Back, @User.Identity?.Name!
-              </h3>
-              <p class="mb-0 opacity-90">Your personal rental dashboard - Track your rentals, payments, and more</p>
-            </div>
-            <div class="col-md-4 text-md-end mt-3 mt-md-0">
-              <div class="text-white bg-opacity-20 rounded-pill px-4 py-2 d-inline-block">
-                <i class="bi bi-calendar-check me-1"></i> @DateTime.Now.ToString("dddd, MMMM dd, yyyy")
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Statistics Cards -->
-  <div class="row g-4 mb-4">
-    <!-- Total Rentals -->
-    <div class="col-xl-4 col-md-4 col-sm-6">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <p class="text-muted mb-1 small">@Localizer["TOTAL RENTALS"]</p>
-              <h2 class="mb-0 fw-bold">@Model.TotalRentals</h2>
+<div class="d-flex flex-column gap-4">
+    <!-- Header Hero Banner -->
+    <div class="glass-card p-4 position-relative overflow-hidden border-0">
+        <div class="row align-items-center relative-1">
+            <div class="col-lg-8 mb-3 mb-lg-0">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1">
+                        <i class="bi bi-shield-check me-1"></i> Live Enterprise Operations
+                    </span>
+                    <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">
+                        <i class="bi bi-lightning-charge me-1"></i> Fast DDD Provider Engine
+                    </span>
+                </div>
+                <h2 class="display-6 fw-extrabold mb-1">
+                    Welcome back, <span class="text-gradient">@User.Identity?.Name</span>!
+                </h2>
+                <p class="text-secondary mb-0">
+                    Real-time fleet utilization, contract ledgers, active revenue analytics, and vehicle status.
+                </p>
             </div>
-            <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-3">
-              <i class="bi bi-file-text fs-4"></i>
+            <div class="col-lg-4 text-lg-end">
+                <div class="d-inline-flex flex-column align-items-lg-end gap-1">
+                    <div class="fs-4 fw-extrabold text-white">@Model.FleetUtilizationPercentage%</div>
+                    <div class="text-secondary small">Fleet Utilization Rate</div>
+                    <div class="progress mt-2 w-100" style="height: 6px; width: 160px;">
+                        <div class="progress-bar bg-gradient" role="progressbar" style="width: @Model.FleetUtilizationPercentage%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
     </div>
 
-    <!-- Active Rentals -->
-    <div class="col-xl-4 col-md-4 col-sm-6">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <p class="text-muted mb-1 small">ACTIVE RENTALS</p>
-              <h2 class="mb-0 fw-bold text-warning">@Model.ActiveRentals</h2>
+    <!-- Top KPI Stat Grid -->
+    <div class="row g-4">
+        <!-- Total Revenue Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-widget kpi-success h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Total Revenue</div>
+                        <div class="fs-3 fw-extrabold text-gradient-emerald mt-1">@Model.TotalPaidAmount.ToString("C")</div>
+                        <div class="text-secondary small mt-1">From @Model.TotalPaymentsCount completed payments</div>
+                    </div>
+                    <div class="kpi-icon">
+                        <i class="bi bi-wallet2"></i>
+                    </div>
+                </div>
             </div>
-            <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-3">
-              <i class="bi bi-car-front fs-4"></i>
-            </div>
-          </div>
         </div>
-      </div>
+
+        <!-- Active Contracts Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-widget kpi-warning h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Active Rentals</div>
+                        <div class="fs-3 fw-extrabold text-gradient-amber mt-1">@Model.ActiveRentals</div>
+                        <div class="text-secondary small mt-1">Cars currently on road</div>
+                    </div>
+                    <div class="kpi-icon">
+                        <i class="bi bi-car-front"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Fleet Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-widget h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Available Fleet</div>
+                        <div class="fs-3 fw-extrabold text-white mt-1">@Model.AvailableCarsCount / @Model.TotalCarsCount</div>
+                        <div class="text-secondary small mt-1">Ready for booking</div>
+                    </div>
+                    <div class="kpi-icon">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Contracts Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-widget kpi-purple h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Total Contracts</div>
+                        <div class="fs-3 fw-extrabold text-white mt-1">@Model.TotalRentals</div>
+                        <div class="text-secondary small mt-1">@Model.CompletedRentals completed | @Model.CancelledRentals cancelled</div>
+                    </div>
+                    <div class="kpi-icon">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Completed Rentals -->
-    <div class="col-xl-4 col-md-4 col-sm-6">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <p class="text-muted mb-1 small">COMPLETED</p>
-              <h2 class="mb-0 fw-bold text-success">@Model.CompletedRentals</h2>
+    <!-- Charts & Metrics Analytics Section -->
+    <div class="row g-4">
+        <!-- Monthly Contracts Chart -->
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-graph-up-arrow text-primary fs-5"></i>
+                        <h5 class="fw-bold mb-0 text-white">Monthly Contract Velocity</h5>
+                    </div>
+                    <span class="badge bg-dark text-secondary border border-secondary border-opacity-25">Last 7 Months</span>
+                </div>
+                <div style="height: 280px;">
+                    <canvas id="rentalsChart"></canvas>
+                </div>
             </div>
-            <div class="bg-success bg-opacity-10 text-success p-3 rounded-3">
-              <i class="bi bi-check-circle fs-4"></i>
-            </div>
-          </div>
         </div>
-      </div>
-    </div>
-    <!-- Cancelled Rentals -->
-    <div class="col-xl-4 col-md-4 col-sm-6">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <p class="text-muted mb-1 small">Cancelled</p>
-              <h2 class="mb-0 fw-bold text-danger">@Model.CancelledRentals</h2>
+
+        <!-- Monthly Revenue Chart -->
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-currency-dollar text-success fs-5"></i>
+                        <h5 class="fw-bold mb-0 text-white">Monthly Cash Flow</h5>
+                    </div>
+                    <span class="badge bg-dark text-secondary border border-secondary border-opacity-25">Last 7 Months</span>
+                </div>
+                <div style="height: 280px;">
+                    <canvas id="paymentsChart"></canvas>
+                </div>
             </div>
-            <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-3">
-              <i class="bi bi-x-circle-fill fs-4"></i>
-            </div>
-          </div>
-        </div>  
-      </div>
+        </div>
     </div>
 
-    <!-- Total Paid -->
-    <div class="col-xl-4 col-md-4 col-sm-6">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <p class="text-muted mb-1 small">TOTAL PAID</p>
-              <h2 class="mb-0 fw-bold text-info">@Model.TotalPaidAmount.ToString("C")</h2>
+    <!-- Recent Payment Transactions -->
+    <div class="glass-card p-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-receipt-cutoff text-primary fs-5"></i>
+                <h5 class="fw-bold mb-0 text-white">Recent Payment Transactions</h5>
             </div>
-            <div class="bg-info bg-opacity-10 text-info p-3 rounded-3">
-              <i class="bi bi-cash-stack fs-5"></i>
-            </div>
-          </div>
+            <a asp-controller="Payment" asp-action="History" class="btn btn-glass btn-sm">
+                View All Transactions <i class="bi bi-arrow-right ms-1"></i>
+            </a>
         </div>
-      </div>
-    </div>
 
-    <!-- Total Payments -->
-    <div class="col-xl-4 col-md-4 col-sm-6">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <p class="text-muted mb-1 small">PAYMENTS</p>
-              <h2 class="mb-0 fw-bold">@Model.TotalPayments</h2>
+        @if (Model.RecentPayments.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-futuristic align-middle">
+                    <thead>
+                        <tr>
+                            <th>Payment ID</th>
+                            <th>Contract</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Purpose</th>
+                            <th>Method</th>
+                            <th>Date</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var payment in Model.RecentPayments)
+                        {
+                            <tr>
+                                <td><span class="fw-bold text-primary">#PAY-@payment.Id.ToString("D4")</span></td>
+                                <td><a asp-controller="Rentals" asp-action="Details" asp-route-rentalId="@payment.RentalContractId" class="text-gradient text-decoration-none fw-bold">#CNT-@payment.RentalContractId</a></td>
+                                <td><span class="fw-semibold text-white">@payment.CustomerName</span></td>
+                                <td><span class="fw-extrabold text-success">@payment.Amount.ToString("C")</span></td>
+                                <td><span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 px-3 py-1">@payment.Purpose</span></td>
+                                <td><span class="badge bg-dark text-secondary border border-secondary border-opacity-25 px-3 py-1">@payment.Method</span></td>
+                                <td><span class="text-secondary small">@payment.PaymentDate.ToString("MMM dd, yyyy HH:mm")</span></td>
+                                <td class="text-end">
+                                    <a asp-controller="Payment" asp-action="Receipt" asp-route-paymentId="@payment.Id" class="btn btn-glass btn-sm">
+                                        <i class="bi bi-printer me-1"></i> Receipt
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
-            <div class="bg-secondary bg-opacity-10 text-secondary p-3 rounded-3">
-              <i class="bi bi-credit-card fs-4"></i>
+        }
+        else
+        {
+            <div class="text-center py-5 text-secondary">
+                <i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>
+                <p class="mb-0">No payment transactions recorded yet.</p>
             </div>
-          </div>
-        </div>
-      </div>
+        }
     </div>
-
-    <!-- Cars Rented -->
-    <div class="col-xl-4 col-md-4 col-sm-6">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <p class="text-muted mb-1 small">CARS RENTED</p>
-              <h2 class="mb-0 fw-bold text-purple">@Model.CarsRented</h2>
-            </div>
-            <div class="bg-secondary bg-opacity-10 text-bg-secondary p-3 rounded-3">
-              <i class="bi bi-truck fs-4"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  
-    <!-- Cars Available -->
-  <div class="col-xl-4 col-md-4 col-sm-6">
-    <div class="card shadow-sm border-0 h-100">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <p class="text-muted mb-1 small">CARS Available</p>
-            <h2 class="mb-0 fw-bold text-success">@Model.CarsAvailable</h2>
-          </div>
-          <div class="bg-success bg-opacity-10 text-success p-3 rounded-3">
-            <i class="bi bi-truck fs-4"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
 </div>
 
-  <!-- Charts Section -->
- <div class="row g-4 mb-4">
-        <!-- المخططات -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header">
-                    <h5 class="mb-0 text-primary">
-                        <i class="bi bi-graph-up me-2"></i> العقود الشهرية
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="rentalsChart" height="250"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header">
-                    <h5 class="mb-0 text-success">
-                        <i class="bi bi-graph-up-arrow me-2"></i> المدفوعات الشهرية
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="paymentsChart" height="250"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-  <!-- Active Contracts & Recent Payments -->
-  <div class="row g-4 mb-4">
-    <!-- Active Contracts -->
-    <div class="col-lg-12">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 text-warning">
-            <i class="bi bi-clock-history me-2"></i> Active Contracts
-          </h5>
-          <a asp-controller="Rentals" asp-action="Index" class="btn btn-sm btn-outline-primary">
-            View All <i class="bi bi-arrow-right ms-1"></i>
-          </a>
-        </div>
-        <div class="card-body">
-          @if(Model.ActiveContracts.Any())
-          {
-            <div class="table-responsive">
-              <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th>Contract</th>
-                    <th>Car</th>
-                    <th>Period</th>
-                    <th class="text-end">Total</th>
-                    <th class="text-end">Paid</th>
-                    <th class="text-end">Remaining</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @foreach(var contract in Model.ActiveContracts)
-                  {
-                    var remaining = (contract.FinalAmount??contract.TotalAmount)-contract.PaidAmount;
-                    <tr>
-                      <td>
-                        <a asp-controller="Rentals" asp-action="Details" asp-route-id="@contract.Id"
-                           class="text-decoration-none fw-bold text-primary">
-                          #@contract.Id
-                        </a>
-                        <br>
-                        <small class="text-muted">@contract.StartDate.ToString("MMM dd") - @contract.EndDate.ToString("MMM dd")</small>
-                      </td>
-                      <td>
-                        @if(contract.Car!=null)
-                        {
-                          <div>
-                            <strong>@contract.Car.Model</strong>
-                            <br>
-                            <small class="text-muted">@contract.Car.PlateNumber</small>
-                          </div>
-                        }
-                        else
-                        {
-                          <span class="text-muted">Car info loading...</span>
-                        }
-                      </td>
-                      <td>
-                        <span class="badge bg-info text-dark">@((contract.EndDate-contract.StartDate).Days+1) days</span>
-                      </td>
-                      <td class="text-end fw-bold">@contract.TotalAmount.ToString("C")</td>
-                      <td class="text-end text-success fw-bold">@contract.PaidAmount.ToString("C")</td>
-                      <td class="text-end @(remaining>0 ? "text-danger fw-bold" : "text-success")">
-                        @if(remaining>0)
-                        {
-                          @remaining.ToString("C")
-                        }
-                        else
-                        {
-                          <span class="badge bg-success">Paid</span>
-                        }
-                      </td>
-                      <td>
-                        <span class="badge bg-warning text-dark">@contract.Status</span>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          }
-          else
-          {
-            <div class="text-center py-5">
-              <div class="mb-3">
-                <i class="bi bi-inbox fs-1 text-muted"></i>
-              </div>
-              <h5 class="text-muted">No active contracts</h5>
-              <p class="text-muted small mt-2">Start a new rental to see it here</p>
-              <a asp-controller="Car" asp-action="Index" class="btn btn-primary mt-3">
-                <i class="bi bi-car-front me-1"></i>  Cars
-              </a>
-            </div>
-          }
-        </div>
-      </div>
-    </div>
-  </div>
-    <div class="col-lg-4" id="recentPaymentsContainer">
-      @await Html.PartialAsync("_RecentPaymentsPartial",Model)
-    </div>
-
- </div>
-
-
-
 @section Scripts {
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-
-  <script>
-      $(document).ready(function () {
-        // عند النقر على رابط pagination
-        $(document).on('click', '.ajax-link', function (e) {
-            e.preventDefault();  // منع الإعادة تحميل
-
-            var page = $(this).data('page');
-            var pageSize = $(this).data('pagesize');
-
-            // إرسال AJAX request
-            $.ajax({
-                url: '@Url.Action("GetPartialRecentPayments","Home")',
-                type: 'GET',
-                data: { page: page, pageSize: pageSize },
-                success: function (data) {
-                    $('#recentPaymentsContainer').html(data);  // استبدال المحتوى
+    <script>
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#94a3b8' }
                 },
-                error: function () {
-                    alert('Error loading payments. Please try again.');
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#94a3b8' }
                 }
-            });
+            }
+        };
+
+        // Monthly Contract Velocity Line Chart
+        new Chart(document.getElementById('rentalsChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.Months)),
+                datasets: [{
+                    label: 'Contracts',
+                    data: @Html.Raw(Json.Serialize(Model.RentalsPerMonth)),
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#3b82f6',
+                    pointRadius: 5
+                }]
+            },
+            options: chartOptions
         });
-    });
-  </script>
-  <script>
-    
-    const rentalsCtx = document.getElementById('rentalsChart').getContext('2d');
-    new Chart(rentalsCtx, {
-        type: 'line',
-        data: {
-            labels: @Html.Raw(Json.Serialize(Model.Months)),
-            datasets: [{
-                label: 'Rentals',
-                data: @Html.Raw(Json.Serialize(Model.RentalsPerMonth)),
-                borderColor: '#4361ee',
-                backgroundColor: 'rgba(67, 97, 238, 0.1)',
-                borderWidth: 3,
-                pointBackgroundColor: '#4361ee',
-                pointRadius: 4,
-                fill: true,
-                tension: 0.3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
+
+        // Monthly Cash Flow Bar Chart
+        new Chart(document.getElementById('paymentsChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.Months)),
+                datasets: [{
+                    label: 'Revenue',
+                    data: @Html.Raw(Json.Serialize(Model.PaymentsPerMonth)),
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: '#10b981',
+                    borderRadius: 6,
+                    borderWidth: 1
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    },
-                    ticks: {
-                        stepSize: 1
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
-        }
-    });
-
-    
-    const paymentsCtx = document.getElementById('paymentsChart').getContext('2d');
-    new Chart(paymentsCtx, {
-        type: 'bar',
-        data: {
-            labels: @Html.Raw(Json.Serialize(Model.Months)),
-            datasets: [{
-                label: 'Payments ($)',
-                data: @Html.Raw(Json.Serialize(Model.PaymentsPerMonth)),
-                backgroundColor: 'rgba(38, 198, 218, 0.7)',
-                borderColor: '#0288d1',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
-        }
-    });
-     
-  </script>
-
-  <style>
-    .bg-gradient-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    .text-purple {
-      color: #7209b7 !important;
-    }
-
-    .bg-purple {
-      background-color: #7209b7 !important;
-    }
-
-    .table-hover tbody tr:hover {
-      background-color: rgba(67, 97, 238, 0.05);
-    }
-
-    .card {
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-      .card:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-      }
-  </style>
+            options: chartOptions
+        });
+    </script>
 }

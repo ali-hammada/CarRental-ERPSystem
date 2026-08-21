@@ -3,16 +3,20 @@ using ApplicationCore.Interfaces.Repositories;
 
 namespace ApplicationCore.Interfaces
 {
-  public interface IUnitOfWork
-  {
-    ICarRepository Cars { get; }
-    ICustomerRepository Customer { get; }
-    IGenericRepository<Employees> Employee { get; }
-    IGenericRepository<RentalContract> RentalContracts { get; }
+    public interface IUnitOfWork
+    {
+        ICarRepository Cars { get; }
+        ICustomerRepository Customer { get; }
+        IEmployeeRepository Employee { get; }
+        IRentalContractRepository RentalContracts { get; }
+        IGenericRepository<Payment> Payments { get; }
+        IGenericRepository<CarCategory> CarCategories { get; }
+        IGenericRepository<MaintenanceLog> MaintenanceLogs { get; }
+        IGenericRepository<Invoice> Invoices { get; }
 
-    Task BeginTransactionAsync();
-    Task CommitAsync();
-    Task RollbackAsync();
-    Task<int> SaveChangesAsync();
-  }
+        Task BeginTransactionAsync();
+        Task CommitAsync();
+        Task RollbackAsync();
+        Task<int> SaveChangesAsync();
+    }
 }

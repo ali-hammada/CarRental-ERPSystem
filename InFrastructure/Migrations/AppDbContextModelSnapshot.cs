@@ -52,7 +52,7 @@ namespace InFrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Cars");
+                    b.ToTable("Cars", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Entities.Customer", b =>
@@ -88,7 +88,7 @@ namespace InFrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Entities.Employees", b =>
@@ -124,7 +124,7 @@ namespace InFrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Employee");
+                    b.ToTable("Employee", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Entities.Payment", b =>
@@ -157,7 +157,7 @@ namespace InFrastructure.Migrations
 
                     b.HasIndex("RentalContractId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Entities.RentalContract", b =>
@@ -219,7 +219,7 @@ namespace InFrastructure.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("RentalContracts");
+                    b.ToTable("RentalContracts", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Entities.Payment", b =>

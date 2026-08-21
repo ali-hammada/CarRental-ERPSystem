@@ -1,125 +1,76 @@
-﻿@model Application.Services.DTO_s.RegisterDto
+@model Application.Services.DTOs.RegisterDto
 
 @{
-  ViewData["Title"]="Register";
+    ViewData["Title"] = "Create Account";
 }
 
-<div class="row justify-content-center mt-5">
-  <div class="col-md-6">
-    <div class="card shadow-lg border-0 rounded-4">
-
-      <!-- ✅ صلّح الـ Header -->
-      <div class="card-header bg-primary text-white text-center py-4 rounded-top-4">
-        <h4 class="mb-0">
-          <i class="bi bi-person-plus"></i> Create Account
-        </h4>
-        <small>Join CarRental today</small>
-      </div>
-
-      <div class="card-body p-4">
-
-        @if(TempData["Error"]!=null)
-        {
-          <div class="alert alert-danger alert-dismissible fade show">
-            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
-        }
-
-        <form asp-action="Register" method="post">
-          <div asp-validation-summary="All" class="text-danger mb-3"></div>
-
-          <!-- Name -->
-          <div class="mb-3">
-            <label asp-for="Name" class="form-label">Full Name</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-person"></i></span>
-              <input asp-for="Name" class="form-control" placeholder="Enter your full name" />
+<div class="row justify-content-center my-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="glass-card p-4">
+            <div class="text-center mb-4">
+                <div class="kpi-icon mx-auto mb-3" style="width: 56px; height: 56px; font-size: 1.8rem;">
+                    <i class="bi bi-person-plus-fill"></i>
+                </div>
+                <h3 class="fw-extrabold text-white mb-1">Create Account</h3>
+                <p class="text-secondary small">Join CarRental ERP System Management</p>
             </div>
-            <span asp-validation-for="Name" class="text-danger small"></span>
-          </div>
 
-          <!-- Email -->
-          <div class="mb-3">
-            <label asp-for="Email" class="form-label">Email Address</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-              <input asp-for="Email" type="email" class="form-control" placeholder="Enter email" />
+            <form asp-action="Register" method="post">
+                <div asp-validation-summary="All" class="text-danger mb-3 small"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label text-secondary small fw-bold">Full Name</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary border-opacity-25 text-secondary"><i class="bi bi-person"></i></span>
+                        <input asp-for="Name" class="form-control" placeholder="John Doe" required autofocus />
+                    </div>
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label text-secondary small fw-bold">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary border-opacity-25 text-secondary"><i class="bi bi-envelope"></i></span>
+                        <input asp-for="Email" type="email" class="form-control" placeholder="john@company.com" required />
+                    </div>
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Phone" class="form-label text-secondary small fw-bold">Phone Number</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary border-opacity-25 text-secondary"><i class="bi bi-phone"></i></span>
+                        <input asp-for="Phone" type="tel" class="form-control" placeholder="+1 (555) 019-2834" required />
+                    </div>
+                    <span asp-validation-for="Phone" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label text-secondary small fw-bold">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary border-opacity-25 text-secondary"><i class="bi bi-lock"></i></span>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" required />
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="ConfirmPassword" class="form-label text-secondary small fw-bold">Confirm Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary border-opacity-25 text-secondary"><i class="bi bi-shield-lock"></i></span>
+                        <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="••••••••" required />
+                    </div>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                </div>
+
+                <button type="submit" class="btn btn-glow w-100 py-2.5">
+                    <i class="bi bi-person-check-fill me-1"></i> Register Account
+                </button>
+            </form>
+
+            <div class="text-center mt-4 pt-3 border-top border-secondary border-opacity-25 small text-secondary">
+                Already registered? <a asp-action="Login" class="text-gradient font-bold text-decoration-none ms-1">Sign In</a>
             </div>
-            <span asp-validation-for="Email" class="text-danger small"></span>
-          </div>
-
-          <!-- Phone -->
-          <div class="mb-3">
-            <label asp-for="Phone" class="form-label">Phone Number</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-phone"></i></span>
-              <input asp-for="Phone" type="tel" class="form-control" placeholder="+1 (555) 123-4567" />
-            </div>
-            <span asp-validation-for="Phone" class="text-danger small"></span>
-          </div>
-
-          <!-- Driving License -->
-          <div class="mb-3">
-            <label asp-for="DrivingLicenseNumber" class="form-label">Driving License Number</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-credit-card-2-front"></i></span>
-              <input asp-for="DrivingLicenseNumber" class="form-control" placeholder="License number" />
-            </div>
-            <span asp-validation-for="DrivingLicenseNumber" class="text-danger small"></span>
-          </div>
-
-          <!-- License Expiry -->
-          <div class="mb-3">
-            <label asp-for="LicenseExpiryDate" class="form-label">License Expiry Date</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
-              <input asp-for="LicenseExpiryDate" type="date" class="form-control"
-                     min="@DateTime.Now.ToString("yyyy-MM-dd")" />
-            </div>
-            <span asp-validation-for="LicenseExpiryDate" class="text-danger small"></span>
-          </div>
-
-          <!-- Password -->
-          <div class="mb-3">
-            <label asp-for="Password" class="form-label">Password</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-lock"></i></span>
-              <input asp-for="Password" type="password" class="form-control" placeholder="Enter password" />
-            </div>
-            <span asp-validation-for="Password" class="text-danger small"></span>
-          </div>
-
-          <!-- Confirm Password -->
-          <div class="mb-3">
-            <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-              <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm password" />
-            </div>
-            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
-          </div>
-
-          <!-- Submit Button -->
-          <div class="d-grid mt-4">
-            <button type="submit" class="btn btn-primary btn-lg">
-              <i class="bi bi-person-plus"></i> Create Account
-            </button>
-          </div>
-        </form>
-
-        <hr />
-
-        <div class="text-center small">
-          Already have an account?
-          <a asp-action="Login" class="fw-bold">Login here</a>
         </div>
-
-      </div>
     </div>
-  </div>
 </div>
-
-@section Scripts {
-  <partial name="_ValidationScriptsPartial" />
-}

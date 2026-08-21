@@ -1,79 +1,93 @@
-﻿<!-- Views/Rental/Close.cshtml -->
-@model Application.Services.DTO_s.RentalCloseDto
+@model Application.Services.DTOs.RentalCloseDto
 
 @{
-  ViewData["Title"]="Close Rental";
-  var rental = ViewBag.Rental as ApplicationCore.Entities.RentalContract;
+    ViewData["Title"] = "Close Contract & Return Vehicle";
+    var rental = ViewBag.Rental as Application.DTOs.RentalListDto;
 }
 
-<div class="container mt-4">
-  <div class="row justify-content-center">
+<div class="row justify-content-center">
     <div class="col-lg-8">
-
-      <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-          <h4 class="mb-0">
-            <i class="bi bi-check-circle"></i> Close Rental Contract
-          </h4>
-        </div>
-        <div class="card-body">
-
-          @if(rental!=null)
-          {
-            <div class="alert alert-warning">
-              <i class="bi bi-exclamation-triangle"></i>
-              <strong>Important:</strong> Once you close this contract, the final amount will be calculated
-              based on actual usage. Late fees may apply if applicable.
-            </div>
-
-            <!-- Contract Summary -->
-            <div class="card bg-light mb-4">
-              <div class="card-body">
-                <h6 class="mb-3"><i class="bi bi-info-circle"></i> Contract Information</h6>
-                <div class="row">
-                  <div class="col-md-6">
-                    <p class="mb-1"><strong>Car:</strong>  @rental.Car?.Model</p>
-                    <p class="mb-1"><strong>Start Date:</strong> @rental.StartDate.ToString("MMM dd, yyyy")</p>
-                    <p class="mb-0"><strong>Expected End:</strong> @rental.EndDate.ToString("MMM dd, yyyy")</p>
-                  </div>
-                  <div class="col-md-6">
-                    <p class="mb-1"><strong>Daily Rate:</strong> @rental.DailyPrice.ToString("C")</p>
-                    <p class="mb-1"><strong>Expected Total:</strong> @rental.TotalAmount.ToString("C")</p>
-                    <p class="mb-0"><strong>Paid:</strong> @rental.PaidAmount.ToString("C")</p>
-                  </div>
+        <div class="glass-card p-4">
+            <div class="d-flex align-items-center justify-content-between border-bottom border-secondary border-opacity-25 pb-3 mb-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="kpi-icon bg-primary bg-opacity-25 text-primary">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold text-white mb-0">Vehicle Inspection & Contract Closure</h4>
+                        <p class="text-secondary small mb-0">Record return mileage, fuel level, and finalize contract settlement.</p>
+                    </div>
                 </div>
-              </div>
+                <a asp-action="Index" class="btn btn-glass btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Ledger
+                </a>
             </div>
 
-            <form asp-action="Close" method="post">
-              <input type="hidden" asp-for="RentalId" value="@rental.Id" />
+            @if (rental != null)
+            {
+                <!-- Contract Info Summary -->
+                <div class="p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-25 mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="text-secondary small">Contract Number</div>
+                            <div class="fw-bold text-primary">#CNT-@rental.Id.ToString("D5")</div>
+                            <div class="text-secondary small mt-2">Vehicle / Plate</div>
+                            <div class="fw-bold text-white">@rental.CarModel (@rental.CarPlateNumber)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-secondary small">Customer Name</div>
+                            <div class="fw-bold text-white">@rental.CustomerName</div>
+                            <div class="text-secondary small mt-2">Paid Amount / Total</div>
+                            <div class="fw-bold text-success">@rental.PaidAmount.ToString("C") <span class="text-secondary font-normal">/ @rental.TotalAmount.ToString("C")</span></div>
+                        </div>
+                    </div>
+                </div>
 
-              <div class="mb-3">
-                <label class="form-label">
-                  <i class="bi bi-sticky"></i> Closing Notes (Optional)
-                </label>
-                <textarea name="notes" class="form-control" rows="3"
-                        placeholder="Any damage reports or additional notes..."></textarea>
-              </div>
+                <form asp-action="Close" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="RentalId" value="@rental.Id" />
 
-              <div class="alert alert-info">
-                <strong>Today's Date:</strong> @DateTime.Now.ToString("MMMM dd, yyyy")
-              </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="EndOdometer" class="form-label text-secondary small fw-bold">Return Odometer Reading (KM)</label>
+                            <input asp-for="EndOdometer" type="number" class="form-control" placeholder="Current Odometer" required />
+                            <span asp-validation-for="EndOdometer" class="text-danger small"></span>
+                        </div>
 
-              <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <a asp-action="Details" asp-route-id="@rental.Id" class="btn btn-outline-secondary">
-                  <i class="bi bi-x-circle"></i> Cancel
-                </a>
-                <button type="submit" class="btn btn-primary">
-                  <i class="bi bi-check-circle"></i> Close Contract
-                </button>
-              </div>
-            </form>
-          }
+                        <div class="col-md-6">
+                            <label asp-for="EndFuelLevel" class="form-label text-secondary small fw-bold">Return Fuel Level</label>
+                            <select asp-for="EndFuelLevel" class="form-select">
+                                <option value="Full">Full Tank (100%)</option>
+                                <option value="ThreeQuarters">3/4 Tank (75%)</option>
+                                <option value="Half">Half Tank (50%)</option>
+                                <option value="Quarter">1/4 Tank (25%)</option>
+                                <option value="Empty">Empty Tank (0%)</option>
+                            </select>
+                        </div>
 
+                        <div class="col-md-6">
+                            <label asp-for="ExtraFees" class="form-label text-secondary small fw-bold">Additional Damage / Cleaning Fees ($)</label>
+                            <input asp-for="ExtraFees" type="number" step="0.01" class="form-control" placeholder="0.00" />
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Notes" class="form-label text-secondary small fw-bold">Inspection & Return Notes</label>
+                            <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Condition of vehicle upon return, scratches, clean status..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top border-secondary border-opacity-25">
+                        <a asp-action="Details" asp-route-rentalId="@rental.Id" class="btn btn-glass">Cancel</a>
+                        <button type="submit" class="btn btn-glow px-4">
+                            <i class="bi bi-check-all me-1"></i> Close Contract & Complete Return
+                        </button>
+                    </div>
+                </form>
+            }
         </div>
-      </div>
-
     </div>
-  </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

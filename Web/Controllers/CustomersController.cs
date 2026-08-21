@@ -1,4 +1,5 @@
-﻿using Application.Services.Interfaces;
+using Application.Providers;
+using Application.Services;
 using ApplicationCore.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,131 +7,136 @@ using NToastNotify;
 
 namespace Web.Controllers
 {
-  [Authorize]
-  public class CustomersController:Controller
-  {
-    private readonly ICustomerServices _customerServices;
-    private readonly IToastNotification _toast;
-
-    public CustomersController(ICustomerServices customerServices,IToastNotification toast)
+    [Authorize]
+    public class CustomersController : Controller
     {
-      _customerServices=customerServices;
-      _toast=toast;
-    }
+        private readonly ICustomerProvider _customerProvider;
+        private readonly ICustomerServices _customerServices;
+        private readonly IToastNotification _toast;
 
-    public async Task<IActionResult> Index()
-    {
-      try
-      {
-        var customers = await _customerServices.GetAllCustomersAsync();
-        return View(customers);
-      }
-      catch
-      {
-        _toast.AddErrorToastMessage("حدث خطأ أثناء تحميل قائمة العملاء");
-        return View(new List<Customer>());
-      }
-    }
-
-    [HttpGet]
-    public IActionResult Create()
-    {
-      return View(new Customer());
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Customer customer)
-    {
-      if(!ModelState.IsValid)
-      {
-        _toast.AddInfoToastMessage("يرجى تصحيح الأخطاء في النموذج");
-        return View(customer);
-      }
-
-      try
-      {
-        await _customerServices.AddCustomerAsync(customer);
-        _toast.AddSuccessToastMessage("تم إضافة العميل بنجاح");
-        return RedirectToAction(nameof(Index));
-      }
-      catch
-      {
-        _toast.AddErrorToastMessage("فشل إضافة العميل");
-        return View(customer);
-      }
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> Edit(int id)
-    {
-      try
-      {
-        var customer = await _customerServices.GetByIdAsync(id);
-        if(customer==null)
+        public CustomersController(
+            ICustomerProvider customerProvider,
+            ICustomerServices customerServices,
+            IToastNotification toast)
         {
-          _toast.AddWarningToastMessage("العميل غير موجود");
-          return RedirectToAction(nameof(Index));
+            _customerProvider = customerProvider;
+            _customerServices = customerServices;
+            _toast = toast;
         }
 
-        return View(customer);
-      }
-      catch
-      {
-        _toast.AddErrorToastMessage("حدث خطأ أثناء تحميل بيانات العميل");
-        return RedirectToAction(nameof(Index));
-      }
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Customer customer)
-    {
-      if(!ModelState.IsValid)
-      {
-        _toast.AddInfoToastMessage("يرجى تصحيح الأخطاء في النموذج");
-        return View(customer);
-      }
-
-      try
-      {
-        if(string.IsNullOrWhiteSpace(customer.PasswordHash))
+        public async Task<IActionResult> Index()
         {
-          var existing = await _customerServices.GetByIdAsync(customer.Id);
-          if(existing!=null)
-            customer.PasswordHash=existing.PasswordHash;
+            try
+            {
+                var customers = await _customerProvider.GetAllCustomersAsync();
+                return View(customers);
+            }
+            catch
+            {
+                _toast.AddErrorToastMessage("Error loading customer catalog.");
+                return View(new List<Application.DTOs.CustomerListDto>());
+            }
         }
 
-        await _customerServices.UpdateCustomerAsync(customer);
-        _toast.AddSuccessToastMessage("تم تحديث بيانات العميل بنجاح");
-        return RedirectToAction(nameof(Index));
-      }
-      catch
-      {
-        _toast.AddErrorToastMessage("فشل تحديث بيانات العميل");
-        return View(customer);
-      }
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View(new Customer { LicenseExpiryDate = DateTime.Today.AddYears(1) });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Customer customer)
+        {
+            ModelState.Remove("PasswordHash");
+            ModelState.Remove("RentalContracts");
+
+            if (!ModelState.IsValid)
+            {
+                _toast.AddInfoToastMessage("Please fix validation errors.");
+                return View(customer);
+            }
+
+            try
+            {
+                customer.PasswordHash ??= string.Empty;
+                await _customerServices.AddCustomerAsync(customer);
+                _toast.AddSuccessToastMessage("Customer added successfully.");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _toast.AddErrorToastMessage($"Failed to add customer: {ex.Message}");
+                return View(customer);
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            try
+            {
+                var customer = await _customerServices.GetByIdAsync(id);
+                if (customer == null)
+                {
+                    _toast.AddWarningToastMessage("Customer record not found.");
+                    return RedirectToAction(nameof(Index));
+                }
+
+                return View(customer);
+            }
+            catch
+            {
+                _toast.AddErrorToastMessage("Error loading customer details.");
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(Customer customer)
+        {
+            ModelState.Remove("PasswordHash");
+            ModelState.Remove("RentalContracts");
+
+            if (!ModelState.IsValid)
+            {
+                _toast.AddInfoToastMessage("Please fix validation errors.");
+                return View(customer);
+            }
+
+            try
+            {
+                await _customerServices.UpdateCustomerAsync(customer);
+                _toast.AddSuccessToastMessage("Customer profile updated.");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _toast.AddErrorToastMessage($"Failed to update customer: {ex.Message}");
+                return View(customer);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var result = await _customerServices.DeleteCustomerAsync(id);
+
+                if (!result)
+                    _toast.AddWarningToastMessage("Customer could not be deleted.");
+                else
+                    _toast.AddSuccessToastMessage("Customer profile removed.");
+            }
+            catch
+            {
+                _toast.AddErrorToastMessage("Failed to delete customer.");
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
     }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int id)
-    {
-      try
-      {
-        var result = await _customerServices.DeleteCustomerAsync(id);
-
-        if(!result)
-          _toast.AddWarningToastMessage("لا يمكن حذف العميل (قد يكون له عقود نشطة)");
-        else
-          _toast.AddSuccessToastMessage("تم حذف العميل بنجاح");
-      }
-      catch
-      {
-        _toast.AddErrorToastMessage("فشل حذف العميل");
-      }
-
-      return RedirectToAction(nameof(Index));
-    }
-  }
 }

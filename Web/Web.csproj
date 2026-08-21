@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -21,7 +21,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.23" />
     <PackageReference Include="NToastNotify" Version="8.0.0" />
-    <PackageReference Include="ToastNotifications" Version="2.5.1" />
     <PackageReference Include="toastr" Version="2.1.1" />
   </ItemGroup>
 

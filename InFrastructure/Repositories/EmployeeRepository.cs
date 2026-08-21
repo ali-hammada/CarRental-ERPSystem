@@ -1,28 +1,22 @@
-﻿using ApplicationCore.Entities;
+using ApplicationCore.Entities;
 using ApplicationCore.Interfaces.Repositories;
 using InFrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace InFrastructure.Repositories
 {
-  public class EmployeeRepository:GenericRepository<Employees>, IEmployeeRepository
-  {
-    private readonly AppDbContext _Dbcontext;
-
-    public EmployeeRepository(AppDbContext context) : base(context)
+    public class EmployeeRepository : GenericRepository<Employee>, IEmployeeRepository
     {
-      _Dbcontext=context;
-    }
+        public EmployeeRepository(AppDbContext context) : base(context) { }
 
-    public async Task<IEnumerable<Employees>> GetAllAsync()
-    {
-      return await _context.Employee.ToListAsync();
-    }
+        public async Task<Employee?> GetByEmailAsync(string email)
+        {
+            return await _dbSet.FirstOrDefaultAsync(e => e.Email == email);
+        }
 
-    public async Task<Employees?> GetByEmailAsync(string email)
-    {
-      return await _Dbcontext.Employee
-          .FirstOrDefaultAsync(x => x.Email==email);
+        public async Task<IEnumerable<Employee>> GetAllAsync()
+        {
+            return await _dbSet.ToListAsync();
+        }
     }
-  }
 }

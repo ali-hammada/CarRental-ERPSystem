@@ -1,33 +1,41 @@
-﻿using ApplicationCore.Entities.Enums;
+using ApplicationCore.Enums;
 
 namespace ApplicationCore.Entities
 {
-  public class RentalContract:EntityBase
-  {
-    public int CarId { get; set; }
-    public Car Car { get; set; } = null!;
+    public class RentalContract : EntityBase
+    {
+        public int CarId { get; set; }
+        public Car Car { get; set; } = null!;
 
-    public int EmployeeId { get; set; }
-    public Employees Employee { get; set; }
+        public int CustomerId { get; set; }
+        public Customer Customer { get; set; } = null!;
 
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-    public decimal DailyPrice { get; set; }
-    public decimal TotalAmount { get; set; }
+        public int EmployeeId { get; set; }
+        public Employee Employee { get; set; } = null!;
 
-    public RentalContractStatus Status { get; set; }
-    public DateTime? ActualEndDate { get; set; }
-    public decimal? FinalAmount { get; set; }
-    public decimal? ExtraFees { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public DateTime? ActualEndDate { get; set; }
 
-    public decimal PaidAmount { get; set; } = 0;
-    public decimal RemainingAmount => (FinalAmount??TotalAmount)-PaidAmount;
+        public decimal DailyPrice { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal? FinalAmount { get; set; }
+        public decimal? ExtraFees { get; set; }
+        public decimal DepositAmount { get; set; } = 0;
 
-    public string Notes { get; set; } = null!;
-    public PaymentStatus PaymentStatus { get; set; }
+        public decimal PaidAmount { get; set; } = 0;
+        public decimal RemainingAmount => (FinalAmount ?? TotalAmount) - PaidAmount;
 
-    // 1-N Payments
-    public ICollection<Payment> Payments { get; set; } = new List<Payment>();
-  }
+        public int StartOdometer { get; set; } = 0;
+        public int? EndOdometer { get; set; }
+        public string StartFuelLevel { get; set; } = "Full";
+        public string? EndFuelLevel { get; set; }
 
+        public RentalContractStatus Status { get; set; } = RentalContractStatus.Open;
+        public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Unpaid;
+        public string Notes { get; set; } = string.Empty;
+
+        public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+        public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+    }
 }

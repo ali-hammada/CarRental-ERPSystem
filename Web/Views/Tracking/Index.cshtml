@@ -1,0 +1,174 @@
+@model IEnumerable<Application.DTOs.CarTrackingDto>
+
+@{
+    ViewData["Title"] = "Fleet GPS Live Tracking";
+}
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div class="d-flex flex-column gap-4">
+    <!-- Header Banner -->
+    <div class="glass-card p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1">
+                    <i class="bi bi-broadcast me-1"></i> Live Satellite Telemetry
+                </span>
+                <span class="text-secondary small">Active Fleet Radar: @Model.Count() Vehicles</span>
+            </div>
+            <h2 class="fw-extrabold mb-0 text-white">Vehicle Live GPS Tracking System</h2>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-3 py-2">
+                <i class="bi bi-circle-fill text-success small me-1 pulse"></i> Realtime GPS Active
+            </span>
+        </div>
+    </div>
+
+    <!-- Live Map Card -->
+    <div class="glass-card p-3">
+        <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom border-secondary border-opacity-25 mb-3">
+            <div class="fw-bold text-white d-flex align-items-center gap-2">
+                <i class="bi bi-geo-alt-fill text-gradient"></i> Interactive Satellite Fleet Radar
+            </div>
+            <div class="d-flex gap-3 small text-secondary">
+                <span class="d-flex align-items-center gap-1"><span class="badge bg-primary rounded-circle p-1"></span> Available</span>
+                <span class="d-flex align-items-center gap-1"><span class="badge bg-success rounded-circle p-1"></span> Active Rental</span>
+                <span class="d-flex align-items-center gap-1"><span class="badge bg-warning rounded-circle p-1"></span> Maintenance</span>
+            </div>
+        </div>
+        <div id="fleetMap" style="height: 520px; width: 100%; border-radius: 12px;" class="bg-dark"></div>
+    </div>
+
+    <!-- Fleet Status Table Card -->
+    <div class="glass-card p-4">
+        <h5 class="fw-bold text-white mb-4 d-flex align-items-center gap-2">
+            <i class="bi bi-car-front-fill text-gradient"></i> Fleet Telemetry Status
+        </h5>
+        <div class="table-responsive">
+            <table class="table table-futuristic align-middle">
+                <thead>
+                    <tr>
+                        <th>Vehicle / Plate</th>
+                        <th>Status</th>
+                        <th>Speed</th>
+                        <th>Coordinates</th>
+                        <th>Current Address / Sector</th>
+                        <th>Last Ping</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var car in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-white">@car.Model</div>
+                                <span class="text-gradient small fw-bold">@car.PlateNumber</span>
+                            </td>
+                            <td>
+                                @if (car.Status == ApplicationCore.Enums.CarStatus.Available)
+                                {
+                                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25">Available</span>
+                                }
+                                else if (car.Status == ApplicationCore.Enums.CarStatus.Rented)
+                                {
+                                    <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25">Rented (@car.ActiveCustomerName)</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25">@car.Status</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="fw-bold text-white">@car.SpeedKmh.ToString("F0") <small class="text-secondary">KM/H</small></span>
+                            </td>
+                            <td>
+                                <span class="text-secondary small font-monospace">@car.Latitude.ToString("F4"), @car.Longitude.ToString("F4")</span>
+                            </td>
+                            <td>
+                                <span class="text-white small">@car.AddressName</span>
+                            </td>
+                            <td>
+                                <span class="text-secondary small">@car.LastUpdated.ToString("HH:mm:ss")</span>
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Car" asp-route-id="@car.CarId" class="btn btn-glow btn-sm">
+                                    <i class="bi bi-compass me-1"></i> Track Vehicle
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Initialize Map centered on Cairo/Egypt Metro Hub
+        const map = L.map('fleetMap').setView([30.0444, 31.2357], 11);
+
+        // Add Dark Glassmorphic Map Tiles (CartoDB Dark Matter)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            subdomains: 'abcd',
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        }).addTo(map);
+
+        const markers = {};
+
+        function getColorByStatus(status) {
+            if (status === 1) return '#3b82f6'; // Available - Neon Blue
+            if (status === 2) return '#10b981'; // Rented - Emerald Green
+            if (status === 3) return '#f59e0b'; // Maintenance - Amber Gold
+            return '#ef4444'; // OutOfService - Rose Red
+        }
+
+        function loadFleetLocations() {
+            fetch('/Tracking/GetFleetJson')
+                .then(res => res.json())
+                .then(data => {
+                    data.forEach(car => {
+                        const color = getColorByStatus(car.status);
+                        const popupContent = `
+                            <div style="font-family: sans-serif; color: #090d16; padding: 4px;">
+                                <h6 style="margin: 0 0 4px 0; font-weight: bold;">${car.model} (${car.plateNumber})</h6>
+                                <div style="font-size: 12px; margin-bottom: 4px;">Speed: <strong>${Math.round(car.speedKmh)} KM/H</strong></div>
+                                <div style="font-size: 11px; color: #475569;">Address: ${car.addressName}</div>
+                                ${car.activeCustomerName ? `<div style="font-size: 11px; color: #10b981; font-weight: bold; margin-top: 4px;">Renter: ${car.activeCustomerName}</div>` : ''}
+                                <div style="margin-top: 8px;"><a href="/Tracking/Car/${car.carId}" style="display: inline-block; background: #3b82f6; color: #fff; text-decoration: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">Track Individual Vehicle &rarr;</a></div>
+                            </div>
+                        `;
+
+                        if (markers[car.carId]) {
+                            markers[car.carId].setLatLng([car.latitude, car.longitude]);
+                            markers[car.carId].setPopupContent(popupContent);
+                        } else {
+                            const circleMarker = L.circleMarker([car.latitude, car.longitude], {
+                                radius: 10,
+                                fillColor: color,
+                                color: '#ffffff',
+                                weight: 2,
+                                opacity: 1,
+                                fillOpacity: 0.9
+                            }).addTo(map);
+
+                            circleMarker.bindPopup(popupContent);
+                            markers[car.carId] = circleMarker;
+                        }
+                    });
+                })
+                .catch(err => console.error('Error fetching live GPS data:', err));
+        }
+
+        loadFleetLocations();
+        // Auto-refresh telemetry every 5 seconds
+        setInterval(loadFleetLocations, 5000);
+    </script>
+}

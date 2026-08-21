@@ -1,0 +1,187 @@
+@model Application.DTOs.CarTrackingDto
+
+@{
+    ViewData["Title"] = "Tracking " + Model.Model + " (" + Model.PlateNumber + ")";
+    var history = ViewBag.History as IEnumerable<Application.DTOs.LocationHistoryDto> ?? new List<Application.DTOs.LocationHistoryDto>();
+}
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div class="d-flex flex-column gap-4">
+    <!-- Header Banner -->
+    <div class="glass-card p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="kpi-icon">
+                <i class="bi bi-compass-fill text-gradient"></i>
+            </div>
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1">
+                        GPS Unit #GPS-@Model.CarId.ToString("D4")
+                    </span>
+                    <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">
+                        @Model.Status
+                    </span>
+                </div>
+                <h2 class="fw-extrabold mb-0 text-white">@Model.Model <span class="text-gradient font-monospace">(@Model.PlateNumber)</span></h2>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-glass">
+                <i class="bi bi-arrow-left me-1"></i> Fleet Radar Map
+            </a>
+            <form asp-action="SimulatePing" asp-route-id="@Model.CarId" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-glow">
+                    <i class="bi bi-broadcast me-1"></i> Simulate GPS Ping
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Live Map & Info Grid -->
+    <div class="row g-4">
+        <!-- Interactive Route Map -->
+        <div class="col-lg-8">
+            <div class="glass-card p-3">
+                <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom border-secondary border-opacity-25 mb-3">
+                    <div class="fw-bold text-white d-flex align-items-center gap-2">
+                        <i class="bi bi-geo-fill text-gradient"></i> Realtime Location & Route Trail History
+                    </div>
+                    <span class="text-secondary small">Lat: @Model.Latitude.ToString("F4"), Lng: @Model.Longitude.ToString("F4")</span>
+                </div>
+                <div id="carMap" style="height: 480px; width: 100%; border-radius: 12px;" class="bg-dark"></div>
+            </div>
+        </div>
+
+        <!-- Live Telemetry Dashboard Card -->
+        <div class="col-lg-4 d-flex flex-column gap-4">
+            <div class="glass-card p-4">
+                <h5 class="fw-bold text-white mb-4 d-flex align-items-center gap-2">
+                    <i class="bi bi-speedometer2 text-gradient"></i> Telemetry Sensors
+                </h5>
+                <div class="d-flex flex-column gap-3">
+                    <div class="p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-25 d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-secondary small fw-bold">SPEED</div>
+                            <div class="fs-3 fw-extrabold text-white">@Model.SpeedKmh.ToString("F0") <small class="fs-6 text-secondary font-normal">KM/H</small></div>
+                        </div>
+                        <div class="fs-1 text-primary"><i class="bi bi-speedometer"></i></div>
+                    </div>
+
+                    <div class="p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-25 d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-secondary small fw-bold">IGNITION STATUS</div>
+                            <div class="fs-5 fw-bold @(Model.IsEngineOn ? "text-success" : "text-secondary")">
+                                @(Model.IsEngineOn ? "ENGINE ON" : "ENGINE OFF")
+                            </div>
+                        </div>
+                        <div class="fs-1 @(Model.IsEngineOn ? "text-success" : "text-secondary")"><i class="bi bi-power"></i></div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.ActiveCustomerName))
+                    {
+                        <div class="p-3 rounded-3 bg-dark bg-opacity-50 border border-success border-opacity-25">
+                            <div class="text-success small fw-bold">RENTED BY</div>
+                            <div class="fs-5 fw-bold text-white">@Model.ActiveCustomerName</div>
+                            <div class="text-secondary small mt-1">Contract: <span class="text-white">@Model.ActiveContractNumber</span></div>
+                        </div>
+                    }
+
+                    <div class="p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-25">
+                        <div class="text-secondary small fw-bold">CURRENT LOCATION ADDRESS</div>
+                        <div class="fw-semibold text-white mt-1">@Model.AddressName</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Route History Waypoints Table -->
+    <div class="glass-card p-4">
+        <h5 class="fw-bold text-white mb-4 d-flex align-items-center gap-2">
+            <i class="bi bi-list-stars text-gradient"></i> GPS Route History Waypoints
+        </h5>
+        <div class="table-responsive">
+            <table class="table table-futuristic align-middle">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Coordinates (Lat, Lng)</th>
+                        <th>Speed (KM/H)</th>
+                        <th>Ignition</th>
+                        <th>Waypoint Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var point in history)
+                    {
+                        <tr>
+                            <td><span class="text-secondary small">@point.Timestamp.ToString("MMM dd, yyyy HH:mm:ss")</span></td>
+                            <td><span class="text-white font-monospace">@point.Latitude.ToString("F4"), @point.Longitude.ToString("F4")</span></td>
+                            <td><span class="fw-bold text-white">@point.SpeedKmh.ToString("F0") KM/H</span></td>
+                            <td>
+                                @if (point.IsEngineOn)
+                                {
+                                    <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25">ON</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-dark border border-secondary text-secondary">OFF</span>
+                                }
+                            </td>
+                            <td><span class="text-secondary small">@point.AddressName</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        const carLat = @Model.Latitude;
+        const carLng = @Model.Longitude;
+
+        const map = L.map('carMap').setView([carLat, carLng], 14);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            subdomains: 'abcd',
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        }).addTo(map);
+
+        // Current Car Marker
+        const currentMarker = L.circleMarker([carLat, carLng], {
+            radius: 12,
+            fillColor: '#10b981',
+            color: '#ffffff',
+            weight: 3,
+            opacity: 1,
+            fillOpacity: 0.9
+        }).addTo(map);
+
+        currentMarker.bindPopup('<strong>@Model.Model (@Model.PlateNumber)</strong><br>Speed: @Model.SpeedKmh KM/H').openPopup();
+
+        // Load route history points and draw polyline trail
+        fetch('/Tracking/GetCarHistoryJson/@Model.CarId')
+            .then(res => res.json())
+            .then(points => {
+                if (points && points.length > 0) {
+                    const latLngs = points.map(p => [p.latitude, p.longitude]);
+                    const polyline = L.polyline(latLngs, {
+                        color: '#3b82f6',
+                        weight: 4,
+                        opacity: 0.8,
+                        dashArray: '8, 8'
+                    }).addTo(map);
+                }
+            })
+            .catch(err => console.error('Error loading history:', err));
+    </script>
+}
