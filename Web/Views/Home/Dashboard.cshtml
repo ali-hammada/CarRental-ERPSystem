@@ -6,63 +6,186 @@
 }
 
 <div class="d-flex flex-column gap-4">
-    <!-- Header Hero Banner -->
+    <!-- Header Hero Banner & Quick Actions -->
     <div class="glass-card p-4 position-relative overflow-hidden border-0">
         <div class="row align-items-center relative-1">
-            <div class="col-lg-8 mb-3 mb-lg-0">
+            <div class="col-lg-7 mb-3 mb-lg-0">
                 <div class="d-flex align-items-center gap-2 mb-2">
                     <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1">
-                        <i class="bi bi-shield-check me-1"></i> Live Enterprise Operations
+                        <i class="bi bi-shield-check me-1"></i> Enterprise Operations Command Center
                     </span>
                     <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">
-                        <i class="bi bi-lightning-charge me-1"></i> Fast DDD Provider Engine
+                        <i class="bi bi-lightning-charge me-1"></i> DDD Provider Engine
                     </span>
                 </div>
                 <h2 class="display-6 fw-extrabold mb-1">
                     Welcome back, <span class="text-gradient">@User.Identity?.Name</span>!
                 </h2>
                 <p class="text-secondary mb-0">
-                    Real-time fleet utilization, contract ledgers, active revenue analytics, and vehicle status.
+                    Real-time fleet utilization, contract ledgers, active revenue analytics, and vehicle telemetry.
                 </p>
             </div>
-            <div class="col-lg-4 text-lg-end">
+            <div class="col-lg-5 text-lg-end">
                 <div class="d-inline-flex flex-column align-items-lg-end gap-1">
                     <div class="fs-4 fw-extrabold text-white">@Model.FleetUtilizationPercentage%</div>
                     <div class="text-secondary small">Fleet Utilization Rate</div>
-                    <div class="progress mt-2 w-100" style="height: 6px; width: 160px;">
-                        <div class="progress-bar bg-gradient" role="progressbar" style="width: @Model.FleetUtilizationPercentage%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div>
+                    <div class="progress mt-2 w-100" style="height: 8px; width: 200px; background-color: rgba(255,255,255,0.1);">
+                        <div class="progress-bar" role="progressbar" style="width: @Model.FleetUtilizationPercentage%; background: linear-gradient(90deg, #3b82f6, #8b5cf6, #10b981);"></div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Bar -->
+        <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="text-secondary small fw-semibold">
+                    <i class="bi bi-rocket-takeoff-fill text-primary me-1"></i> Quick Actions:
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <a asp-controller="Rentals" asp-action="Open" class="btn btn-glow btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i> New Contract
+                    </a>
+                    <a asp-controller="Car" asp-action="Create" class="btn btn-glass btn-sm">
+                        <i class="bi bi-car-front me-1"></i> Add Vehicle
+                    </a>
+                    <a asp-controller="Payment" asp-action="Create" class="btn btn-glass btn-sm">
+                        <i class="bi bi-wallet2 me-1"></i> Record Payment
+                    </a>
+                    <a asp-controller="Customers" asp-action="Create" class="btn btn-glass btn-sm">
+                        <i class="bi bi-person-plus me-1"></i> Add Customer
+                    </a>
+                    <a asp-controller="Maintenance" asp-action="Create" class="btn btn-glass btn-sm">
+                        <i class="bi bi-tools me-1"></i> Schedule Service
+                    </a>
+                    <a asp-controller="Tracking" asp-action="Index" class="btn btn-glass btn-sm">
+                        <i class="bi bi-broadcast text-primary me-1"></i> GPS Live Map
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Top KPI Stat Grid -->
+    <!-- Operation Alerts Bar -->
+    @if (Model.OverdueRentalsCount > 0 || Model.MaintenanceCarsCount > 0 || Model.TotalRemainingUnpaid > 0)
+    {
+        <div class="row g-3">
+            @if (Model.OverdueRentalsCount > 0)
+            {
+                <div class="col-md-4">
+                    <div class="glass-card p-3 border-start border-4 border-danger d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-danger bg-opacity-25 text-danger p-2 fs-4 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-white">@Model.OverdueRentalsCount Overdue Returns</div>
+                                <div class="text-secondary small">Contracts past return date</div>
+                            </div>
+                        </div>
+                        <a asp-controller="Rentals" asp-action="Index" class="btn btn-outline-danger btn-sm rounded-pill px-3">View</a>
+                    </div>
+                </div>
+            }
+            @if (Model.MaintenanceCarsCount > 0)
+            {
+                <div class="col-md-4">
+                    <div class="glass-card p-3 border-start border-4 border-warning d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-warning bg-opacity-25 text-warning p-2 fs-4 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                <i class="bi bi-tools"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-white">@Model.MaintenanceCarsCount Under Maintenance</div>
+                                <div class="text-secondary small">Vehicles currently servicing</div>
+                            </div>
+                        </div>
+                        <a asp-controller="Maintenance" asp-action="Index" class="btn btn-outline-warning btn-sm rounded-pill px-3">Logs</a>
+                    </div>
+                </div>
+            }
+            @if (Model.TotalRemainingUnpaid > 0)
+            {
+                <div class="col-md-4">
+                    <div class="glass-card p-3 border-start border-4 border-info d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-info bg-opacity-25 text-info p-2 fs-4 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                <i class="bi bi-cash-stack"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-white">@Model.TotalRemainingUnpaid.ToString("C")</div>
+                                <div class="text-secondary small">Outstanding unpaid balance</div>
+                            </div>
+                        </div>
+                        <a asp-controller="Invoices" asp-action="Index" class="btn btn-outline-info btn-sm rounded-pill px-3">Collect</a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Top KPI Stat Grid (6 Widgets) -->
     <div class="row g-4">
-        <!-- Total Revenue Card -->
-        <div class="col-xl-3 col-md-6">
+        <!-- Net Profit Card -->
+        <div class="col-xl-4 col-md-6">
             <div class="kpi-widget kpi-success h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Total Revenue</div>
-                        <div class="fs-3 fw-extrabold text-gradient-emerald mt-1">@Model.TotalPaidAmount.ToString("C")</div>
-                        <div class="text-secondary small mt-1">From @Model.TotalPaymentsCount completed payments</div>
+                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Net Operating Revenue</div>
+                        <div class="fs-3 fw-extrabold text-gradient-emerald mt-1">@Model.NetProfit.ToString("C")</div>
+                        <div class="text-secondary small mt-1">
+                            Gross: <strong class="text-white">@Model.TotalPaidAmount.ToString("C")</strong> | Service: <strong class="text-danger">@Model.TotalMaintenanceCost.ToString("C")</strong>
+                        </div>
                     </div>
                     <div class="kpi-icon">
-                        <i class="bi bi-wallet2"></i>
+                        <i class="bi bi-graph-up-arrow"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Active Contracts Card -->
-        <div class="col-xl-3 col-md-6">
+        <!-- Maintenance Expenses Card -->
+        <div class="col-xl-4 col-md-6">
+            <div class="kpi-widget h-100 border-start border-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Maintenance Expenses</div>
+                        <div class="fs-3 fw-extrabold text-danger mt-1">-@Model.TotalMaintenanceCost.ToString("C")</div>
+                        <div class="text-secondary small mt-1">Deducted from gross revenue across all repairs</div>
+                    </div>
+                    <div class="kpi-icon text-danger">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Receivables Card -->
+        <div class="col-xl-4 col-md-6">
             <div class="kpi-widget kpi-warning h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Active Rentals</div>
-                        <div class="fs-3 fw-extrabold text-gradient-amber mt-1">@Model.ActiveRentals</div>
-                        <div class="text-secondary small mt-1">Cars currently on road</div>
+                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Outstanding Receivables</div>
+                        <div class="fs-3 fw-extrabold text-gradient-amber mt-1">@Model.TotalRemainingUnpaid.ToString("C")</div>
+                        <div class="text-secondary small mt-1">Pending collection on active contracts</div>
+                    </div>
+                    <div class="kpi-icon">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Rentals Card -->
+        <div class="col-xl-4 col-md-6">
+            <div class="kpi-widget kpi-purple h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Active Fleet Rentals</div>
+                        <div class="fs-3 fw-extrabold text-white mt-1">@Model.ActiveRentals</div>
+                        <div class="text-secondary small mt-1">
+                            <span class="text-danger fw-semibold">@Model.OverdueRentalsCount Overdue</span> | @(Model.ActiveRentals - Model.OverdueRentalsCount) On Schedule
+                        </div>
                     </div>
                     <div class="kpi-icon">
                         <i class="bi bi-car-front"></i>
@@ -71,14 +194,14 @@
             </div>
         </div>
 
-        <!-- Available Fleet Card -->
-        <div class="col-xl-3 col-md-6">
+        <!-- Fleet Availability Card -->
+        <div class="col-xl-4 col-md-6">
             <div class="kpi-widget h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <div class="text-secondary small fw-bold text-uppercase tracking-wider">Available Fleet</div>
                         <div class="fs-3 fw-extrabold text-white mt-1">@Model.AvailableCarsCount / @Model.TotalCarsCount</div>
-                        <div class="text-secondary small mt-1">Ready for booking</div>
+                        <div class="text-secondary small mt-1">Ready for instant booking</div>
                     </div>
                     <div class="kpi-icon">
                         <i class="bi bi-check2-circle"></i>
@@ -87,74 +210,248 @@
             </div>
         </div>
 
-        <!-- Total Contracts Card -->
-        <div class="col-xl-3 col-md-6">
-            <div class="kpi-widget kpi-purple h-100">
+        <!-- Service & Maintenance Cars Card -->
+        <div class="col-xl-4 col-md-6">
+            <div class="kpi-widget h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Total Contracts</div>
-                        <div class="fs-3 fw-extrabold text-white mt-1">@Model.TotalRentals</div>
-                        <div class="text-secondary small mt-1">@Model.CompletedRentals completed | @Model.CancelledRentals cancelled</div>
+                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Maintenance Status</div>
+                        <div class="fs-3 fw-extrabold text-warning mt-1">@Model.MaintenanceCarsCount</div>
+                        <div class="text-secondary small mt-1">@Model.OutOfServiceCarsCount out of service</div>
                     </div>
                     <div class="kpi-icon">
-                        <i class="bi bi-file-earmark-text"></i>
+                        <i class="bi bi-wrench-adjustable-circle"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Charts & Metrics Analytics Section -->
+    <!-- Charts & Analytics Section (3 Columns) -->
     <div class="row g-4">
         <!-- Monthly Contracts Chart -->
-        <div class="col-lg-6">
+        <div class="col-xl-4 col-lg-6">
             <div class="glass-card p-4 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-graph-up-arrow text-primary fs-5"></i>
-                        <h5 class="fw-bold mb-0 text-white">Monthly Contract Velocity</h5>
+                        <h5 class="fw-bold mb-0 text-white">Contract Velocity</h5>
                     </div>
                     <span class="badge bg-dark text-secondary border border-secondary border-opacity-25">Last 7 Months</span>
                 </div>
-                <div style="height: 280px;">
+                <div style="height: 250px;">
                     <canvas id="rentalsChart"></canvas>
                 </div>
             </div>
         </div>
 
         <!-- Monthly Revenue Chart -->
-        <div class="col-lg-6">
+        <div class="col-xl-4 col-lg-6">
             <div class="glass-card p-4 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-currency-dollar text-success fs-5"></i>
-                        <h5 class="fw-bold mb-0 text-white">Monthly Cash Flow</h5>
+                        <h5 class="fw-bold mb-0 text-white">Cash Flow Revenue</h5>
                     </div>
                     <span class="badge bg-dark text-secondary border border-secondary border-opacity-25">Last 7 Months</span>
                 </div>
-                <div style="height: 280px;">
+                <div style="height: 250px;">
                     <canvas id="paymentsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fleet Status Breakdown Donut Chart -->
+        <div class="col-xl-4 col-lg-12">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-pie-chart-fill text-warning fs-5"></i>
+                        <h5 class="fw-bold mb-0 text-white">Fleet Distribution</h5>
+                    </div>
+                    <span class="badge bg-dark text-secondary border border-secondary border-opacity-25">Real-time</span>
+                </div>
+                <div style="height: 250px;">
+                    <canvas id="fleetStatusChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Payment Transactions -->
+    <!-- Detailed Analytics Row: Top Cars & Upcoming Returns -->
+    <div class="row g-4">
+        <!-- Top 5 Revenue Vehicles Widget -->
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-trophy-fill text-warning fs-5"></i>
+                        <h5 class="fw-bold mb-0 text-white">Top Performing Vehicles</h5>
+                    </div>
+                    <a asp-controller="Car" asp-action="Index" class="btn btn-glass btn-sm">
+                        View Fleet <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+
+                @if (Model.TopCars.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-futuristic align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Vehicle</th>
+                                    <th>Category</th>
+                                    <th>Trips</th>
+                                    <th class="text-end">Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ int rank = 1; }
+                                @foreach (var car in Model.TopCars)
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (rank == 1)
+                                            {
+                                                <span class="badge bg-warning text-dark fw-bold rounded-circle p-2" style="width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;">🥇</span>
+                                            }
+                                            else if (rank == 2)
+                                            {
+                                                <span class="badge bg-secondary text-white fw-bold rounded-circle p-2" style="width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;">🥈</span>
+                                            }
+                                            else if (rank == 3)
+                                            {
+                                                <span class="badge bg-danger bg-opacity-75 text-white fw-bold rounded-circle p-2" style="width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;">🥉</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-dark text-secondary fw-bold rounded-circle p-2" style="width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;">#@rank</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <span class="fw-bold text-white d-block">@car.Model</span>
+                                                <span class="badge bg-dark text-secondary border border-secondary border-opacity-25 small">@car.PlateNumber</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="text-secondary small">@car.CategoryName</span></td>
+                                        <td><span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 px-2.5 py-1">@car.TotalRentals trips</span></td>
+                                        <td class="text-end"><span class="fw-extrabold text-success">@car.TotalRevenue.ToString("C")</span></td>
+                                    </tr>
+                                    rank++;
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-secondary">
+                        <i class="bi bi-car-front fs-2 d-block mb-2 text-muted"></i>
+                        <p class="mb-0">No vehicle performance records available.</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Upcoming & Overdue Returns Timeline -->
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-clock-history text-info fs-5"></i>
+                        <h5 class="fw-bold mb-0 text-white">Upcoming & Overdue Returns</h5>
+                    </div>
+                    <a asp-controller="Rentals" asp-action="Index" class="btn btn-glass btn-sm">
+                        All Contracts <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+
+                @if (Model.UpcomingReturns.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-futuristic align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Contract</th>
+                                    <th>Customer</th>
+                                    <th>Vehicle</th>
+                                    <th>Return Date</th>
+                                    <th class="text-end">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.UpcomingReturns)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a asp-controller="Rentals" asp-action="Details" asp-route-rentalId="@item.RentalContractId" class="text-gradient text-decoration-none fw-bold">
+                                                #CNT-@item.RentalContractId
+                                            </a>
+                                        </td>
+                                        <td><span class="fw-semibold text-white">@item.CustomerName</span></td>
+                                        <td>
+                                            <span class="text-white small">@item.CarModel</span>
+                                            <span class="d-block text-secondary small">@item.PlateNumber</span>
+                                        </td>
+                                        <td><span class="text-secondary small">@item.EndDate.ToString("MMM dd, HH:mm")</span></td>
+                                        <td class="text-end">
+                                            @if (item.IsOverdue)
+                                            {
+                                                <span class="badge bg-danger text-white border border-danger px-2.5 py-1">
+                                                    <i class="bi bi-exclamation-triangle me-1"></i> Overdue
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 px-2.5 py-1">
+                                                    <i class="bi bi-clock me-1"></i> Active
+                                                </span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-secondary">
+                        <i class="bi bi-check-circle fs-2 d-block mb-2 text-success"></i>
+                        <p class="mb-0">No active or overdue returns pending.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Method Distribution Summary & Recent Payment Transactions -->
     <div class="glass-card p-4">
-        <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3 gap-2">
             <div class="d-flex align-items-center gap-2">
                 <i class="bi bi-receipt-cutoff text-primary fs-5"></i>
                 <h5 class="fw-bold mb-0 text-white">Recent Payment Transactions</h5>
             </div>
-            <a asp-controller="Payment" asp-action="History" class="btn btn-glass btn-sm">
-                View All Transactions <i class="bi bi-arrow-right ms-1"></i>
-            </a>
+            
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                @foreach (var pm in Model.PaymentMethodStats)
+                {
+                    <span class="badge bg-dark text-secondary border border-secondary border-opacity-25 px-3 py-1.5 small">
+                        <i class="bi bi-credit-card me-1 text-primary"></i> @pm.MethodName: <strong class="text-white">@pm.TotalAmount.ToString("C")</strong> (@pm.Count)
+                    </span>
+                }
+                <a asp-controller="Payment" asp-action="History" class="btn btn-glass btn-sm ms-md-2">
+                    View All <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
         </div>
 
         @if (Model.RecentPayments.Any())
         {
             <div class="table-responsive">
-                <table class="table table-futuristic align-middle">
+                <table class="table table-futuristic align-middle mb-0">
                     <thead>
                         <tr>
                             <th>Payment ID</th>
@@ -256,6 +553,35 @@
                 }]
             },
             options: chartOptions
+        });
+
+        // Fleet Status Breakdown Donut Chart
+        new Chart(document.getElementById('fleetStatusChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Available', 'Rented', 'Maintenance', 'Out of Service'],
+                datasets: [{
+                    data: [@Model.AvailableCarsCount, @Model.RentedCarsCount, @Model.MaintenanceCarsCount, @Model.OutOfServiceCarsCount],
+                    backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+                    borderColor: '#1e293b',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            color: '#94a3b8',
+                            font: { size: 12 }
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
         });
     </script>
 }

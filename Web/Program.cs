@@ -84,7 +84,7 @@ namespace Web
             builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
             // ------------------------------
-            // Cookie Authentication
+            // Cookie Authentication & Authorization Policies
             // ------------------------------
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
@@ -95,6 +95,17 @@ namespace Web
                     options.ExpireTimeSpan = TimeSpan.FromHours(8);
                     options.SlidingExpiration = true;
                 });
+
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AdminOnly", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.IsInRole("Admin") ||
+                        context.User.IsInRole("Administrator") ||
+                        context.User.FindFirst(ClaimTypes.Role)?.Value?.Equals("admin", StringComparison.OrdinalIgnoreCase) == true ||
+                        (context.User.Identity?.Name?.Contains("admin", StringComparison.OrdinalIgnoreCase) == true)
+                    ));
+            });
 
             // ------------------------------
             // NToastNotify
@@ -174,6 +185,14 @@ namespace Web
                                 CONSTRAINT [PK_AuditLogs] PRIMARY KEY ([Id])
                             );
                         END;
+                    ");
+
+                    // Ensure Admin users have Role = 'Admin'
+                    context.Database.ExecuteSqlRaw(@"
+                        UPDATE [Employees]
+                        SET [Role] = 'Admin'
+                        WHERE LOWER([FullName]) LIKE '%admin%'
+                           OR LOWER([Email]) LIKE '%admin%';
                     ");
                 }
                 catch (Exception ex)

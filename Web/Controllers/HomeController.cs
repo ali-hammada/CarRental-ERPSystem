@@ -25,6 +25,15 @@ namespace Web.Controllers
             _localizer = localizer;
         }
 
+        private bool IsUserAdmin()
+        {
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            var name = User.Identity?.Name;
+            return User.IsInRole("Admin") || User.IsInRole("Administrator") ||
+                   string.Equals(role, "admin", StringComparison.OrdinalIgnoreCase) ||
+                   (!string.IsNullOrEmpty(name) && name.Contains("admin", StringComparison.OrdinalIgnoreCase));
+        }
+
         private int GetCurrentEmployeeId()
         {
             var employeeIdClaim = User.FindFirst("EmployeeId")?.Value
@@ -43,14 +52,14 @@ namespace Web.Controllers
         [HttpGet]
         public async Task<IActionResult> GetPartialRecentPayments(int page = 1, int pageSize = 5)
         {
-            int employeeId = GetCurrentEmployeeId();
+            int? employeeId = IsUserAdmin() ? null : GetCurrentEmployeeId();
             var metrics = await _dashboardProvider.GetDashboardMetricsAsync(employeeId);
             return PartialView("_RecentPaymentsPartial", metrics);
         }
 
         public async Task<IActionResult> Dashboard()
         {
-            int employeeId = GetCurrentEmployeeId();
+            int? employeeId = IsUserAdmin() ? null : GetCurrentEmployeeId();
             var metrics = await _dashboardProvider.GetDashboardMetricsAsync(employeeId);
             return View(metrics);
         }

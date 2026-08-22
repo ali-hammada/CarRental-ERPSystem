@@ -22,11 +22,29 @@ namespace Web.Controllers
             _toast = toast;
         }
 
+        private bool IsUserAdmin()
+        {
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            var name = User.Identity?.Name;
+            return User.IsInRole("Admin") || User.IsInRole("Administrator") ||
+                   string.Equals(role, "admin", StringComparison.OrdinalIgnoreCase) ||
+                   (!string.IsNullOrEmpty(name) && name.Contains("admin", StringComparison.OrdinalIgnoreCase));
+        }
+
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            int employeeId = GetCurrentEmployeeId();
-            var rentals = await _rentalProvider.GetEmployeeRentalsAsync(employeeId);
+            List<Application.DTOs.RentalListDto> rentals;
+            if (IsUserAdmin())
+            {
+                rentals = await _rentalProvider.GetAllRentalsAsync();
+            }
+            else
+            {
+                int employeeId = GetCurrentEmployeeId();
+                rentals = await _rentalProvider.GetEmployeeRentalsAsync(employeeId);
+            }
+
             var unpaidRentals = rentals.Where(r =>
                 r.Status == RentalContractStatus.Open ||
                 (r.FinalAmount ?? r.TotalAmount) > r.PaidAmount
@@ -37,8 +55,8 @@ namespace Web.Controllers
         [HttpGet]
         public async Task<IActionResult> MakePayment(int rentalId)
         {
-            int employeeId = GetCurrentEmployeeId();
-            var (success, message, remaining) = await _paymentService.GetRemainingAmountAsync(rentalId, employeeId);
+            int? employeeId = IsUserAdmin() ? null : GetCurrentEmployeeId();
+            var (success, message, remaining) = await _paymentService.GetRemainingAmountAsync(rentalId, employeeId ?? GetCurrentEmployeeId());
             if (!success)
             {
                 _toast.AddErrorToastMessage(message);
@@ -53,33 +71,33 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MakePayment(int rentalId, decimal amount, PaymentPurpose purpose, PaymentMethod method, string? transactionRef = null)
         {
-            int employeeId = GetCurrentEmployeeId();
-            var result = await _paymentService.MakePaymentAsync(rentalId, amount, purpose, method, employeeId, transactionRef);
+            int? employeeId = IsUserAdmin() ? null : GetCurrentEmployeeId();
+            var result = await _paymentService.MakePaymentAsync(rentalId, amount, purpose, method, employeeId ?? GetCurrentEmployeeId(), transactionRef);
             if (!result.success)
             {
                 _toast.AddErrorToastMessage(result.message);
                 ViewBag.RentalId = rentalId;
-                var (_, __, remaining) = await _paymentService.GetRemainingAmountAsync(rentalId, employeeId);
-                ViewBag.RemainingAmount = remaining;
+                ViewBag.RemainingAmount = amount;
                 return View();
             }
-            _toast.AddSuccessToastMessage(result.message);
-            return RedirectToAction("Details", "Rentals", new { rentalId = rentalId });
+
+            _toast.AddSuccessToastMessage("Payment recorded successfully.");
+            return RedirectToAction("Receipt", new { paymentId = result.PaymentId });
         }
 
         [HttpGet]
         public async Task<IActionResult> History(int? rentalId = null)
         {
-            int employeeId = GetCurrentEmployeeId();
+            int? employeeId = IsUserAdmin() ? null : GetCurrentEmployeeId();
             if (rentalId.HasValue)
             {
-                var payments = await _paymentService.GetContractPaymentsAsync(rentalId.Value, employeeId);
+                var payments = await _paymentService.GetContractPaymentsAsync(rentalId.Value, employeeId ?? GetCurrentEmployeeId());
                 ViewBag.RentalId = rentalId.Value;
                 return View(payments);
             }
             else
             {
-                var allPayments = await _paymentService.GetAllEmployeesPaymentsAsync(employeeId);
+                var allPayments = await _paymentService.GetAllEmployeesPaymentsAsync(employeeId ?? GetCurrentEmployeeId());
                 return View("AllPayments", allPayments);
             }
         }
@@ -87,8 +105,8 @@ namespace Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Receipt(int paymentId)
         {
-            int employeeId = GetCurrentEmployeeId();
-            var payment = await _paymentService.GetPaymentByIdAsync(paymentId, employeeId);
+            int? employeeId = IsUserAdmin() ? null : GetCurrentEmployeeId();
+            var payment = await _paymentService.GetPaymentByIdAsync(paymentId, employeeId ?? GetCurrentEmployeeId());
             if (payment == null)
             {
                 _toast.AddErrorToastMessage("Payment record not found.");

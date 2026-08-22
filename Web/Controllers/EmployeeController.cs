@@ -162,6 +162,86 @@ namespace Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Permissions()
+        {
+            var employees = await _employeeServices.GetAllAsync();
+            var model = employees.Select(e => new EmployeeVM
+            {
+                Id = e.Id,
+                FullName = e.FullName,
+                Email = e.Email,
+                Phone = e.Phone,
+                Role = string.IsNullOrWhiteSpace(e.Role) ? "Employee" : e.Role,
+                IsActive = e.IsActive
+            }).ToList();
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateRole(int id, string role)
+        {
+            var employee = await _employeeServices.GetByIdAsync(id);
+            if (employee == null)
+            {
+                _toast.AddErrorToastMessage("User account not found.");
+                return RedirectToAction(nameof(Permissions));
+            }
+
+            string oldRole = employee.Role;
+            employee.Role = role;
+            await _employeeServices.UpdateAsync(employee);
+
+            _toast.AddSuccessToastMessage($"Permissions updated! User '{employee.FullName}' role changed from '{oldRole}' to '{role}'.");
+            return RedirectToAction(nameof(Permissions));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleStatus(int id)
+        {
+            var employee = await _employeeServices.GetByIdAsync(id);
+            if (employee == null)
+            {
+                _toast.AddErrorToastMessage("User account not found.");
+                return RedirectToAction(nameof(Permissions));
+            }
+
+            employee.IsActive = !employee.IsActive;
+            await _employeeServices.UpdateAsync(employee);
+
+            string statusStr = employee.IsActive ? "ACTIVATED" : "SUSPENDED";
+            _toast.AddSuccessToastMessage($"Account for '{employee.FullName}' is now {statusStr}.");
+            return RedirectToAction(nameof(Permissions));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> QuickResetPassword(int id, string newPassword)
+        {
+            if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
+            {
+                _toast.AddErrorToastMessage("Password must be at least 6 characters long.");
+                return RedirectToAction(nameof(Permissions));
+            }
+
+            var employee = await _employeeServices.GetByIdAsync(id);
+            if (employee == null)
+            {
+                _toast.AddErrorToastMessage("User account not found.");
+                return RedirectToAction(nameof(Permissions));
+            }
+
+            var hasher = new PasswordHasher<Employee>();
+            employee.PasswordHash = hasher.HashPassword(employee, newPassword);
+            await _employeeServices.UpdateAsync(employee);
+
+            _toast.AddSuccessToastMessage($"Password updated successfully for '{employee.FullName}'.");
+            return RedirectToAction(nameof(Permissions));
+        }
+
         [HttpPost]
         public async Task<IActionResult> CheckEmailExists(string email)
         {

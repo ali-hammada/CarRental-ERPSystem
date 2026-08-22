@@ -2,15 +2,19 @@
 
 @{
     ViewData["Title"] = "Fleet Maintenance Logs";
+    var totalCost = Model.Sum(m => m.Cost);
 }
 
 <div class="d-flex flex-column gap-4">
     <!-- Header Banner -->
     <div class="glass-card p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
         <div>
-            <div class="d-flex align-items-center gap-2 mb-1">
+            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                 <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 rounded-pill px-3 py-1">
                     <i class="bi bi-tools me-1"></i> Fleet Maintenance
+                </span>
+                <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-1">
+                    <i class="bi bi-cash-stack me-1"></i> Total Service Expenses: @totalCost.ToString("C")
                 </span>
                 <span class="text-secondary small">Total Logged Services: @Model.Count()</span>
             </div>
@@ -45,7 +49,8 @@
                             <th>Service Type</th>
                             <th>Service Date</th>
                             <th>Odometer (KM)</th>
-                            <th>Service Cost</th>
+                            <th>Cost</th>
+                            <th>Provider</th>
                             <th>Status</th>
                             <th class="text-end">Actions</th>
                         </tr>
@@ -53,28 +58,56 @@
                     <tbody>
                         @foreach (var log in Model)
                         {
+                            var isPending = log.Status != "Completed";
                             <tr>
                                 <td><span class="fw-bold text-primary">#MNT-@log.Id.ToString("D4")</span></td>
                                 <td>
                                     <div class="fw-bold text-white">@(log.Car?.Model ?? "Car #" + log.CarId)</div>
-                                    <span class="text-secondary small">@log.Car?.PlateNumber</span>
+                                    <span class="badge bg-dark text-secondary border border-secondary border-opacity-25 small">@log.Car?.PlateNumber</span>
                                 </td>
                                 <td><span class="fw-semibold text-warning">@log.ServiceType</span></td>
                                 <td><span class="text-secondary small">@log.ServiceDate.ToString("MMM dd, yyyy")</span></td>
                                 <td><span class="fw-semibold text-white">@log.OdometerReading.ToString("N0") KM</span></td>
-                                <td><span class="fw-extrabold text-success">@log.Cost.ToString("C")</span></td>
+                                <td><span class="fw-extrabold text-danger">-@log.Cost.ToString("C")</span></td>
+                                <td><span class="text-secondary small">@(string.IsNullOrEmpty(log.PerformedBy) ? "-" : log.PerformedBy)</span></td>
                                 <td>
-                                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 px-3 py-1">
-                                        @log.Status
-                                    </span>
+                                    @if (log.Status == "Completed")
+                                    {
+                                        <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-3 py-1">
+                                            <i class="bi bi-check-circle me-1"></i> Completed
+                                        </span>
+                                    }
+                                    else if (log.Status == "InProgress")
+                                    {
+                                        <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 px-3 py-1">
+                                            <i class="bi bi-gear-wide-connected me-1"></i> In Progress
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-25 px-3 py-1">
+                                            <i class="bi bi-clock me-1"></i> @log.Status
+                                        </span>
+                                    }
                                 </td>
                                 <td class="text-end">
-                                    <form asp-action="Delete" asp-route-id="@log.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this maintenance record?');">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-glass btn-sm text-danger" title="Delete Log">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                                    <div class="d-inline-flex gap-2">
+                                        @if (isPending)
+                                        {
+                                            <form asp-action="Complete" asp-route-id="@log.Id" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-success btn-sm" title="Complete Maintenance & Restore Vehicle to Available">
+                                                    <i class="bi bi-check2-circle me-1"></i> End Maintenance
+                                                </button>
+                                            </form>
+                                        }
+                                        <form asp-action="Delete" asp-route-id="@log.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this maintenance record?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-glass btn-sm text-danger" title="Delete Log">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         }

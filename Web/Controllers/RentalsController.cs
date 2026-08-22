@@ -45,10 +45,27 @@ namespace Web.Controllers
             return int.Parse(employeeIdClaim);
         }
 
+        private bool IsUserAdmin()
+        {
+            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            var name = User.Identity?.Name;
+            return User.IsInRole("Admin") || User.IsInRole("Administrator") ||
+                   string.Equals(role, "admin", StringComparison.OrdinalIgnoreCase) ||
+                   (!string.IsNullOrEmpty(name) && name.Contains("admin", StringComparison.OrdinalIgnoreCase));
+        }
+
         public async Task<IActionResult> Index()
         {
-            int employeeId = GetCurrentEmployeeId();
-            var rentals = await _rentalProvider.GetEmployeeRentalsAsync(employeeId);
+            List<RentalListDto> rentals;
+            if (IsUserAdmin())
+            {
+                rentals = await _rentalProvider.GetAllRentalsAsync();
+            }
+            else
+            {
+                int employeeId = GetCurrentEmployeeId();
+                rentals = await _rentalProvider.GetEmployeeRentalsAsync(employeeId);
+            }
             return View(rentals);
         }
 

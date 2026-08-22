@@ -71,11 +71,24 @@
                     <span class="sidebar-link-text">Audit Monitor</span>
                 </a>
 
-                @if (User.IsInRole("Admin"))
+@{
+    var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+    var userName = User.Identity?.Name ?? "";
+    var isUserAdmin = User.IsInRole("Admin") || User.IsInRole("Administrator") ||
+                      string.Equals(userRole, "admin", StringComparison.OrdinalIgnoreCase) ||
+                      userName.Contains("admin", StringComparison.OrdinalIgnoreCase);
+    var displayRole = isUserAdmin ? "Admin" : (string.IsNullOrEmpty(userRole) ? "Employee" : userRole);
+}
+
+                @if (isUserAdmin)
                 {
-                    <a class="sidebar-link" asp-controller="Employees" asp-action="Index" title="Staff Management">
-                        <i class="bi bi-shield-lock-fill text-warning"></i>
-                        <span class="sidebar-link-text">Staff Management</span>
+                    <a class="sidebar-link" asp-controller="Employees" asp-action="Permissions" title="User Roles & Permissions">
+                        <i class="bi bi-key-fill text-warning"></i>
+                        <span class="sidebar-link-text">Roles & Permissions</span>
+                    </a>
+                    <a class="sidebar-link" asp-controller="Employees" asp-action="Index" title="Staff Directory">
+                        <i class="bi bi-people-fill text-info"></i>
+                        <span class="sidebar-link-text">Staff Directory</span>
                     </a>
                 }
             </nav>
@@ -119,7 +132,7 @@
                             <ul class="dropdown-menu dropdown-menu-end glass-card border border-secondary border-opacity-25 p-2 shadow-lg">
                                 <li class="px-3 py-2 border-bottom border-secondary border-opacity-25">
                                     <div class="fw-bold text-white">@User.Identity.Name</div>
-                                    <div class="small text-secondary">Role: @User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</div>
+                                    <div class="small text-secondary mt-1">Role: <span class="badge @(isUserAdmin ? "bg-warning text-dark" : "bg-secondary text-white") fw-bold px-2 py-0.5">@displayRole</span></div>
                                 </li>
                                 <li>
                                     <form asp-controller="Auth" asp-action="Logout" method="post" class="mt-1">

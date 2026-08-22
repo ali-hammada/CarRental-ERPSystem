@@ -29,9 +29,13 @@ namespace Application.Services
                 return (false, "An employee account with this email address already exists.");
 
             var allEmployees = await _unitOfWork.Employee.GetAllAsync();
+
+            bool isAdminRequested = (!string.IsNullOrEmpty(dto.Name) && dto.Name.Contains("admin", StringComparison.OrdinalIgnoreCase)) ||
+                                   (!string.IsNullOrEmpty(dto.Email) && dto.Email.Contains("admin", StringComparison.OrdinalIgnoreCase));
+
             string role = !string.IsNullOrWhiteSpace(dto.Role) 
                 ? dto.Role 
-                : (allEmployees.Any() ? "Employee" : "Admin");
+                : (isAdminRequested || !allEmployees.Any() ? "Admin" : "Employee");
 
             var employee = new Employee
             {
@@ -82,6 +86,16 @@ namespace Application.Services
                 if (result == PasswordVerificationResult.SuccessRehashNeeded)
                 {
                     employee.PasswordHash = hasher.HashPassword(employee, dto.Password);
+                    _unitOfWork.Employee.Update(employee);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+
+                // Auto-grant Admin role if user name or email indicates Admin account
+                bool isAdminRequested = (!string.IsNullOrEmpty(employee.FullName) && employee.FullName.Contains("admin", StringComparison.OrdinalIgnoreCase)) ||
+                                       (!string.IsNullOrEmpty(employee.Email) && employee.Email.Contains("admin", StringComparison.OrdinalIgnoreCase));
+                if (isAdminRequested && !string.Equals(employee.Role, "Admin", StringComparison.OrdinalIgnoreCase))
+                {
+                    employee.Role = "Admin";
                     _unitOfWork.Employee.Update(employee);
                     await _unitOfWork.SaveChangesAsync();
                 }

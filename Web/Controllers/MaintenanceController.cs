@@ -77,14 +77,52 @@ namespace Web.Controllers
 
             await _maintenanceService.AddLogAsync(log);
 
-            // Update vehicle status to Maintenance if it was Available
-            if (targetCar != null && targetCar.Status == CarStatus.Available)
+            if (targetCar != null)
             {
-                targetCar.Status = CarStatus.Maintenance;
-                await _carServices.UpdateCarAsync(targetCar);
+                if (log.Status == "Completed")
+                {
+                    if (targetCar.Status == CarStatus.Maintenance)
+                    {
+                        targetCar.Status = CarStatus.Available;
+                        await _carServices.UpdateCarAsync(targetCar);
+                    }
+                }
+                else
+                {
+                    if (targetCar.Status == CarStatus.Available)
+                    {
+                        targetCar.Status = CarStatus.Maintenance;
+                        await _carServices.UpdateCarAsync(targetCar);
+                    }
+                }
             }
 
-            _toast.AddSuccessToastMessage("Maintenance log recorded successfully & vehicle status set to Maintenance.");
+            _toast.AddSuccessToastMessage($"Maintenance log recorded successfully (Status: {log.Status}).");
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Complete(int id)
+        {
+            var log = await _maintenanceService.GetByIdAsync(id);
+            if (log == null)
+            {
+                _toast.AddErrorToastMessage("Maintenance record not found.");
+                return RedirectToAction(nameof(Index));
+            }
+
+            log.Status = "Completed";
+            await _maintenanceService.UpdateLogAsync(log);
+
+            var car = await _carServices.GetByIdAsync(log.CarId);
+            if (car != null && car.Status == CarStatus.Maintenance)
+            {
+                car.Status = CarStatus.Available;
+                await _carServices.UpdateCarAsync(car);
+            }
+
+            _toast.AddSuccessToastMessage($"Maintenance completed for '{car?.Model} ({car?.PlateNumber})'. Vehicle status restored to AVAILABLE for new rentals!");
             return RedirectToAction(nameof(Index));
         }
 
