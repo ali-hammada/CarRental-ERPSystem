@@ -9,7 +9,7 @@ namespace Application.Providers
     {
         Task<List<CarSaleListDto>> GetAllSaleContractsAsync();
         Task<CarSaleListDto?> GetSaleContractDetailsByIdAsync(int id);
-        Task<List<CarListDto>> GetCarsAvailableForSaleAsync();
+        Task<List<CarListDto>> GetCarsAvailableForSaleAsync(int? includeCarId = null);
         Task<List<SaleInstallmentDto>> GetContractInstallmentsAsync(int saleContractId);
         Task<List<SaleInstallmentDto>> GetOverdueInstallmentsAsync();
         Task<CarSaleNegotiationMetadataDto?> GetNegotiationMetadataAsync(int carId);
@@ -111,13 +111,12 @@ namespace Application.Providers
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<List<CarListDto>> GetCarsAvailableForSaleAsync()
+        public async Task<List<CarListDto>> GetCarsAvailableForSaleAsync(int? includeCarId = null)
         {
             return await _context.Cars
                 .AsNoTracking()
-                .Where(c => (c.ListingType == CarListingType.SaleOnly || c.ListingType == CarListingType.Both) &&
-                            (c.SaleStatus == null || c.SaleStatus == CarSaleStatus.ForSale) &&
-                            c.Status != CarStatus.Rented)
+                .Where(c => (c.SaleStatus == null || c.SaleStatus != CarSaleStatus.Sold) &&
+                            (c.Status != CarStatus.Rented || (includeCarId.HasValue && c.Id == includeCarId.Value)))
                 .Select(c => new CarListDto
                 {
                     Id = c.Id,

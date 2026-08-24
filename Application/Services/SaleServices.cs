@@ -89,7 +89,7 @@ namespace Application.Services
                 contract.Status = SaleContractStatus.Active;
 
                 car.Status = CarStatus.OutOfService;
-                car.SaleStatus = CarSaleStatus.Reserved;
+                car.SaleStatus = CarSaleStatus.Sold;
 
                 // Generate Installment Schedule
                 var startDate = DateTime.UtcNow;

@@ -25,6 +25,8 @@ namespace Web.Controllers
         public async Task<IActionResult> Index(string? type = "all")
         {
             var cars = await _carProvider.GetAllCarsAsync();
+            // Exclude sold vehicles from active operational catalog
+            cars = cars.Where(c => c.SaleStatus != CarSaleStatus.Sold && c.SaleStatus != CarSaleStatus.Reserved).ToList();
 
             if (type == "rental")
             {
@@ -43,7 +45,11 @@ namespace Web.Controllers
         public async Task<IActionResult> SalesCatalog()
         {
             var cars = await _carProvider.GetAllCarsAsync();
-            var salesCars = cars.Where(c => c.ListingType == CarListingType.SaleOnly || c.ListingType == CarListingType.Both).ToList();
+            // Showroom catalog: Only display vehicles available for sale (exclude Sold/Reserved/OutOfService)
+            var salesCars = cars.Where(c => (c.ListingType == CarListingType.SaleOnly || c.ListingType == CarListingType.Both)
+                                         && c.SaleStatus != CarSaleStatus.Sold
+                                         && c.SaleStatus != CarSaleStatus.Reserved
+                                         && c.Status != CarStatus.OutOfService).ToList();
             return View(salesCars);
         }
 

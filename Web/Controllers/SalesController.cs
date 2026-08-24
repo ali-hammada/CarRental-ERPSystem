@@ -59,7 +59,7 @@ namespace Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Create(int? carId)
         {
-            ViewBag.AvailableCars = await _saleProvider.GetCarsAvailableForSaleAsync();
+            ViewBag.AvailableCars = await _saleProvider.GetCarsAvailableForSaleAsync(carId);
             ViewBag.Customers = await _customerProvider.GetAllCustomersAsync();
 
             var model = new CarSaleRequestDto
@@ -77,7 +77,7 @@ namespace Web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.AvailableCars = await _saleProvider.GetCarsAvailableForSaleAsync();
+                ViewBag.AvailableCars = await _saleProvider.GetCarsAvailableForSaleAsync(request.CarId);
                 ViewBag.Customers = await _customerProvider.GetAllCustomersAsync();
                 return View(request);
             }
@@ -87,7 +87,7 @@ namespace Web.Controllers
             if (!result.Success)
             {
                 _toast.AddErrorToastMessage(result.Message);
-                ViewBag.AvailableCars = await _saleProvider.GetCarsAvailableForSaleAsync();
+                ViewBag.AvailableCars = await _saleProvider.GetCarsAvailableForSaleAsync(request.CarId);
                 ViewBag.Customers = await _customerProvider.GetAllCustomersAsync();
                 return View(request);
             }

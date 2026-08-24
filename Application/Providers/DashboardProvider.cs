@@ -131,11 +131,12 @@ namespace Application.Providers
                 .Where(m => !m.IsDeleted)
                 .SumAsync(m => (decimal?)m.Cost) ?? 0m;
 
-            var totalCarsCount = await _context.Cars.AsNoTracking().CountAsync();
-            var rentedCarsCount = await _context.Cars.AsNoTracking().CountAsync(c => c.Status == CarStatus.Rented);
-            var availableCarsCount = await _context.Cars.AsNoTracking().CountAsync(c => c.Status == CarStatus.Available);
-            var maintenanceCarsCount = await _context.Cars.AsNoTracking().CountAsync(c => c.Status == CarStatus.Maintenance);
-            var outOfServiceCarsCount = await _context.Cars.AsNoTracking().CountAsync(c => c.Status == CarStatus.OutOfService);
+            var activeCarsQuery = _context.Cars.AsNoTracking().Where(c => c.SaleStatus == null || c.SaleStatus != CarSaleStatus.Sold);
+            var totalCarsCount = await activeCarsQuery.CountAsync();
+            var rentedCarsCount = await activeCarsQuery.CountAsync(c => c.Status == CarStatus.Rented);
+            var availableCarsCount = await activeCarsQuery.CountAsync(c => c.Status == CarStatus.Available);
+            var maintenanceCarsCount = await activeCarsQuery.CountAsync(c => c.Status == CarStatus.Maintenance);
+            var outOfServiceCarsCount = await activeCarsQuery.CountAsync(c => c.Status == CarStatus.OutOfService);
 
             var recentPayments = await paymentsQuery
                 .OrderByDescending(p => p.PaymentDate)
