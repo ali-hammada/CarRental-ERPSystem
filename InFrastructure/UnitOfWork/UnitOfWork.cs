@@ -22,6 +22,8 @@ namespace InFrastructure.UnitOfWork
             CarCategories = new GenericRepository<CarCategory>(_context);
             MaintenanceLogs = new GenericRepository<MaintenanceLog>(_context);
             Invoices = new GenericRepository<Invoice>(_context);
+            CarSaleContracts = new GenericRepository<CarSaleContract>(_context);
+            SaleInstallments = new GenericRepository<SaleInstallment>(_context);
         }
 
         public ICarRepository Cars { get; }
@@ -32,6 +34,8 @@ namespace InFrastructure.UnitOfWork
         public IGenericRepository<CarCategory> CarCategories { get; }
         public IGenericRepository<MaintenanceLog> MaintenanceLogs { get; }
         public IGenericRepository<Invoice> Invoices { get; }
+        public IGenericRepository<CarSaleContract> CarSaleContracts { get; }
+        public IGenericRepository<SaleInstallment> SaleInstallments { get; }
 
         public async Task BeginTransactionAsync()
         {

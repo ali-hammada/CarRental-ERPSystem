@@ -1,0 +1,194 @@
+@model Application.DTOs.CarSaleListDto
+
+@{
+    ViewData["Title"] = "Sale Contract #SALE-" + Model.Id.ToString("D4");
+    var installments = ViewBag.Installments as IEnumerable<Application.DTOs.SaleInstallmentDto> ?? new List<Application.DTOs.SaleInstallmentDto>();
+}
+
+<div class="d-flex flex-column gap-4">
+    <!-- Header Banner -->
+    <div class="glass-card p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="kpi-icon bg-success bg-opacity-25 text-success">
+                <i class="bi bi-tag-fill"></i>
+            </div>
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1">
+                        Sale Contract #SALE-@Model.Id.ToString("D4")
+                    </span>
+                    <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">
+                        @Model.Status
+                    </span>
+                </div>
+                <h2 class="fw-extrabold mb-0 text-white">Car Sales Contract Summary</h2>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="PrintSaleAgreement" asp-route-id="@Model.Id" target="_blank" class="btn btn-glass text-warning">
+                <i class="bi bi-printer me-1"></i> Print Bill of Sale Contract
+            </a>
+            <a asp-action="Index" class="btn btn-glass">
+                <i class="bi bi-arrow-left me-1"></i> Back to Sales Ledger
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Details Column -->
+        <div class="col-lg-8 d-flex flex-column gap-4">
+            <!-- Vehicle & Customer Profile Card -->
+            <div class="glass-card p-4">
+                <h5 class="fw-bold text-white mb-4 d-flex align-items-center gap-2">
+                    <i class="bi bi-car-front text-gradient"></i> Sold Vehicle & Buyer Summary
+                </h5>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-25">
+                            <div class="text-secondary small fw-bold mb-1">SOLD VEHICLE</div>
+                            <div class="fs-5 fw-bold text-white">@Model.CarModel</div>
+                            <div class="text-secondary small mt-1">Plate: <span class="text-gradient fw-bold">@Model.CarPlateNumber</span></div>
+                            <div class="text-secondary small mt-1">Selling Price: <span class="text-success fw-semibold">@Model.SalePrice.ToString("C")</span></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-25">
+                            <div class="text-secondary small fw-bold mb-1">BUYER CUSTOMER</div>
+                            <div class="fs-5 fw-bold text-white">@Model.CustomerName</div>
+                            <div class="text-secondary small mt-1">Phone: <span class="text-white">@Model.CustomerPhone</span></div>
+                            <div class="text-secondary small mt-1">Agent: <span class="text-white">@Model.EmployeeName</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Installment Payment Schedule Card (If Installment Sale) -->
+            @if (Model.PaymentType == ApplicationCore.Enums.SalePaymentType.Installment)
+            {
+                <div class="glass-card p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <h5 class="fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-calendar-check text-warning"></i> Installments Financing Schedule (@Model.InstallmentMonths Months)
+                        </h5>
+                        <span class="badge bg-dark text-warning border border-warning border-opacity-25">
+                            Monthly: @Model.MonthlyInstallment.ToString("C") / Mo
+                        </span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-futuristic align-middle">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Due Date</th>
+                                    <th>Amount</th>
+                                    <th>Paid Date</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var inst in installments)
+                                {
+                                    <tr>
+                                        <td><span class="fw-bold text-primary">Q-@inst.InstallmentNumber</span></td>
+                                        <td><span class="text-white">@inst.DueDate.ToString("MMM dd, yyyy")</span></td>
+                                        <td><span class="fw-bold text-white">@inst.Amount.ToString("C")</span></td>
+                                        <td>
+                                            @if (inst.PaidDate.HasValue)
+                                            {
+                                                <span class="text-success small">@inst.PaidDate.Value.ToString("MMM dd, yyyy")</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-secondary small">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (inst.Status == ApplicationCore.Enums.InstallmentStatus.Paid)
+                                            {
+                                                <span class="badge bg-success">Paid</span>
+                                            }
+                                            else if (inst.Status == ApplicationCore.Enums.InstallmentStatus.Overdue)
+                                            {
+                                                <span class="badge bg-danger">Overdue</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            @if (inst.Status != ApplicationCore.Enums.InstallmentStatus.Paid)
+                                            {
+                                                <form asp-action="PayInstallment" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="installmentId" value="@inst.Id" />
+                                                    <input type="hidden" name="contractId" value="@Model.Id" />
+                                                    <button type="submit" class="btn btn-glow btn-sm">
+                                                        <i class="bi bi-check2-circle me-1"></i> Collect Payment
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-check-all text-success fs-5"></i>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Sidebar Summary Column -->
+        <div class="col-lg-4 d-flex flex-column gap-4">
+            <!-- Financial Breakdown Card -->
+            <div class="glass-card p-4">
+                <h5 class="fw-bold text-white mb-4 d-flex align-items-center gap-2">
+                    <i class="bi bi-calculator text-gradient"></i> Sales Ledger Breakdown
+                </h5>
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-secondary small">Base Sale Price</span>
+                        <span class="fw-semibold text-white">@Model.SalePrice.ToString("C")</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-secondary small">Sales Tax / VAT</span>
+                        <span class="fw-semibold text-warning">@Model.TaxAmount.ToString("C")</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25">
+                        <span class="text-secondary small">Total Final Price</span>
+                        <span class="fs-5 fw-bold text-white">@Model.FinalPrice.ToString("C")</span>
+                    </div>
+                    
+                    <!-- Dealership Profit Breakdown -->
+                    <div class="p-3 rounded bg-dark bg-opacity-60 border border-success border-opacity-25 my-1">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-secondary small">Total Cost Basis:</span>
+                            <span class="text-white fw-bold">@Model.TotalCostBasis.ToString("C")</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-success small fw-bold">Net Gross Profit:</span>
+                            <span class="fs-5 fw-extrabold text-success">@Model.ActualGrossProfit.ToString("C")</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-secondary small">Down Payment / Paid</span>
+                        <span class="fw-bold text-success">@Model.PaidAmount.ToString("C")</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25">
+                        <span class="fw-bold text-white">Remaining Balance</span>
+                        <span class="fs-4 fw-extrabold @(Model.RemainingBalance > 0 ? "text-danger" : "text-success")">
+                            @Model.RemainingBalance.ToString("C")
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

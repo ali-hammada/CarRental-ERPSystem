@@ -1,8 +1,9 @@
 @using Application.Providers
 @model DashboardMetricsDto
+@inject Web.Services.ILocalizationService Loc
 
 @{
-    ViewData["Title"] = "Executive ERP Dashboard";
+    ViewData["Title"] = Loc.GetString("Dashboard");
 }
 
 <div class="d-flex flex-column gap-4">
@@ -12,14 +13,14 @@
             <div class="col-lg-7 mb-3 mb-lg-0">
                 <div class="d-flex align-items-center gap-2 mb-2">
                     <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1">
-                        <i class="bi bi-shield-check me-1"></i> Enterprise Operations Command Center
+                        <i class="bi bi-shield-check me-1"></i> @Loc.GetString("Enterprise Portal")
                     </span>
                     <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">
-                        <i class="bi bi-lightning-charge me-1"></i> DDD Provider Engine
+                        <i class="bi bi-lightning-charge me-1"></i> ERP Core Engine
                     </span>
                 </div>
                 <h2 class="display-6 fw-extrabold mb-1">
-                    Welcome back, <span class="text-gradient">@User.Identity?.Name</span>!
+                    @Loc.GetString("Dashboard Overview") <span class="text-gradient">@User.Identity?.Name</span>
                 </h2>
                 <p class="text-secondary mb-0">
                     Real-time fleet utilization, contract ledgers, active revenue analytics, and vehicle telemetry.
@@ -28,7 +29,7 @@
             <div class="col-lg-5 text-lg-end">
                 <div class="d-inline-flex flex-column align-items-lg-end gap-1">
                     <div class="fs-4 fw-extrabold text-white">@Model.FleetUtilizationPercentage%</div>
-                    <div class="text-secondary small">Fleet Utilization Rate</div>
+                    <div class="text-secondary small">@Loc.GetString("Fleet Utilization")</div>
                     <div class="progress mt-2 w-100" style="height: 8px; width: 200px; background-color: rgba(255,255,255,0.1);">
                         <div class="progress-bar" role="progressbar" style="width: @Model.FleetUtilizationPercentage%; background: linear-gradient(90deg, #3b82f6, #8b5cf6, #10b981);"></div>
                     </div>
@@ -40,26 +41,26 @@
         <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <div class="text-secondary small fw-semibold">
-                    <i class="bi bi-rocket-takeoff-fill text-primary me-1"></i> Quick Actions:
+                    <i class="bi bi-rocket-takeoff-fill text-primary me-1"></i> @Loc.GetString("Quick Actions:")
                 </div>
                 <div class="d-flex flex-wrap align-items-center gap-2">
                     <a asp-controller="Rentals" asp-action="Open" class="btn btn-glow btn-sm">
-                        <i class="bi bi-plus-circle me-1"></i> New Contract
+                        <i class="bi bi-plus-circle me-1"></i> @Loc.GetString("New Contract")
                     </a>
                     <a asp-controller="Car" asp-action="Create" class="btn btn-glass btn-sm">
-                        <i class="bi bi-car-front me-1"></i> Add Vehicle
+                        <i class="bi bi-car-front me-1"></i> @Loc.GetString("Add Vehicle")
                     </a>
                     <a asp-controller="Payment" asp-action="Create" class="btn btn-glass btn-sm">
-                        <i class="bi bi-wallet2 me-1"></i> Record Payment
+                        <i class="bi bi-wallet2 me-1"></i> @Loc.GetString("Record Payment")
                     </a>
                     <a asp-controller="Customers" asp-action="Create" class="btn btn-glass btn-sm">
-                        <i class="bi bi-person-plus me-1"></i> Add Customer
+                        <i class="bi bi-person-plus me-1"></i> @Loc.GetString("Add Customer")
                     </a>
                     <a asp-controller="Maintenance" asp-action="Create" class="btn btn-glass btn-sm">
-                        <i class="bi bi-tools me-1"></i> Schedule Service
+                        <i class="bi bi-tools me-1"></i> @Loc.GetString("Schedule Service")
                     </a>
                     <a asp-controller="Tracking" asp-action="Index" class="btn btn-glass btn-sm">
-                        <i class="bi bi-broadcast text-primary me-1"></i> GPS Live Map
+                        <i class="bi bi-broadcast text-primary me-1"></i> @Loc.GetString("GPS Live Map")
                     </a>
                 </div>
             </div>
@@ -79,11 +80,11 @@
                                 <i class="bi bi-exclamation-triangle-fill"></i>
                             </div>
                             <div>
-                                <div class="fw-bold text-white">@Model.OverdueRentalsCount Overdue Returns</div>
+                                <div class="fw-bold text-white">@Model.OverdueRentalsCount @Loc.GetString("Overdue Returns")</div>
                                 <div class="text-secondary small">Contracts past return date</div>
                             </div>
                         </div>
-                        <a asp-controller="Rentals" asp-action="Index" class="btn btn-outline-danger btn-sm rounded-pill px-3">View</a>
+                        <a asp-controller="Rentals" asp-action="Index" class="btn btn-outline-danger btn-sm rounded-pill px-3">@Loc.GetString("Details")</a>
                     </div>
                 </div>
             }
@@ -96,11 +97,11 @@
                                 <i class="bi bi-tools"></i>
                             </div>
                             <div>
-                                <div class="fw-bold text-white">@Model.MaintenanceCarsCount Under Maintenance</div>
+                                <div class="fw-bold text-white">@Model.MaintenanceCarsCount @Loc.GetString("Under Maintenance")</div>
                                 <div class="text-secondary small">Vehicles currently servicing</div>
                             </div>
                         </div>
-                        <a asp-controller="Maintenance" asp-action="Index" class="btn btn-outline-warning btn-sm rounded-pill px-3">Logs</a>
+                        <a asp-controller="Maintenance" asp-action="Index" class="btn btn-outline-warning btn-sm rounded-pill px-3">@Loc.GetString("Details")</a>
                     </div>
                 </div>
             }
@@ -114,10 +115,10 @@
                             </div>
                             <div>
                                 <div class="fw-bold text-white">@Model.TotalRemainingUnpaid.ToString("C")</div>
-                                <div class="text-secondary small">Outstanding unpaid balance</div>
+                                <div class="text-secondary small">@Loc.GetString("Outstanding Receivables")</div>
                             </div>
                         </div>
-                        <a asp-controller="Invoices" asp-action="Index" class="btn btn-outline-info btn-sm rounded-pill px-3">Collect</a>
+                        <a asp-controller="Invoices" asp-action="Index" class="btn btn-outline-info btn-sm rounded-pill px-3">@Loc.GetString("Collect Payment")</a>
                     </div>
                 </div>
             }
@@ -131,7 +132,7 @@
             <div class="kpi-widget kpi-success h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Net Operating Revenue</div>
+                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">@Loc.GetString("Net Operating Revenue")</div>
                         <div class="fs-3 fw-extrabold text-gradient-emerald mt-1">@Model.NetProfit.ToString("C")</div>
                         <div class="text-secondary small mt-1">
                             Gross: <strong class="text-white">@Model.TotalPaidAmount.ToString("C")</strong> | Service: <strong class="text-danger">@Model.TotalMaintenanceCost.ToString("C")</strong>
@@ -149,7 +150,7 @@
             <div class="kpi-widget h-100 border-start border-4">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Maintenance Expenses</div>
+                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">@Loc.GetString("Maintenance Expenses")</div>
                         <div class="fs-3 fw-extrabold text-danger mt-1">-@Model.TotalMaintenanceCost.ToString("C")</div>
                         <div class="text-secondary small mt-1">Deducted from gross revenue across all repairs</div>
                     </div>
@@ -165,7 +166,7 @@
             <div class="kpi-widget kpi-warning h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Outstanding Receivables</div>
+                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">@Loc.GetString("Outstanding Receivables")</div>
                         <div class="fs-3 fw-extrabold text-gradient-amber mt-1">@Model.TotalRemainingUnpaid.ToString("C")</div>
                         <div class="text-secondary small mt-1">Pending collection on active contracts</div>
                     </div>
@@ -181,7 +182,7 @@
             <div class="kpi-widget kpi-purple h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Active Fleet Rentals</div>
+                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">@Loc.GetString("Active Fleet Rentals")</div>
                         <div class="fs-3 fw-extrabold text-white mt-1">@Model.ActiveRentals</div>
                         <div class="text-secondary small mt-1">
                             <span class="text-danger fw-semibold">@Model.OverdueRentalsCount Overdue</span> | @(Model.ActiveRentals - Model.OverdueRentalsCount) On Schedule
@@ -199,7 +200,7 @@
             <div class="kpi-widget h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Available Fleet</div>
+                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">@Loc.GetString("Available Fleet")</div>
                         <div class="fs-3 fw-extrabold text-white mt-1">@Model.AvailableCarsCount / @Model.TotalCarsCount</div>
                         <div class="text-secondary small mt-1">Ready for instant booking</div>
                     </div>
@@ -215,7 +216,7 @@
             <div class="kpi-widget h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">Maintenance Status</div>
+                        <div class="text-secondary small fw-bold text-uppercase tracking-wider">@Loc.GetString("Under Maintenance")</div>
                         <div class="fs-3 fw-extrabold text-warning mt-1">@Model.MaintenanceCarsCount</div>
                         <div class="text-secondary small mt-1">@Model.OutOfServiceCarsCount out of service</div>
                     </div>
@@ -235,7 +236,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-graph-up-arrow text-primary fs-5"></i>
-                        <h5 class="fw-bold mb-0 text-white">Contract Velocity</h5>
+                        <h5 class="fw-bold mb-0 text-white">@Loc.GetString("Contract Velocity")</h5>
                     </div>
                     <span class="badge bg-dark text-secondary border border-secondary border-opacity-25">Last 7 Months</span>
                 </div>
@@ -251,7 +252,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-currency-dollar text-success fs-5"></i>
-                        <h5 class="fw-bold mb-0 text-white">Cash Flow Revenue</h5>
+                        <h5 class="fw-bold mb-0 text-white">@Loc.GetString("Cash Flow Revenue")</h5>
                     </div>
                     <span class="badge bg-dark text-secondary border border-secondary border-opacity-25">Last 7 Months</span>
                 </div>
@@ -267,7 +268,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-pie-chart-fill text-warning fs-5"></i>
-                        <h5 class="fw-bold mb-0 text-white">Fleet Distribution</h5>
+                        <h5 class="fw-bold mb-0 text-white">@Loc.GetString("Fleet Distribution")</h5>
                     </div>
                     <span class="badge bg-dark text-secondary border border-secondary border-opacity-25">Real-time</span>
                 </div>
@@ -286,10 +287,10 @@
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-trophy-fill text-warning fs-5"></i>
-                        <h5 class="fw-bold mb-0 text-white">Top Performing Vehicles</h5>
+                        <h5 class="fw-bold mb-0 text-white">@Loc.GetString("Top Performing Vehicles")</h5>
                     </div>
                     <a asp-controller="Car" asp-action="Index" class="btn btn-glass btn-sm">
-                        View Fleet <i class="bi bi-arrow-right ms-1"></i>
+                        @Loc.GetString("View Fleet") <i class="bi bi-arrow-right ms-1"></i>
                     </a>
                 </div>
 
@@ -299,11 +300,11 @@
                         <table class="table table-futuristic align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th>Rank</th>
-                                    <th>Vehicle</th>
-                                    <th>Category</th>
-                                    <th>Trips</th>
-                                    <th class="text-end">Revenue</th>
+                                    <th>@Loc.GetString("Rank")</th>
+                                    <th>@Loc.GetString("Vehicle")</th>
+                                    <th>@Loc.GetString("Category")</th>
+                                    <th>@Loc.GetString("Trips")</th>
+                                    <th class="text-end">@Loc.GetString("Revenue")</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -361,10 +362,10 @@
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-clock-history text-info fs-5"></i>
-                        <h5 class="fw-bold mb-0 text-white">Upcoming & Overdue Returns</h5>
+                        <h5 class="fw-bold mb-0 text-white">@Loc.GetString("Upcoming & Overdue Returns")</h5>
                     </div>
                     <a asp-controller="Rentals" asp-action="Index" class="btn btn-glass btn-sm">
-                        All Contracts <i class="bi bi-arrow-right ms-1"></i>
+                        @Loc.GetString("All Contracts") <i class="bi bi-arrow-right ms-1"></i>
                     </a>
                 </div>
 
@@ -374,11 +375,11 @@
                         <table class="table table-futuristic align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th>Contract</th>
-                                    <th>Customer</th>
-                                    <th>Vehicle</th>
-                                    <th>Return Date</th>
-                                    <th class="text-end">Status</th>
+                                    <th>@Loc.GetString("Contract")</th>
+                                    <th>@Loc.GetString("Customer")</th>
+                                    <th>@Loc.GetString("Vehicle")</th>
+                                    <th>@Loc.GetString("Return Date")</th>
+                                    <th class="text-end">@Loc.GetString("Status")</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -400,13 +401,13 @@
                                             @if (item.IsOverdue)
                                             {
                                                 <span class="badge bg-danger text-white border border-danger px-2.5 py-1">
-                                                    <i class="bi bi-exclamation-triangle me-1"></i> Overdue
+                                                    <i class="bi bi-exclamation-triangle me-1"></i> @Loc.GetString("Overdue Returns")
                                                 </span>
                                             }
                                             else
                                             {
                                                 <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 px-2.5 py-1">
-                                                    <i class="bi bi-clock me-1"></i> Active
+                                                    <i class="bi bi-clock me-1"></i> @Loc.GetString("Active Rentals")
                                                 </span>
                                             }
                                         </td>
@@ -432,7 +433,7 @@
         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3 gap-2">
             <div class="d-flex align-items-center gap-2">
                 <i class="bi bi-receipt-cutoff text-primary fs-5"></i>
-                <h5 class="fw-bold mb-0 text-white">Recent Payment Transactions</h5>
+                <h5 class="fw-bold mb-0 text-white">@Loc.GetString("Recent Payment Transactions")</h5>
             </div>
             
             <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -443,7 +444,7 @@
                     </span>
                 }
                 <a asp-controller="Payment" asp-action="History" class="btn btn-glass btn-sm ms-md-2">
-                    View All <i class="bi bi-arrow-right ms-1"></i>
+                    @Loc.GetString("View All") <i class="bi bi-arrow-right ms-1"></i>
                 </a>
             </div>
         </div>
@@ -454,14 +455,14 @@
                 <table class="table table-futuristic align-middle mb-0">
                     <thead>
                         <tr>
-                            <th>Payment ID</th>
-                            <th>Contract</th>
-                            <th>Customer</th>
-                            <th>Amount</th>
-                            <th>Purpose</th>
-                            <th>Method</th>
-                            <th>Date</th>
-                            <th class="text-end">Actions</th>
+                            <th>@Loc.GetString("Payment ID")</th>
+                            <th>@Loc.GetString("Contract")</th>
+                            <th>@Loc.GetString("Customer")</th>
+                            <th>@Loc.GetString("Amount")</th>
+                            <th>@Loc.GetString("Purpose")</th>
+                            <th>@Loc.GetString("Method")</th>
+                            <th>@Loc.GetString("Date")</th>
+                            <th class="text-end">@Loc.GetString("Actions")</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -477,7 +478,7 @@
                                 <td><span class="text-secondary small">@payment.PaymentDate.ToString("MMM dd, yyyy HH:mm")</span></td>
                                 <td class="text-end">
                                     <a asp-controller="Payment" asp-action="Receipt" asp-route-paymentId="@payment.Id" class="btn btn-glass btn-sm">
-                                        <i class="bi bi-printer me-1"></i> Receipt
+                                        <i class="bi bi-printer me-1"></i> @Loc.GetString("Receipt")
                                     </a>
                                 </td>
                             </tr>

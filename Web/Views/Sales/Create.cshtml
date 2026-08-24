@@ -1,0 +1,303 @@
+@model Application.DTOs.CarSaleRequestDto
+
+@{
+    ViewData["Title"] = "Open Vehicle Sale Contract";
+    var cars = ViewBag.AvailableCars as IEnumerable<Application.DTOs.CarListDto> ?? new List<Application.DTOs.CarListDto>();
+    var customers = ViewBag.Customers as IEnumerable<Application.DTOs.CustomerListDto> ?? new List<Application.DTOs.CustomerListDto>();
+}
+
+<div class="d-flex flex-column gap-4">
+    <!-- Header Banner -->
+    <div class="glass-card p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="kpi-icon bg-success bg-opacity-25 text-success">
+                <i class="bi bi-tag-fill"></i>
+            </div>
+            <div>
+                <h2 class="fw-extrabold mb-0 text-white">Process Car Sale Contract</h2>
+                <p class="text-secondary mb-0">Select a vehicle, buyer customer, and configure cash or installment payment financing.</p>
+            </div>
+        </div>
+        <a asp-action="Index" class="btn btn-glass">
+            <i class="bi bi-arrow-left me-1"></i> Back to Sales Ledger
+        </a>
+    </div>
+
+    <!-- Form Wizard Card -->
+    <div class="glass-card p-4">
+        <form asp-action="Create" method="post" id="saleForm">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="row g-4">
+                <!-- Vehicle Selection -->
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small fw-bold">Select Vehicle for Sale *</label>
+                    <select asp-for="CarId" class="form-select" id="carSelect" required>
+                        <option value="">-- Choose Vehicle for Sale --</option>
+                        @foreach (var c in cars)
+                        {
+                            var target = c.TargetSalePrice ?? c.SalePrice ?? 0m;
+                            var floor = c.MinimumFloorPrice ?? 0m;
+                            <option value="@c.Id" 
+                                    data-cost="@c.TotalCostBasis" 
+                                    data-target="@target" 
+                                    data-floor="@floor">
+                                @c.Model (@c.PlateNumber) - Asking: @target.ToString("C")
+                            </option>
+                        }
+                    </select>
+                    <span asp-validation-for="CarId" class="text-danger small"></span>
+                </div>
+
+                <!-- Customer Selection -->
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small fw-bold">Select Buyer Customer *</label>
+                    <select asp-for="CustomerId" class="form-select" required>
+                        <option value="">-- Choose Buyer Customer --</option>
+                        @foreach (var cust in customers)
+                        {
+                            <option value="@cust.Id">
+                                @cust.Name (@cust.Phone) - License: @cust.DrivingLicenseNumber
+                            </option>
+                        }
+                    </select>
+                    <span asp-validation-for="CustomerId" class="text-danger small"></span>
+                </div>
+
+                <!-- Sale Price & VAT Rate -->
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small fw-bold">Agreed Negotiated Sale Price ($) *</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary text-secondary">$</span>
+                        <input asp-for="SalePrice" type="number" step="0.01" class="form-control fw-bold" id="salePrice" placeholder="Enter agreed negotiated selling price" required min="1" />
+                    </div>
+                    <span asp-validation-for="SalePrice" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small fw-bold">Sales Tax / VAT Rate (%)</label>
+                    <div class="input-group">
+                        <input asp-for="TaxRatePercent" type="number" step="0.1" class="form-control" id="taxRate" placeholder="14" />
+                        <span class="input-group-text bg-dark border-secondary text-secondary">%</span>
+                    </div>
+                </div>
+
+                <!-- Smart Deal Negotiator Assistant Widget -->
+                <div class="col-12" id="negotiatorWidget" style="display: none;">
+                    <div class="p-3.5 rounded-3 bg-dark bg-opacity-70 border border-primary border-opacity-25" id="negotiatorBox">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h6 class="fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-shield-lock-fill text-primary"></i> Smart Deal Negotiator Assistant (المساعد الذكي للتفاوض)
+                            </h6>
+                            <span class="badge px-3 py-1 fs-6" id="dealStatusBadge">Calculating Deal...</span>
+                        </div>
+                        
+                        <div class="row g-3 text-center">
+                            <div class="col-6 col-md-3">
+                                <div class="p-2.5 rounded bg-dark border border-secondary border-opacity-25">
+                                    <div class="text-secondary small fw-bold mb-1">TOTAL COST BASIS</div>
+                                    <div class="fs-5 fw-extrabold text-white" id="costBasisText">$0.00</div>
+                                    <div class="text-secondary opacity-75" style="font-size: 0.72rem;">Purchase + Prep</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-2.5 rounded bg-dark border border-secondary border-opacity-25">
+                                    <div class="text-secondary small fw-bold mb-1">TARGET ASKING PRICE</div>
+                                    <div class="fs-5 fw-extrabold text-info" id="targetPriceText">$0.00</div>
+                                    <div class="text-secondary opacity-75" style="font-size: 0.72rem;">Showroom Price</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-2.5 rounded bg-dark border border-secondary border-opacity-25">
+                                    <div class="text-secondary small fw-bold mb-1">MIN FLOOR PRICE</div>
+                                    <div class="fs-5 fw-extrabold text-warning" id="floorPriceText">$0.00</div>
+                                    <div class="text-secondary opacity-75" style="font-size: 0.72rem;">Negotiation Limit</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-2.5 rounded bg-dark border border-secondary border-opacity-25">
+                                    <div class="text-secondary small fw-bold mb-1">ESTIMATED NET PROFIT</div>
+                                    <div class="fs-5 fw-extrabold text-success" id="netProfitText">$0.00 (0%)</div>
+                                    <div class="text-secondary opacity-75" style="font-size: 0.72rem;">Dealership Margin</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning mb-0 mt-3 p-2.5 small d-none align-items-center gap-2" id="floorWarningAlert">
+                            <i class="bi bi-exclamation-triangle-fill fs-5 text-warning"></i>
+                            <div>
+                                <strong>FLOOR PRICE BREACH DETECTED:</strong> The negotiated price ($<span id="breachPrice"></span>) is below the minimum allowed floor limit ($<span id="breachFloor"></span>). Selling below floor requires Admin authorization.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Type Choice -->
+                <div class="col-md-12">
+                    <label class="form-label text-secondary small fw-bold mb-2">Payment Financing Plan *</label>
+                    <div class="d-flex gap-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" asp-for="PaymentType" value="@ApplicationCore.Enums.SalePaymentType.Cash" id="paymentCash" checked>
+                            <label class="form-check-label text-white fw-semibold" for="paymentCash">
+                                <i class="bi bi-cash-stack text-success me-1"></i> Cash Sale (Full Settlement)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" asp-for="PaymentType" value="@ApplicationCore.Enums.SalePaymentType.Installment" id="paymentInstallment">
+                            <label class="form-check-label text-white fw-semibold" for="paymentInstallment">
+                                <i class="bi bi-calendar-check text-warning me-1"></i> Installment Financing Plan (تقسيط)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Installment Details (Hidden by default until Installment option selected) -->
+                <div class="col-12" id="installmentBox" style="display: none;">
+                    <div class="p-4 rounded-3 bg-dark bg-opacity-60 border border-warning border-opacity-25">
+                        <h6 class="fw-bold text-warning mb-3 d-flex align-items-center gap-2">
+                            <i class="bi bi-calculator"></i> Installment Financing Calculator
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold">Down Payment Amount ($) [المقدم]</label>
+                                <input asp-for="DownPayment" type="number" step="0.01" class="form-control" id="downPayment" placeholder="Enter initial down payment" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold">Financing Duration (Months) [عدد الأشهر]</label>
+                                <select asp-for="InstallmentMonths" class="form-select" id="installmentMonths">
+                                    <option value="6">6 Months</option>
+                                    <option value="12" selected>12 Months (1 Year)</option>
+                                    <option value="24">24 Months (2 Years)</option>
+                                    <option value="36">36 Months (3 Years)</option>
+                                    <option value="48">48 Months (4 Years)</option>
+                                    <option value="60">60 Months (5 Years)</option>
+                                </select>
+                            </div>
+                            <div class="col-12 border-top border-secondary border-opacity-25 pt-3 mt-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-secondary">Estimated Monthly Installment:</span>
+                                    <span class="fs-4 fw-extrabold text-warning" id="monthlyCalcText">$0.00 / Month</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="col-12">
+                    <label class="form-label text-secondary small fw-bold">Contract Notes & Remarks</label>
+                    <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Enter warranty details, vehicle condition notes, or extra agreements..."></textarea>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top border-secondary border-opacity-25">
+                <a asp-action="Index" class="btn btn-glass">Cancel</a>
+                <button type="submit" class="btn btn-glow btn-lg">
+                    <i class="bi bi-check-circle-fill me-1"></i> Finalize Sale Contract
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            function updateNegotiator() {
+                var selectedOpt = $('#carSelect option:selected');
+                var carId = selectedOpt.val();
+
+                if (!carId) {
+                    $('#negotiatorWidget').slideUp();
+                    return;
+                }
+
+                var costBasis = parseFloat(selectedOpt.data('cost')) || 0;
+                var targetPrice = parseFloat(selectedOpt.data('target')) || 0;
+                var floorPrice = parseFloat(selectedOpt.data('floor')) || 0;
+
+                // Auto-fill sale price if empty
+                if (!$('#salePrice').val() && targetPrice > 0) {
+                    $('#salePrice').val(targetPrice);
+                }
+
+                var salePrice = parseFloat($('#salePrice').val()) || 0;
+
+                $('#costBasisText').text('$' + costBasis.toFixed(2));
+                $('#targetPriceText').text('$' + (targetPrice > 0 ? '$' + targetPrice.toFixed(2) : '$0.00'));
+                $('#floorPriceText').text('$' + (floorPrice > 0 ? '$' + floorPrice.toFixed(2) : 'No Floor'));
+
+                var netProfit = salePrice - costBasis;
+                var marginPercent = costBasis > 0 ? ((netProfit / costBasis) * 100).toFixed(1) : 0;
+                
+                $('#netProfitText').text((netProfit >= 0 ? '+' : '') + '$' + netProfit.toFixed(2) + ' (' + marginPercent + '%)');
+
+                if (netProfit >= 0) {
+                    $('#netProfitText').removeClass('text-danger').addClass('text-success');
+                } else {
+                    $('#netProfitText').removeClass('text-success').addClass('text-danger');
+                }
+
+                // Status Badge & Floor Warning logic
+                var badge = $('#dealStatusBadge');
+                var warningAlert = $('#floorWarningAlert');
+
+                if (floorPrice > 0 && salePrice < floorPrice) {
+                    badge.attr('class', 'badge bg-danger text-white px-3 py-1 fs-6').text('🔴 Floor Price Breach Alert!');
+                    $('#breachPrice').text(salePrice.toFixed(2));
+                    $('#breachFloor').text(floorPrice.toFixed(2));
+                    warningAlert.removeClass('d-none').addClass('d-flex');
+                } else if (targetPrice > 0 && salePrice >= targetPrice) {
+                    badge.attr('class', 'badge bg-success text-white px-3 py-1 fs-6').text('🟢 High Profit Margin Deal');
+                    warningAlert.removeClass('d-flex').addClass('d-none');
+                } else {
+                    badge.attr('class', 'badge bg-warning text-dark px-3 py-1 fs-6').text('🟡 Acceptable Negotiated Margin');
+                    warningAlert.removeClass('d-flex').addClass('d-none');
+                }
+
+                $('#negotiatorWidget').slideDown();
+            }
+
+            function calculateFinancing() {
+                var price = parseFloat($('#salePrice').val()) || 0;
+                var taxRate = parseFloat($('#taxRate').val()) || 0;
+                var finalPrice = price + (price * (taxRate / 100));
+
+                var down = parseFloat($('#downPayment').val()) || 0;
+                var months = parseInt($('#installmentMonths').val()) || 1;
+
+                if (months > 0 && down < finalPrice) {
+                    var remaining = finalPrice - down;
+                    var monthly = remaining / months;
+                    $('#monthlyCalcText').text('$' + monthly.toFixed(2) + ' / Month');
+                } else {
+                    $('#monthlyCalcText').text('$0.00 / Month');
+                }
+            }
+
+            $('input[name="PaymentType"]').on('change', function () {
+                if ($('#paymentInstallment').is(':checked')) {
+                    $('#installmentBox').slideDown();
+                } else {
+                    $('#installmentBox').slideUp();
+                }
+                calculateFinancing();
+            });
+
+            $('#carSelect').on('change', function () {
+                updateNegotiator();
+                calculateFinancing();
+            });
+
+            $('#salePrice, #taxRate, #downPayment, #installmentMonths').on('input change', function () {
+                updateNegotiator();
+                calculateFinancing();
+            });
+
+            if ($('#carSelect').val()) {
+                updateNegotiator();
+            }
+        });
+    </script>
+}

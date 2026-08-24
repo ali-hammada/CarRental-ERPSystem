@@ -30,6 +30,16 @@
                 }
 
                 <div class="row g-3">
+                    <!-- Fleet Listing Purpose (Selected First) -->
+                    <div class="col-12">
+                        <div class="p-3 rounded-3 bg-dark bg-opacity-60 border border-primary border-opacity-25 mb-2">
+                            <label asp-for="ListingType" class="form-label text-white small fw-bold mb-2">
+                                <i class="bi bi-gear-wide-connected text-primary me-1"></i> What is the purpose of adding this vehicle? (غرض السيارة) *
+                            </label>
+                            <select asp-for="ListingType" class="form-select fs-6 fw-bold text-primary" id="listingTypeSelect" asp-items="Html.GetEnumSelectList<ApplicationCore.Enums.CarListingType>()"></select>
+                        </div>
+                    </div>
+
                     <div class="col-md-6">
                         <label asp-for="Model" class="form-label text-secondary small fw-bold">Vehicle Model / Make</label>
                         <input asp-for="Model" class="form-control" placeholder="e.g. BMW X5 M-Sport" required />
@@ -48,9 +58,9 @@
                         <span asp-validation-for="Year" class="text-danger small"></span>
                     </div>
 
-                    <div class="col-md-4">
-                        <label asp-for="PricePerDay" class="form-label text-secondary small fw-bold">Daily Rental Price ($)</label>
-                        <input asp-for="PricePerDay" type="number" step="0.01" class="form-control" placeholder="95.00" required />
+                    <div class="col-md-4" id="rentalPriceGroup">
+                        <label asp-for="PricePerDay" class="form-label text-secondary small fw-bold">Daily Rental Rate ($) [سعر الإيجار اليومي]</label>
+                        <input asp-for="PricePerDay" type="number" step="0.01" class="form-control text-success fw-bold" id="pricePerDayInput" placeholder="95.00" />
                         <span asp-validation-for="PricePerDay" class="text-danger small"></span>
                     </div>
 
@@ -79,12 +89,41 @@
 
                     <div class="col-md-4">
                         <label asp-for="Status" class="form-label text-secondary small fw-bold">Initial Vehicle Status</label>
-                        <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<CarStatus>()"></select>
+                        <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<ApplicationCore.Enums.CarStatus>()"></select>
                     </div>
 
                     <div class="col-12">
                         <label asp-for="ImageUrl" class="form-label text-secondary small fw-bold">Vehicle Image URL (Optional)</label>
                         <input asp-for="ImageUrl" type="url" class="form-control" placeholder="https://images.unsplash.com/photo-..." />
+                    </div>
+
+                    <!-- Dealership Procurement & Floor Price Negotiation Settings -->
+                    <div class="col-12 mt-4 pt-3 border-top border-secondary border-opacity-25" id="salesProcurementGroup">
+                        <div class="p-3.5 rounded-3 bg-dark bg-opacity-60 border border-success border-opacity-25">
+                            <h6 class="fw-bold text-success mb-2 d-flex align-items-center gap-2">
+                                <i class="bi bi-tag-fill"></i> Dealership Procurement & Negotiation Floor Settings (معرض البيع والشراء)
+                            </h6>
+                            <p class="text-secondary small mb-3">Track actual vehicle purchase costs, preparation expenses, and set negotiation floor limits for sales agents.</p>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label asp-for="PurchasePrice" class="form-label text-secondary small fw-bold">Original Purchase Price ($) [سعر الشراء الاصلي]</label>
+                                    <input asp-for="PurchasePrice" type="number" step="0.01" class="form-control" placeholder="e.g. 18000.00" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="RefurbishmentCost" class="form-label text-secondary small fw-bold">Prep & Repair Expenses ($) [مصاريف التجهيز والرش]</label>
+                                    <input asp-for="RefurbishmentCost" type="number" step="0.01" class="form-control" placeholder="e.g. 2000.00" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="TargetSalePrice" class="form-label text-secondary small fw-bold">Target Asking Sale Price ($) [السعر المعلن للبيع]</label>
+                                    <input asp-for="TargetSalePrice" type="number" step="0.01" class="form-control text-success fw-bold" placeholder="e.g. 24000.00" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="MinimumFloorPrice" class="form-label text-secondary small fw-bold">Minimum Negotiable Floor Price ($) [أدنى سعر للتفاوض]</label>
+                                    <input asp-for="MinimumFloorPrice" type="number" step="0.01" class="form-control text-warning fw-bold" placeholder="e.g. 22000.00" />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -98,3 +137,29 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            function updatePurposeVisibility() {
+                var purpose = $('#listingTypeSelect').val(); // 1 = RentalOnly, 2 = SaleOnly, 3 = Both
+                if (purpose === '1') {
+                    $('#rentalPriceGroup').slideDown();
+                    $('#salesProcurementGroup').slideUp();
+                    $('#pricePerDayInput').attr('required', 'required');
+                } else if (purpose === '2') {
+                    $('#rentalPriceGroup').slideUp();
+                    $('#salesProcurementGroup').slideDown();
+                    $('#pricePerDayInput').removeAttr('required');
+                } else {
+                    $('#rentalPriceGroup').slideDown();
+                    $('#salesProcurementGroup').slideDown();
+                    $('#pricePerDayInput').attr('required', 'required');
+                }
+            }
+
+            $('#listingTypeSelect').on('change', updatePurposeVisibility);
+            updatePurposeVisibility();
+        });
+    </script>
+}

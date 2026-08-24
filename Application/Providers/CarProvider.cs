@@ -38,7 +38,17 @@ namespace Application.Providers
                     CurrentOdometer = c.CurrentOdometer,
                     FuelType = c.FuelType,
                     Transmission = c.Transmission,
-                    Color = c.Color
+                    Color = c.Color,
+                    LicenseExpiryDate = c.LicenseExpiryDate,
+                    InsuranceExpiryDate = c.InsuranceExpiryDate,
+                    ListingType = c.ListingType,
+                    SalePrice = c.SalePrice,
+                    SaleStatus = c.SaleStatus,
+                    PurchasePrice = c.PurchasePrice,
+                    PurchaseDate = c.PurchaseDate,
+                    RefurbishmentCost = c.RefurbishmentCost,
+                    TargetSalePrice = c.TargetSalePrice,
+                    MinimumFloorPrice = c.MinimumFloorPrice
                 })
                 .ToListAsync();
         }
@@ -61,7 +71,17 @@ namespace Application.Providers
                     CurrentOdometer = c.CurrentOdometer,
                     FuelType = c.FuelType,
                     Transmission = c.Transmission,
-                    Color = c.Color
+                    Color = c.Color,
+                    LicenseExpiryDate = c.LicenseExpiryDate,
+                    InsuranceExpiryDate = c.InsuranceExpiryDate,
+                    ListingType = c.ListingType,
+                    SalePrice = c.SalePrice,
+                    SaleStatus = c.SaleStatus,
+                    PurchasePrice = c.PurchasePrice,
+                    PurchaseDate = c.PurchaseDate,
+                    RefurbishmentCost = c.RefurbishmentCost,
+                    TargetSalePrice = c.TargetSalePrice,
+                    MinimumFloorPrice = c.MinimumFloorPrice
                 })
                 .ToListAsync();
         }
@@ -84,7 +104,17 @@ namespace Application.Providers
                     CurrentOdometer = c.CurrentOdometer,
                     FuelType = c.FuelType,
                     Transmission = c.Transmission,
-                    Color = c.Color
+                    Color = c.Color,
+                    LicenseExpiryDate = c.LicenseExpiryDate,
+                    InsuranceExpiryDate = c.InsuranceExpiryDate,
+                    ListingType = c.ListingType,
+                    SalePrice = c.SalePrice,
+                    SaleStatus = c.SaleStatus,
+                    PurchasePrice = c.PurchasePrice,
+                    PurchaseDate = c.PurchaseDate,
+                    RefurbishmentCost = c.RefurbishmentCost,
+                    TargetSalePrice = c.TargetSalePrice,
+                    MinimumFloorPrice = c.MinimumFloorPrice
                 })
                 .FirstOrDefaultAsync();
         }

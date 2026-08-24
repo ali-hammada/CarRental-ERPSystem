@@ -17,6 +17,8 @@ namespace InFrastructure.Data
         public DbSet<Invoice> Invoices { get; set; } = null!;
         public DbSet<CarLocationLog> CarLocationLogs { get; set; } = null!;
         public DbSet<AuditLog> AuditLogs { get; set; } = null!;
+        public DbSet<CarSaleContract> CarSaleContracts { get; set; } = null!;
+        public DbSet<SaleInstallment> SaleInstallments { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -32,6 +34,8 @@ namespace InFrastructure.Data
             modelBuilder.Entity<MaintenanceLog>().HasQueryFilter(m => !m.IsDeleted);
             modelBuilder.Entity<CarLocationLog>().HasQueryFilter(l => !l.IsDeleted);
             modelBuilder.Entity<AuditLog>().HasQueryFilter(a => !a.IsDeleted);
+            modelBuilder.Entity<CarSaleContract>().HasQueryFilter(s => !s.IsDeleted);
+            modelBuilder.Entity<SaleInstallment>().HasQueryFilter(i => !i.IsDeleted);
 
             // Precision for Decimals
             foreach (var property in modelBuilder.Model.GetEntityTypes()
@@ -114,6 +118,30 @@ namespace InFrastructure.Data
                 .WithMany(cat => cat.Cars)
                 .HasForeignKey(c => c.CategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<CarSaleContract>()
+                .HasOne(s => s.Car)
+                .WithMany(c => c.SaleContracts)
+                .HasForeignKey(s => s.CarId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CarSaleContract>()
+                .HasOne(s => s.Customer)
+                .WithMany()
+                .HasForeignKey(s => s.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CarSaleContract>()
+                .HasOne(s => s.Employee)
+                .WithMany()
+                .HasForeignKey(s => s.EmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SaleInstallment>()
+                .HasOne(i => i.SaleContract)
+                .WithMany(s => s.Installments)
+                .HasForeignKey(i => i.SaleContractId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

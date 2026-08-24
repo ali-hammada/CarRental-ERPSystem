@@ -1,0 +1,175 @@
+@model IEnumerable<Application.DTOs.CarListDto>
+
+@{
+    ViewData["Title"] = "Dealership Sales Showroom Catalog";
+    var totalInventoryValue = Model.Sum(c => c.TargetSalePrice ?? c.SalePrice ?? 0m);
+    var totalCostBasis = Model.Sum(c => c.TotalCostBasis);
+    var projectedGrossProfit = totalInventoryValue - totalCostBasis;
+}
+
+<div class="d-flex flex-column gap-4">
+    <!-- Header Hero Banner -->
+    <div class="glass-card p-4 position-relative overflow-hidden border-0">
+        <div class="row align-items-center relative-1">
+            <div class="col-lg-8 mb-3 mb-lg-0">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">
+                        <i class="bi bi-tag-fill me-1"></i> Dealership Sales Showroom
+                    </span>
+                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1">
+                        <i class="bi bi-shield-check me-1"></i> Available Vehicles Inventory
+                    </span>
+                </div>
+                <h2 class="display-6 fw-extrabold mb-1 text-white">
+                    Showroom Sales Inventory (معرض السيارات للبيع)
+                </h2>
+                <p class="text-secondary mb-0">
+                    Browse vehicles available for purchase, cost basis breakdown, asking prices, and minimum floor negotiation limits.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end d-flex justify-content-lg-end gap-2">
+                <a asp-action="Create" class="btn btn-glow btn-lg">
+                    <i class="bi bi-plus-circle-fill me-1"></i> Add Vehicle to Showroom
+                </a>
+            </div>
+        </div>
+
+        <!-- KPI Strip -->
+        <div class="row g-3 mt-3 pt-3 border-top border-secondary border-opacity-25">
+            <div class="col-6 col-md-3">
+                <div class="p-3 bg-dark bg-opacity-50 rounded-3 border border-secondary border-opacity-25">
+                    <div class="text-secondary small fw-bold mb-1">CARS IN SHOWROOM</div>
+                    <div class="fs-4 fw-extrabold text-white">@Model.Count() Vehicles</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 bg-dark bg-opacity-50 rounded-3 border border-secondary border-opacity-25">
+                    <div class="text-secondary small fw-bold mb-1">TOTAL ASKING VALUE</div>
+                    <div class="fs-4 fw-extrabold text-info">@totalInventoryValue.ToString("C")</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 bg-dark bg-opacity-50 rounded-3 border border-secondary border-opacity-25">
+                    <div class="text-secondary small fw-bold mb-1">TOTAL COST BASIS</div>
+                    <div class="fs-4 fw-extrabold text-white">@totalCostBasis.ToString("C")</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 bg-dark bg-opacity-50 rounded-3 border border-secondary border-opacity-25">
+                    <div class="text-secondary small fw-bold mb-1">PROJECTED PROFIT MARGIN</div>
+                    <div class="fs-4 fw-extrabold text-success">@projectedGrossProfit.ToString("C")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sub-Navigation Tabs -->
+    <div class="d-flex align-items-center justify-content-between">
+        <div class="nav nav-pills gap-2 bg-dark bg-opacity-50 p-1.5 rounded-pill border border-secondary border-opacity-25">
+            <a asp-action="Index" asp-route-type="rental" class="nav-link text-white rounded-pill px-3 py-1.5 small">
+                <i class="bi bi-car-front-fill me-1 text-primary"></i> Rental Fleet (أسطول الإيجارات)
+            </a>
+            <a asp-action="SalesCatalog" class="nav-link active bg-success text-white rounded-pill px-3 py-1.5 small fw-bold">
+                <i class="bi bi-tag-fill me-1"></i> Sales Showroom (معرض البيع والشراء)
+            </a>
+            <a asp-action="Index" asp-route-type="all" class="nav-link text-white rounded-pill px-3 py-1.5 small">
+                All Fleet Vehicles
+            </a>
+        </div>
+    </div>
+
+    <!-- Vehicles Cards Grid -->
+    @if (!Model.Any())
+    {
+        <div class="glass-card p-5 text-center text-secondary">
+            <i class="bi bi-tag fs-1 text-muted d-block mb-3 opacity-50"></i>
+            <h5 class="fw-bold">No Vehicles Currently Listed for Sale in Showroom</h5>
+            <p class="small text-muted">Click "Add Vehicle to Showroom" to register a car for sale.</p>
+            <a asp-action="Create" class="btn btn-glow mt-2">
+                <i class="bi bi-plus-circle me-1"></i> Add Vehicle to Showroom
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var car in Model)
+            {
+                var askingPrice = car.TargetSalePrice ?? car.SalePrice ?? 0m;
+                var floorPrice = car.MinimumFloorPrice ?? 0m;
+                var costBasis = car.TotalCostBasis;
+                var estimatedProfit = askingPrice - costBasis;
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="glass-card h-100 p-0 overflow-hidden d-flex flex-column border-secondary border-opacity-25">
+                        <!-- Vehicle Image Banner -->
+                        <div class="position-relative bg-dark" style="height: 180px;">
+                            @if (!string.IsNullOrEmpty(car.ImageUrl))
+                            {
+                                <img src="@car.ImageUrl" class="w-100 h-100 object-fit-cover" alt="@car.Model" />
+                            }
+                            else
+                            {
+                                <div class="w-100 h-100 d-flex align-items-center justify-content-center text-secondary">
+                                    <i class="bi bi-car-front fs-1 opacity-50"></i>
+                                </div>
+                            }
+                            <div class="position-absolute top-0 start-0 m-3 d-flex gap-1">
+                                <span class="badge bg-success bg-opacity-75 backdrop-blur text-white px-2.5 py-1">
+                                    <i class="bi bi-tag-fill me-1"></i> For Sale
+                                </span>
+                                @if (car.ListingType == ApplicationCore.Enums.CarListingType.Both)
+                                {
+                                    <span class="badge bg-primary bg-opacity-75 backdrop-blur text-white px-2.5 py-1">
+                                        Both Rent & Sale
+                                    </span>
+                                }
+                            </div>
+                            <div class="position-absolute bottom-0 end-0 m-3">
+                                <span class="badge bg-dark bg-opacity-75 backdrop-blur text-warning border border-warning border-opacity-25 font-monospace">
+                                    @car.PlateNumber
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="p-4 d-flex flex-column flex-grow-1">
+                            <h5 class="fw-bold text-white mb-1">@car.Model (@car.Year)</h5>
+                            <div class="text-secondary small mb-3">Category: <span class="text-white">@car.CategoryName</span> | Trans: <span class="text-white">@car.Transmission</span></div>
+
+                            <!-- Pricing Matrix Box -->
+                            <div class="p-3 rounded-3 bg-dark bg-opacity-60 border border-secondary border-opacity-25 mb-3 flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-secondary small">Target Asking Price:</span>
+                                    <span class="fs-5 fw-extrabold text-info">@askingPrice.ToString("C")</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-secondary small">Min Floor Negotiable:</span>
+                                    <span class="fw-bold text-warning">@(floorPrice > 0 ? floorPrice.ToString("C") : "No Limit")</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25">
+                                    <span class="text-secondary small">Total Cost Basis:</span>
+                                    <span class="text-white fw-semibold">@costBasis.ToString("C")</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <span class="text-success small fw-bold">Est. Gross Profit:</span>
+                                    <span class="fw-bold text-success">+@estimatedProfit.ToString("C")</span>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-2">
+                                <a asp-controller="Sales" asp-action="Create" asp-route-carId="@car.Id" class="btn btn-glow w-100 py-2">
+                                    <i class="bi bi-cart-check-fill me-1"></i> Process Vehicle Sale
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@car.Id" class="btn btn-glass px-3" title="Edit Vehicle Specs">
+                                    <i class="bi bi-pencil text-secondary"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

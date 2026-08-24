@@ -1,5 +1,16 @@
+@using System.Globalization
+@using Microsoft.AspNetCore.Localization
+@inject Application.Providers.IDashboardProvider DashboardProvider
+@inject Application.Providers.IAuditProvider AuditProvider
+@inject Web.Services.ILocalizationService Loc
+
+@{
+    var currentUICulture = CultureInfo.CurrentUICulture.Name;
+    var isArabic = currentUICulture.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+}
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@(isArabic ? "ar" : "en")" dir="@(isArabic ? "rtl" : "ltr")">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -18,6 +29,12 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" />
 
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script>
+        (function () {
+            var savedTheme = localStorage.getItem('appTheme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 <body>
 
@@ -34,41 +51,49 @@
             </div>
 
             <nav class="sidebar-nav">
-                <a class="sidebar-link" asp-controller="Home" asp-action="Dashboard" title="Dashboard">
+                <a class="sidebar-link" asp-controller="Home" asp-action="Dashboard" title="@Loc.GetString("Dashboard")">
                     <i class="bi bi-grid-1x2-fill"></i>
-                    <span class="sidebar-link-text">Dashboard</span>
+                    <span class="sidebar-link-text">@Loc.GetString("Dashboard")</span>
                 </a>
-                <a class="sidebar-link" asp-controller="Car" asp-action="Index" title="Fleet Catalog">
+                <a class="sidebar-link" asp-controller="Car" asp-action="Index" title="@Loc.GetString("Rental Fleet Catalog")">
                     <i class="bi bi-car-front-fill"></i>
-                    <span class="sidebar-link-text">Fleet Catalog</span>
+                    <span class="sidebar-link-text">@Loc.GetString("Rental Fleet Catalog")</span>
                 </a>
-                <a class="sidebar-link" asp-controller="Rentals" asp-action="Index" title="Rental Contracts">
+                <a class="sidebar-link" asp-controller="Car" asp-action="SalesCatalog" title="@Loc.GetString("Sales Showroom")">
+                    <i class="bi bi-shop text-warning"></i>
+                    <span class="sidebar-link-text">@Loc.GetString("Sales Showroom")</span>
+                </a>
+                <a class="sidebar-link" asp-controller="Rentals" asp-action="Index" title="@Loc.GetString("Rental Contracts")">
                     <i class="bi bi-file-earmark-text-fill"></i>
-                    <span class="sidebar-link-text">Rental Contracts</span>
+                    <span class="sidebar-link-text">@Loc.GetString("Rental Contracts")</span>
                 </a>
-                <a class="sidebar-link" asp-controller="Customers" asp-action="Index" title="Customers">
+                <a class="sidebar-link" asp-controller="Sales" asp-action="Index" title="@Loc.GetString("Car Sales Ledger")">
+                    <i class="bi bi-tag-fill text-success"></i>
+                    <span class="sidebar-link-text">@Loc.GetString("Car Sales Ledger")</span>
+                </a>
+                <a class="sidebar-link" asp-controller="Customers" asp-action="Index" title="@Loc.GetString("Customers")">
                     <i class="bi bi-people-fill"></i>
-                    <span class="sidebar-link-text">Customers</span>
+                    <span class="sidebar-link-text">@Loc.GetString("Customers")</span>
                 </a>
-                <a class="sidebar-link" asp-controller="Payment" asp-action="Index" title="Payment Ledger">
+                <a class="sidebar-link" asp-controller="Payment" asp-action="Index" title="@Loc.GetString("Payment Ledger")">
                     <i class="bi bi-wallet2"></i>
-                    <span class="sidebar-link-text">Payment Ledger</span>
+                    <span class="sidebar-link-text">@Loc.GetString("Payment Ledger")</span>
                 </a>
-                <a class="sidebar-link" asp-controller="Invoices" asp-action="Index" title="Tax Invoices">
+                <a class="sidebar-link" asp-controller="Invoices" asp-action="Index" title="@Loc.GetString("Tax Invoices")">
                     <i class="bi bi-receipt-cutoff"></i>
-                    <span class="sidebar-link-text">Tax Invoices</span>
+                    <span class="sidebar-link-text">@Loc.GetString("Tax Invoices")</span>
                 </a>
-                <a class="sidebar-link" asp-controller="Maintenance" asp-action="Index" title="Maintenance">
+                <a class="sidebar-link" asp-controller="Maintenance" asp-action="Index" title="@Loc.GetString("Maintenance")">
                     <i class="bi bi-tools"></i>
-                    <span class="sidebar-link-text">Maintenance</span>
+                    <span class="sidebar-link-text">@Loc.GetString("Maintenance")</span>
                 </a>
-                <a class="sidebar-link" asp-controller="Tracking" asp-action="Index" title="GPS Live Tracking">
+                <a class="sidebar-link" asp-controller="Tracking" asp-action="Index" title="@Loc.GetString("GPS Live Tracking")">
                     <i class="bi bi-broadcast text-primary"></i>
-                    <span class="sidebar-link-text">GPS Live Tracking</span>
+                    <span class="sidebar-link-text">@Loc.GetString("GPS Live Tracking")</span>
                 </a>
-                <a class="sidebar-link" asp-controller="AuditLogs" asp-action="Index" title="Audit Monitor">
+                <a class="sidebar-link" asp-controller="AuditLogs" asp-action="Index" title="@Loc.GetString("Audit Monitor")">
                     <i class="bi bi-shield-check text-danger"></i>
-                    <span class="sidebar-link-text">Audit Monitor</span>
+                    <span class="sidebar-link-text">@Loc.GetString("Audit Monitor")</span>
                 </a>
 
 @{
@@ -78,13 +103,18 @@
                       string.Equals(userRole, "admin", StringComparison.OrdinalIgnoreCase) ||
                       userName.Contains("admin", StringComparison.OrdinalIgnoreCase);
     var displayRole = isUserAdmin ? "Admin" : (string.IsNullOrEmpty(userRole) ? "Employee" : userRole);
+
+    var navMetrics = await DashboardProvider.GetDashboardMetricsAsync(isUserAdmin ? null : (int?)null);
+    var overdueCount = navMetrics?.OverdueRentalsCount ?? 0;
+    var maintenanceCount = navMetrics?.MaintenanceCarsCount ?? 0;
+    var totalAlerts = overdueCount + maintenanceCount;
 }
 
                 @if (isUserAdmin)
                 {
-                    <a class="sidebar-link" asp-controller="Employees" asp-action="Permissions" title="User Roles & Permissions">
+                    <a class="sidebar-link" asp-controller="Employees" asp-action="Permissions" title="@Loc.GetString("Roles & Permissions")">
                         <i class="bi bi-key-fill text-warning"></i>
-                        <span class="sidebar-link-text">Roles & Permissions</span>
+                        <span class="sidebar-link-text">@Loc.GetString("Roles & Permissions")</span>
                     </a>
                     <a class="sidebar-link" asp-controller="Employees" asp-action="Index" title="Staff Directory">
                         <i class="bi bi-people-fill text-info"></i>
@@ -110,11 +140,52 @@
                     </button>
                     <div class="d-none d-md-flex align-items-center gap-2 text-secondary small">
                         <i class="bi bi-shield-lock-fill text-primary"></i>
-                        <span class="fw-semibold text-white">Enterprise Portal</span>
+                        <span class="fw-semibold text-white">@Loc.GetString("Enterprise Portal")</span>
                     </div>
                 </div>
 
                 <div class="d-flex align-items-center gap-3">
+                    <!-- Multi-Language Selector Dropdown (English / العربية) -->
+                    <div class="dropdown">
+                        <button class="btn btn-glass d-flex align-items-center gap-1.5 px-3 py-1.5 rounded-pill" type="button" data-bs-toggle="dropdown" title="Select System Language">
+                            <i class="bi bi-globe text-primary"></i>
+                            <span class="small fw-bold text-white ms-1">@(isArabic ? "العربية 🇪🇬" : "English 🇺🇸")</span>
+                            <i class="bi bi-chevron-down text-secondary ms-1" style="font-size: 0.7rem;"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-secondary border-opacity-25 mt-2">
+                            <li>
+                                <form asp-controller="Language" asp-action="SetLanguage" method="post" class="d-inline">
+                                    <input type="hidden" name="culture" value="en-US" />
+                                    <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
+                                    <button type="submit" class="dropdown-item d-flex align-items-center justify-content-between py-2 @(!isArabic ? "active text-primary fw-bold" : "")">
+                                        <span>🇺🇸 English (US)</span>
+                                        @if (!isArabic) { <i class="bi bi-check-lg text-primary ms-2"></i> }
+                                    </button>
+                                </form>
+                            </li>
+                            <li><hr class="dropdown-divider my-1 border-secondary border-opacity-25"></li>
+                            <li>
+                                <form asp-controller="Language" asp-action="SetLanguage" method="post" class="d-inline">
+                                    <input type="hidden" name="culture" value="ar-EG" />
+                                    <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
+                                    <button type="submit" class="dropdown-item d-flex align-items-center justify-content-between py-2 @(isArabic ? "active text-primary fw-bold" : "")">
+                                        <span>🇪🇬 العربية (مصر)</span>
+                                        @if (isArabic) { <i class="bi bi-check-lg text-primary ms-2"></i> }
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Futuristic Theme Switcher Toggle Button -->
+                    <button class="theme-toggle-btn btn btn-glass d-flex align-items-center px-2 py-1.5 rounded-pill" id="themeToggleBtn" type="button" title="Switch Theme (Light / Dark Mode)">
+                        <div class="theme-toggle-track">
+                            <i class="bi bi-moon-stars-fill text-warning" style="font-size: 0.7rem;"></i>
+                            <i class="bi bi-sun-fill text-warning" style="font-size: 0.7rem;"></i>
+                            <div class="theme-toggle-thumb"></div>
+                        </div>
+                    </button>
+
                     <div class="d-none d-xl-flex align-items-center gap-2 text-secondary small bg-dark bg-opacity-50 px-3 py-1.5 rounded-pill border border-secondary border-opacity-25">
                         <i class="bi bi-clock-fill text-primary"></i>
                         <span>@DateTime.UtcNow.ToString("MMM dd, yyyy HH:mm") UTC</span>
@@ -122,6 +193,84 @@
 
                     @if (User.Identity?.IsAuthenticated == true)
                     {
+                        var recentAudits = await AuditProvider.GetRecentAuditLogsAsync(6);
+                        var totalNotificationCount = totalAlerts + recentAudits.Count;
+
+                        <!-- System Alerts & Employee Notifications Bell -->
+                        <div class="dropdown">
+                            <button class="btn btn-glass position-relative p-2" type="button" data-bs-toggle="dropdown" title="Live Employee Notifications & Operations Stream">
+                                <i class="bi bi-bell-fill text-warning fs-5"></i>
+                                @if (totalNotificationCount > 0)
+                                {
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                                        @totalNotificationCount
+                                    </span>
+                                }
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end glass-card border border-secondary border-opacity-25 p-3 shadow-lg" style="width: 360px; max-height: 480px; overflow-y: auto;">
+                                <li class="d-flex align-items-center justify-content-between pb-2 mb-2 border-bottom border-secondary border-opacity-25">
+                                    <span class="fw-bold text-white small"><i class="bi bi-bell-fill text-warning me-1"></i> Live Notifications & Audit Stream</span>
+                                    <span class="badge bg-danger">@totalNotificationCount New</span>
+                                </li>
+
+                                @if (overdueCount > 0)
+                                {
+                                    <li class="mb-2">
+                                        <a asp-controller="Rentals" asp-action="Index" class="dropdown-item text-wrap rounded p-2 bg-danger bg-opacity-10 border border-danger border-opacity-25">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="bi bi-exclamation-octagon-fill text-danger fs-5"></i>
+                                                <div>
+                                                    <div class="fw-bold text-danger small">@overdueCount Overdue Contracts</div>
+                                                    <div class="text-secondary small" style="font-size: 0.75rem;">Vehicle return dates exceeded</div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                }
+
+                                @if (maintenanceCount > 0)
+                                {
+                                    <li class="mb-2">
+                                        <a asp-controller="Maintenance" asp-action="Index" class="dropdown-item text-wrap rounded p-2 bg-warning bg-opacity-10 border border-warning border-opacity-25">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="bi bi-tools text-warning fs-5"></i>
+                                                <div>
+                                                    <div class="fw-bold text-warning small">@maintenanceCount Vehicles in Maintenance</div>
+                                                    <div class="text-secondary small" style="font-size: 0.75rem;">Currently out of active fleet</div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                }
+
+                                <!-- Employee Live Actions Stream -->
+                                @if (recentAudits.Any())
+                                {
+                                    <li class="px-1 py-1 text-secondary small fw-bold border-top border-secondary border-opacity-25 mt-2 pt-2">
+                                        <i class="bi bi-person-workspace text-primary me-1"></i> Recent Employee Actions:
+                                    </li>
+                                    @foreach (var audit in recentAudits)
+                                    {
+                                        <li class="mb-1.5">
+                                            <div class="dropdown-item text-wrap rounded p-2 bg-dark bg-opacity-60 border border-secondary border-opacity-25">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="fw-bold text-info small"><i class="bi bi-person-circle me-1"></i> @audit.EmployeeName</span>
+                                                    <span class="text-secondary font-monospace" style="font-size: 0.68rem;">@audit.Timestamp.ToString("HH:mm")</span>
+                                                </div>
+                                                <div class="fw-semibold text-white small" style="font-size: 0.78rem;">@audit.Action (@audit.Module)</div>
+                                                <div class="text-secondary small text-truncate" style="font-size: 0.72rem;" title="@audit.Details">@audit.Details</div>
+                                            </div>
+                                        </li>
+                                    }
+                                }
+
+                                <li class="pt-2 mt-2 border-top border-secondary border-opacity-25 text-center">
+                                    <a asp-controller="AuditLogs" asp-action="Index" class="text-primary text-decoration-none small fw-bold">
+                                        View Full Audit Monitor Log <i class="bi bi-arrow-right ms-1"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                         <div class="dropdown">
                             <button class="btn btn-glass dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
                                 <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 34px; height: 34px;">
@@ -242,6 +391,21 @@
                         retrieve: true
                     });
                 }
+            });
+
+            // Futuristic Theme Switcher Logic
+            function updateThemeUI(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('appTheme', theme);
+            }
+
+            var currentTheme = localStorage.getItem('appTheme') || 'dark';
+            updateThemeUI(currentTheme);
+
+            $('#themeToggleBtn').on('click', function () {
+                var activeTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+                var newTheme = (activeTheme === 'dark') ? 'light' : 'dark';
+                updateThemeUI(newTheme);
             });
         });
     </script>

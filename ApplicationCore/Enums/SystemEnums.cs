@@ -44,4 +44,38 @@ namespace ApplicationCore.Enums
         Penalty = 4,
         Refund = 5
     }
+
+    public enum CarListingType
+    {
+        RentalOnly = 1,
+        SaleOnly = 2,
+        Both = 3
+    }
+
+    public enum CarSaleStatus
+    {
+        ForSale = 1,
+        Reserved = 2,
+        Sold = 3
+    }
+
+    public enum SalePaymentType
+    {
+        Cash = 1,
+        Installment = 2
+    }
+
+    public enum SaleContractStatus
+    {
+        Active = 1,
+        Completed = 2,
+        Cancelled = 3
+    }
+
+    public enum InstallmentStatus
+    {
+        Pending = 1,
+        Paid = 2,
+        Overdue = 3
+    }
 }

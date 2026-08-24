@@ -1,0 +1,294 @@
+@model Application.DTOs.RentalListDto
+
+@{
+    Layout = null; // Standalone print page layout
+    var amountDue = Model.FinalAmount ?? Model.TotalAmount;
+    var remaining = amountDue - Model.PaidAmount;
+    var payments = ViewBag.Payments as IEnumerable<ApplicationCore.Entities.Payment> ?? new List<ApplicationCore.Entities.Payment>();
+    var totalDays = Math.Max(1, (int)(Model.EndDate - Model.StartDate).TotalDays + 1);
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rental Contract #CNT-@Model.Id.ToString("D5") - Printable Agreement</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+
+        .contract-paper {
+            background-color: #ffffff;
+            max-width: 850px;
+            margin: 30px auto;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #dee2e6;
+        }
+
+        .header-logo {
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .company-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0d6efd;
+            letter-spacing: -0.5px;
+        }
+
+        .contract-badge {
+            font-size: 14px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 50px;
+        }
+
+        .section-header {
+            background-color: #f1f5f9;
+            padding: 8px 14px;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-left: 4px solid #0d6efd;
+            margin-bottom: 15px;
+            color: #334155;
+        }
+
+        .info-table td {
+            padding: 6px 10px;
+            font-size: 14px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #64748b;
+            width: 35%;
+        }
+
+        .signature-box {
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 60px;
+            margin-top: 50px;
+        }
+
+        .terms-text {
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        @@media print {
+            body {
+                background-color: #ffffff !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .contract-paper {
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 20px !important;
+                max-width: 100% !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Action Toolbar (Hidden during Print) -->
+    <div class="no-print bg-dark text-white py-3 mb-3 shadow-sm">
+        <div class="container d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-printer-fill text-warning fs-5"></i>
+                <span class="fw-bold">Printable Official Rental Agreement</span>
+            </div>
+            <div class="d-flex gap-2">
+                <button onclick="window.print()" class="btn btn-warning btn-sm fw-bold">
+                    <i class="bi bi-printer me-1"></i> Print / Save as PDF
+                </button>
+                <button onclick="window.close()" class="btn btn-outline-light btn-sm">
+                    Close Window
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Official Printable Contract Paper -->
+    <div class="contract-paper">
+        <!-- Header -->
+        <div class="header-logo d-flex align-items-center justify-content-between">
+            <div>
+                <div class="company-title"><i class="bi bi-car-front-fill me-2"></i>CAR RENTAL ENTERPRISE</div>
+                <div class="text-secondary small">Official Vehicle Lease Agreement & Handover Certificate</div>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-primary text-white contract-badge">CONTRACT #CNT-@Model.Id.ToString("D5")</span>
+                <div class="text-secondary small mt-1">Issued: @Model.StartDate.ToString("yyyy-MM-dd")</div>
+            </div>
+        </div>
+
+        <!-- Contract Details Grid -->
+        <div class="row g-4 mb-4">
+            <!-- Customer Profile -->
+            <div class="col-6">
+                <div class="section-header"><i class="bi bi-person-fill me-1"></i> Customer Information</div>
+                <table class="w-100 info-table">
+                    <tr>
+                        <td class="info-label">Full Name:</td>
+                        <td class="fw-bold">@Model.CustomerName</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">Phone Number:</td>
+                        <td>@Model.CustomerPhone</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">Customer ID:</td>
+                        <td>#CUST-@Model.CustomerId.ToString("D4")</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Rented Vehicle -->
+            <div class="col-6">
+                <div class="section-header"><i class="bi bi-car-front me-1"></i> Vehicle Information</div>
+                <table class="w-100 info-table">
+                    <tr>
+                        <td class="info-label">Car Model:</td>
+                        <td class="fw-bold">@Model.CarModel</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">Plate Number:</td>
+                        <td><span class="badge bg-light text-dark border border-secondary px-2">@Model.CarPlateNumber</span></td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">Daily Rate:</td>
+                        <td class="fw-semibold text-success">@Model.DailyPrice.ToString("C") / Day</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Rental Period & Timeline -->
+        <div class="section-header"><i class="bi bi-calendar-range me-1"></i> Lease Schedule & Duration</div>
+        <table class="table table-bordered align-middle mb-4 small">
+            <thead class="table-light">
+                <tr>
+                    <th>Start Departure Date</th>
+                    <th>Expected Return Date</th>
+                    <th>Actual Return Date</th>
+                    <th>Total Lease Duration</th>
+                    <th>Contract Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>@Model.StartDate.ToString("MMMM dd, yyyy")</td>
+                    <td>@Model.EndDate.ToString("MMMM dd, yyyy")</td>
+                    <td>@(Model.ActualEndDate.HasValue ? Model.ActualEndDate.Value.ToString("MMMM dd, yyyy") : "Active Lease")</td>
+                    <td class="fw-bold text-primary">@totalDays Days</td>
+                    <td><span class="badge bg-secondary">@Model.Status</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Vehicle Handover Condition Checklist -->
+        <div class="section-header"><i class="bi bi-clipboard-check me-1"></i> Vehicle Handover Inspection Checklist</div>
+        <div class="row g-3 mb-4 small">
+            <div class="col-4">
+                <div class="border rounded p-2 bg-light">
+                    <span class="text-secondary d-block">Departure Odometer</span>
+                    <strong class="text-dark">[ Checked & Verified ]</strong>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="border rounded p-2 bg-light">
+                    <span class="text-secondary d-block">Fuel Level Status</span>
+                    <strong class="text-dark">[ Full Tank Handover ]</strong>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="border rounded p-2 bg-light">
+                    <span class="text-secondary d-block">Vehicle Exterior Body</span>
+                    <strong class="text-dark">[ Inspected - Good ]</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Settlement Table -->
+        <div class="section-header"><i class="bi bi-cash-stack me-1"></i> Financial Settlement Summary</div>
+        <table class="table table-bordered align-middle mb-4 small">
+            <thead class="table-light">
+                <tr>
+                    <th>Description</th>
+                    <th class="text-end">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Base Vehicle Rental Charge (@totalDays Days @Model.DailyPrice.ToString("C"))</td>
+                    <td class="text-end font-monospace">@Model.TotalAmount.ToString("C")</td>
+                </tr>
+                @if (Model.ExtraFees.HasValue && Model.ExtraFees > 0)
+                {
+                    <tr>
+                        <td>Additional Service Fees / Odometer Allowance</td>
+                        <td class="text-end font-monospace text-warning">@Model.ExtraFees.Value.ToString("C")</td>
+                    </tr>
+                }
+                <tr class="table-secondary fw-bold">
+                    <td>Total Contract Value</td>
+                    <td class="text-end font-monospace">@amountDue.ToString("C")</td>
+                </tr>
+                <tr>
+                    <td class="text-success">Total Amount Paid</td>
+                    <td class="text-end font-monospace text-success fw-bold">@Model.PaidAmount.ToString("C")</td>
+                </tr>
+                <tr class="fw-bold">
+                    <td>Remaining Unpaid Balance</td>
+                    <td class="text-end font-monospace @(remaining > 0 ? "text-danger" : "text-success") fs-6">
+                        @remaining.ToString("C")
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Terms & Conditions -->
+        <div class="mb-4">
+            <div class="fw-bold small mb-1 text-uppercase text-secondary">Terms & Conditions of Lease:</div>
+            <div class="terms-text border p-2.5 rounded bg-light">
+                1. The lessee agrees to return the vehicle on the specified return date in the same condition as received.<br />
+                2. Fuel level must match the departure tank level. Shortages will be calculated at market rate plus service fee.<br />
+                3. The lessee is liable for any traffic violations, fines, or toll fees incurred during the lease period.<br />
+                4. Late returns exceeding 2 hours without prior written extension will incur a penalty equivalent to a full extra day.
+            </div>
+        </div>
+
+        <!-- Dual Signature Lines -->
+        <div class="signature-box">
+            <div class="row text-center">
+                <div class="col-6">
+                    <div class="fw-bold text-dark mb-1">Customer Signature</div>
+                    <div class="text-secondary small">I agree to all contract terms above</div>
+                </div>
+                <div class="col-6">
+                    <div class="fw-bold text-dark mb-1">Authorized Agency Officer</div>
+                    <div class="text-secondary small">Stamp & Official Verification Signature</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

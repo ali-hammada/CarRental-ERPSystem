@@ -16,5 +16,18 @@ namespace Application.DTOs
         public string FuelType { get; set; } = "Gasoline";
         public string Transmission { get; set; } = "Automatic";
         public string? Color { get; set; }
+        public DateTime? LicenseExpiryDate { get; set; }
+        public DateTime? InsuranceExpiryDate { get; set; }
+
+        // Dealership Sourcing & Procurement
+        public CarListingType ListingType { get; set; } = CarListingType.RentalOnly;
+        public decimal? SalePrice { get; set; }
+        public CarSaleStatus? SaleStatus { get; set; }
+        public decimal? PurchasePrice { get; set; }
+        public DateTime? PurchaseDate { get; set; }
+        public decimal? RefurbishmentCost { get; set; }
+        public decimal TotalCostBasis => (PurchasePrice ?? 0m) + (RefurbishmentCost ?? 0m);
+        public decimal? TargetSalePrice { get; set; }
+        public decimal? MinimumFloorPrice { get; set; }
     }
 }

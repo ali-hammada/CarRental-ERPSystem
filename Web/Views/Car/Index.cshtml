@@ -21,6 +21,24 @@
         </a>
     </div>
 
+    <!-- Sub-Navigation Inventory Tabs -->
+    @{
+        var activeTab = ViewBag.ActiveTab as string ?? "all";
+    }
+    <div class="d-flex align-items-center justify-content-between">
+        <div class="nav nav-pills gap-2 bg-dark bg-opacity-50 p-1.5 rounded-pill border border-secondary border-opacity-25">
+            <a asp-action="Index" asp-route-type="rental" class="nav-link rounded-pill px-3 py-1.5 small @(activeTab == "rental" ? "active bg-primary text-white fw-bold" : "text-white")">
+                <i class="bi bi-car-front-fill me-1"></i> Rental Fleet (أسطول الإيجارات)
+            </a>
+            <a asp-action="SalesCatalog" class="nav-link rounded-pill px-3 py-1.5 small text-white">
+                <i class="bi bi-tag-fill me-1 text-success"></i> Sales Showroom (معرض البيع والشراء)
+            </a>
+            <a asp-action="Index" asp-route-type="all" class="nav-link rounded-pill px-3 py-1.5 small @(activeTab == "all" ? "active bg-primary text-white fw-bold" : "text-white")">
+                All Fleet Vehicles
+            </a>
+        </div>
+    </div>
+
     <!-- Vehicles Cards Grid -->
     @if (!Model.Any())
     {

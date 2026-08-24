@@ -18,6 +18,7 @@ namespace Web.Controllers
         private readonly ICustomerProvider _customerProvider;
         private readonly IRentalServices _rentalServices;
         private readonly IPaymentServices _paymentServices;
+        private readonly IAuditServices _auditServices;
         private readonly IToastNotification _toast;
 
         public RentalsController(
@@ -26,6 +27,7 @@ namespace Web.Controllers
             ICustomerProvider customerProvider,
             IRentalServices rentalServices,
             IPaymentServices paymentServices,
+            IAuditServices auditServices,
             IToastNotification toast)
         {
             _rentalProvider = rentalProvider;
@@ -33,6 +35,7 @@ namespace Web.Controllers
             _customerProvider = customerProvider;
             _rentalServices = rentalServices;
             _paymentServices = paymentServices;
+            _auditServices = auditServices;
             _toast = toast;
         }
 
@@ -117,6 +120,7 @@ namespace Web.Controllers
                 return View(request);
             }
 
+            await _auditServices.LogAsync("New Rental Contract", "Rentals", $"Employee {User.Identity?.Name} opened new rental contract for Car #{request.CarId} and Customer #{request.CustomerId}", User.Identity?.Name, employeeId);
             _toast.AddSuccessToastMessage("Contract opened & tax invoice generated successfully!");
             return RedirectToAction("Index");
         }
@@ -143,7 +147,7 @@ namespace Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int rentalId)
         {
-            int employeeId = GetCurrentEmployeeId();
+            int? employeeId = IsUserAdmin() ? null : GetCurrentEmployeeId();
             var rental = await _rentalProvider.GetRentalDetailsByIdAsync(rentalId);
             if (rental == null)
             {
@@ -151,9 +155,25 @@ namespace Web.Controllers
                 return RedirectToAction("Index");
             }
 
-            var payments = await _paymentServices.GetContractPaymentsAsync(rentalId, employeeId);
+            var payments = await _paymentServices.GetContractPaymentsAsync(rentalId, employeeId ?? GetCurrentEmployeeId());
             ViewBag.Payments = payments;
             return View(rental);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> PrintContract(int rentalId)
+        {
+            int? employeeId = IsUserAdmin() ? null : GetCurrentEmployeeId();
+            var rental = await _rentalProvider.GetRentalDetailsByIdAsync(rentalId);
+            if (rental == null)
+            {
+                _toast.AddErrorToastMessage("Rental contract not found.");
+                return RedirectToAction("Index");
+            }
+
+            var payments = await _paymentServices.GetContractPaymentsAsync(rentalId, employeeId ?? GetCurrentEmployeeId());
+            ViewBag.Payments = payments;
+            return View("PrintContract", rental);
         }
 
         [HttpGet]

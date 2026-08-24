@@ -1,4 +1,4 @@
-﻿using ApplicationCore.Entities;
+using ApplicationCore.Entities;
 using ApplicationCore.Interfaces.Repositories;
 
 namespace ApplicationCore.Interfaces
@@ -13,6 +13,8 @@ namespace ApplicationCore.Interfaces
         IGenericRepository<CarCategory> CarCategories { get; }
         IGenericRepository<MaintenanceLog> MaintenanceLogs { get; }
         IGenericRepository<Invoice> Invoices { get; }
+        IGenericRepository<CarSaleContract> CarSaleContracts { get; }
+        IGenericRepository<SaleInstallment> SaleInstallments { get; }
 
         Task BeginTransactionAsync();
         Task CommitAsync();

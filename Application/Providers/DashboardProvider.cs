@@ -46,7 +46,12 @@ namespace Application.Providers
         public decimal TotalPaidAmount { get; set; }
         public decimal TotalRemainingUnpaid { get; set; }
         public decimal TotalMaintenanceCost { get; set; }
-        public decimal NetProfit => TotalPaidAmount - TotalMaintenanceCost;
+        
+        // Sales Metrics
+        public int TotalSalesCount { get; set; }
+        public decimal TotalSalesRevenue { get; set; }
+        public decimal CombinedGrossRevenue => TotalPaidAmount + TotalSalesRevenue;
+        public decimal NetProfit => CombinedGrossRevenue - TotalMaintenanceCost;
         public int TotalPaymentsCount { get; set; }
 
         public int TotalCarsCount { get; set; }
@@ -96,12 +101,14 @@ namespace Application.Providers
         {
             var rentalsQuery = _context.RentalContracts.AsNoTracking();
             var paymentsQuery = _context.Payments.AsNoTracking();
+            var salesQuery = _context.CarSaleContracts.AsNoTracking().Where(s => s.Status != SaleContractStatus.Cancelled);
             var currentDate = DateTime.UtcNow;
 
             if (employeeId.HasValue)
             {
                 rentalsQuery = rentalsQuery.Where(r => r.EmployeeId == employeeId.Value);
                 paymentsQuery = paymentsQuery.Where(p => p.RentalContract.EmployeeId == employeeId.Value);
+                salesQuery = salesQuery.Where(s => s.EmployeeId == employeeId.Value);
             }
 
             var totalRentals = await rentalsQuery.CountAsync();
@@ -109,6 +116,9 @@ namespace Application.Providers
             var completedRentals = await rentalsQuery.CountAsync(r => r.Status == RentalContractStatus.Closed);
             var cancelledRentals = await rentalsQuery.CountAsync(r => r.Status == RentalContractStatus.Cancelled);
             var overdueRentalsCount = await rentalsQuery.CountAsync(r => (r.Status == RentalContractStatus.Open && r.EndDate < currentDate) || r.Status == RentalContractStatus.Overdue);
+
+            var totalSalesCount = await salesQuery.CountAsync();
+            var totalSalesRevenue = await salesQuery.SumAsync(s => (decimal?)s.PaidAmount) ?? 0m;
 
             var totalPaidAmount = await paymentsQuery.SumAsync(p => (decimal?)p.Amount) ?? 0m;
             var totalPaymentsCount = await paymentsQuery.CountAsync();
@@ -216,6 +226,8 @@ namespace Application.Providers
                 CancelledRentals = cancelledRentals,
                 OverdueRentalsCount = overdueRentalsCount,
                 TotalPaidAmount = totalPaidAmount,
+                TotalSalesCount = totalSalesCount,
+                TotalSalesRevenue = totalSalesRevenue,
                 TotalRemainingUnpaid = Math.Max(0m, totalRemainingUnpaid),
                 TotalMaintenanceCost = totalMaintenanceCost,
                 TotalPaymentsCount = totalPaymentsCount,

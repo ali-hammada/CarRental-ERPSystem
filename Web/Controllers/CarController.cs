@@ -22,16 +22,35 @@ namespace Web.Controllers
             _toastNotification = toastNotification;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? type = "all")
         {
             var cars = await _carProvider.GetAllCarsAsync();
+
+            if (type == "rental")
+            {
+                cars = cars.Where(c => c.ListingType == CarListingType.RentalOnly || c.ListingType == CarListingType.Both).ToList();
+            }
+            else if (type == "sale")
+            {
+                cars = cars.Where(c => c.ListingType == CarListingType.SaleOnly || c.ListingType == CarListingType.Both).ToList();
+            }
+
+            ViewBag.ActiveTab = type ?? "all";
             return View(cars);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SalesCatalog()
+        {
+            var cars = await _carProvider.GetAllCarsAsync();
+            var salesCars = cars.Where(c => c.ListingType == CarListingType.SaleOnly || c.ListingType == CarListingType.Both).ToList();
+            return View(salesCars);
         }
 
         [HttpGet]
         public IActionResult Create()
         {
-            var car = new Car();
+            var car = new Car { ListingType = CarListingType.RentalOnly };
             return View(car);
         }
 
@@ -39,14 +58,32 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Car car)
         {
+            if (car.ListingType == CarListingType.SaleOnly)
+            {
+                ModelState.Remove("PricePerDay");
+                car.PricePerDay = 0;
+            }
+
             if (!ModelState.IsValid)
                 return View(car);
 
             car.Status = CarStatus.Available;
+            if (car.ListingType == CarListingType.SaleOnly || car.ListingType == CarListingType.Both)
+            {
+                car.SaleStatus = CarSaleStatus.ForSale;
+                if (!car.SalePrice.HasValue && car.TargetSalePrice.HasValue)
+                {
+                    car.SalePrice = car.TargetSalePrice;
+                }
+            }
+
             await _carServices.AddCarAsync(car);
 
             _toastNotification.AddSuccessToastMessage("Car added successfully!");
-            return RedirectToAction("Index");
+            if (car.ListingType == CarListingType.SaleOnly)
+                return RedirectToAction(nameof(SalesCatalog));
+
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
@@ -56,7 +93,7 @@ namespace Web.Controllers
             if (car == null)
             {
                 _toastNotification.AddErrorToastMessage("Car not found.");
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
             return View(car);
         }
@@ -65,13 +102,19 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Car car)
         {
+            if (car.ListingType == CarListingType.SaleOnly)
+            {
+                ModelState.Remove("PricePerDay");
+                car.PricePerDay = 0;
+            }
+
             if (!ModelState.IsValid)
                 return View(car);
 
             await _carServices.UpdateCarAsync(car);
 
             _toastNotification.AddSuccessToastMessage("Car updated successfully!");
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
