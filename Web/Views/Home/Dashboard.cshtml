@@ -26,11 +26,11 @@
                     Real-time fleet utilization, contract ledgers, active revenue analytics, and vehicle telemetry.
                 </p>
             </div>
-            <div class="col-lg-5 text-lg-end">
-                <div class="d-inline-flex flex-column align-items-lg-end gap-1">
-                    <div class="fs-4 fw-extrabold text-white">@Model.FleetUtilizationPercentage%</div>
-                    <div class="text-secondary small">@Loc.GetString("Fleet Utilization")</div>
-                    <div class="progress mt-2 w-100" style="height: 8px; width: 200px; background-color: rgba(255,255,255,0.1);">
+            <div class="col-lg-5 d-flex justify-content-lg-end align-items-center mt-3 mt-lg-0">
+                <div class="p-3 glass-card rounded-4 border border-secondary border-opacity-25 d-flex flex-column align-items-center align-items-lg-end gap-1" style="min-width: 220px;">
+                    <div class="fs-3 fw-extrabold text-primary">@Model.FleetUtilizationPercentage%</div>
+                    <div class="text-secondary small fw-semibold">@Loc.GetString("Fleet Utilization")</div>
+                    <div class="progress mt-2 w-100" style="height: 8px; width: 180px; background-color: rgba(148, 163, 184, 0.2);">
                         <div class="progress-bar" role="progressbar" style="width: @Model.FleetUtilizationPercentage%; background: linear-gradient(90deg, #3b82f6, #8b5cf6, #10b981);"></div>
                     </div>
                 </div>

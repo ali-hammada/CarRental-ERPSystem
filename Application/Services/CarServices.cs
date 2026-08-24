@@ -57,7 +57,7 @@ namespace Application.Services
 
             await _auditLogService.LogActionAsync(
                 null,
-                "Staff User",
+                null,
                 "Add Vehicle",
                 "Fleet",
                 $"Added new vehicle '{car.Model}' ({car.PlateNumber}) at {car.PricePerDay:C}/day."
@@ -87,7 +87,7 @@ namespace Application.Services
 
             await _auditLogService.LogActionAsync(
                 null,
-                "Staff User",
+                null,
                 "Update Vehicle",
                 "Fleet",
                 $"Updated vehicle '{car.Model}' ({car.PlateNumber}) status to {car.Status}."
@@ -106,7 +106,7 @@ namespace Application.Services
 
             await _auditLogService.LogActionAsync(
                 null,
-                "Staff User",
+                null,
                 "Delete Vehicle",
                 "Fleet",
                 $"Soft-deleted vehicle '{car.Model}' ({car.PlateNumber})."

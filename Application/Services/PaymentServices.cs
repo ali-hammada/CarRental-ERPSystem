@@ -78,7 +78,7 @@ namespace Application.Services
 
                     await _auditLogService.LogActionAsync(
                         employeeId,
-                        "Staff User",
+                        null,
                         "Process Partial Payment",
                         "Payments",
                         $"Processed payment of {amount:C} via {method} for Contract #CNT-{rentalContractId:D5}. Remaining: {(amountDue - contract.PaidAmount):C}."
@@ -113,7 +113,7 @@ namespace Application.Services
 
                     await _auditLogService.LogActionAsync(
                         employeeId,
-                        "Staff User",
+                        null,
                         "Process Final Settlement",
                         "Payments",
                         $"Settled Contract #CNT-{rentalContractId:D5} in full with {amount:C} via {method}."
@@ -147,7 +147,7 @@ namespace Application.Services
 
                     await _auditLogService.LogActionAsync(
                         employeeId,
-                        "Staff User",
+                        null,
                         "Process Penalty Payment",
                         "Payments",
                         $"Processed penalty/extra fee payment of {amount:C} for Contract #CNT-{rentalContractId:D5}."

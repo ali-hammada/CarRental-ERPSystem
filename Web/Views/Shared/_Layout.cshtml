@@ -188,7 +188,7 @@
 
                     <div class="d-none d-xl-flex align-items-center gap-2 text-secondary small bg-dark bg-opacity-50 px-3 py-1.5 rounded-pill border border-secondary border-opacity-25">
                         <i class="bi bi-clock-fill text-primary"></i>
-                        <span>@DateTime.UtcNow.ToString("MMM dd, yyyy HH:mm") UTC</span>
+                        <span id="liveHeaderClock" class="fw-bold text-white">@DateTime.Now.ToString("MMM dd, yyyy hh:mm tt")</span>
                     </div>
 
                     @if (User.Identity?.IsAuthenticated == true)
@@ -374,6 +374,7 @@
             $('.table-futuristic').each(function() {
                 if ($(this).find('tbody tr').length > 0 && !$(this).find('tbody tr td[colspan]').length) {
                     $(this).DataTable({
+                        order: [[0, 'desc']],
                         dom: '<"d-flex flex-column flex-md-row align-items-center justify-content-between mb-3 gap-2"Bf>rt<"d-flex flex-column flex-md-row align-items-center justify-content-between mt-3 gap-2"lip>',
                         buttons: [
                             { extend: 'copy', className: 'btn btn-sm' },
@@ -407,6 +408,93 @@
                 var newTheme = (activeTheme === 'dark') ? 'light' : 'dark';
                 updateThemeUI(newTheme);
             });
+        });
+    </script>
+
+    <!-- Live Admin Floating Side-Toast Container & Engine -->
+    <div id="liveAdminToastContainer" class="live-toast-container"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let lastSeenAuditId = parseInt(localStorage.getItem('last_seen_audit_id') || '0');
+
+            function showLiveToast(audit) {
+                const container = document.getElementById('liveAdminToastContainer');
+                if (!container) return;
+
+                const toast = document.createElement('div');
+                toast.className = 'live-toast-card';
+                toast.innerHTML = `
+                    <div class="d-flex align-items-start justify-content-between gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-primary bg-opacity-25 text-primary p-2 fs-5 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                <i class="bi bi-bell-fill"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-white small"><i class="bi bi-person-circle text-info me-1"></i> ${audit.employeeName}</div>
+                                <div class="fw-semibold text-gradient small">${audit.action} (${audit.module})</div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white small" onclick="this.closest('.live-toast-card').remove();"></button>
+                    </div>
+                    <div class="mt-2 text-secondary small text-truncate" style="font-size: 0.78rem;" title="${audit.details}">
+                        ${audit.details}
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary border-opacity-25" style="font-size: 0.7rem;">
+                        <span class="text-secondary"><i class="bi bi-clock me-1"></i> ${audit.time}</span>
+                        <a href="/AuditLogs/Index" class="text-primary text-decoration-none fw-bold">View Log →</a>
+                    </div>
+                `;
+
+                container.appendChild(toast);
+
+                // Auto-remove toast after 8 seconds
+                setTimeout(() => {
+                    if (toast && toast.parentNode) {
+                        toast.style.opacity = '0';
+                        toast.style.transform = 'translateY(-10px)';
+                        setTimeout(() => toast.remove(), 300);
+                    }
+                }, 8000);
+            }
+
+            function pollNewAudits() {
+                fetch('/AuditLogs/GetLatestAudit')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.id) {
+                            if (lastSeenAuditId > 0 && data.id > lastSeenAuditId) {
+                                showLiveToast(data);
+                            }
+                            lastSeenAuditId = data.id;
+                            localStorage.setItem('last_seen_audit_id', lastSeenAuditId);
+                        }
+                    })
+                    .catch(() => {});
+            }
+
+            pollNewAudits();
+            setInterval(pollNewAudits, 4000);
+
+            // Live Local Clock Engine
+            function updateHeaderClock() {
+                const clockEl = document.getElementById('liveHeaderClock');
+                if (clockEl) {
+                    const now = new Date();
+                    const isAr = document.documentElement.getAttribute('dir') === 'rtl';
+                    clockEl.textContent = now.toLocaleString(isAr ? 'ar-EG' : 'en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: true
+                    });
+                }
+            }
+            updateHeaderClock();
+            setInterval(updateHeaderClock, 1000);
         });
     </script>
 

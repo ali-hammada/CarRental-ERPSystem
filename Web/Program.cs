@@ -28,6 +28,7 @@ namespace Web
             // ------------------------------
             builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddControllersWithViews()
                 .AddViewLocalization()
                 .AddDataAnnotationsLocalization(options =>

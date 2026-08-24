@@ -789,5 +789,67 @@ html[dir="rtl"] .dropdown-menu-end {
     left: 0 !important;
 }
 
+/* Live Admin Floating Side-Toast Notifications */
+.live-toast-container {
+    position: fixed;
+    top: 80px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 400px;
+    pointer-events: none;
+}
+
+html[dir="rtl"] .live-toast-container {
+    right: auto;
+    left: 24px;
+}
+
+.live-toast-card {
+    pointer-events: auto;
+    background: var(--bg-card, rgba(15, 23, 42, 0.94));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color, rgba(59, 130, 246, 0.4));
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(59, 130, 246, 0.25);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: var(--text-primary, #fff);
+    animation: slideInToast 0.4s ease-out forwards;
+    transition: all 0.3s ease;
+}
+
+[data-theme="light"] .live-toast-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12), 0 0 15px rgba(59, 130, 246, 0.15) !important;
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .live-toast-card .text-white {
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .live-toast-card .text-secondary {
+    color: #64748b !important;
+}
+
+[data-theme="light"] .live-toast-card .btn-close-white {
+    filter: invert(1);
+}
+
+@keyframes slideInToast {
+    from {
+        opacity: 0;
+        transform: translateX(50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
 
 

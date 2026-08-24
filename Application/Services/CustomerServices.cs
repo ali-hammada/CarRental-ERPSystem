@@ -42,7 +42,7 @@ namespace Application.Services
 
             await _auditLogService.LogActionAsync(
                 null,
-                "Staff User",
+                null,
                 "Register Customer",
                 "Customers",
                 $"Registered new customer profile '{customer.Name}' ({customer.Phone}, Lic: {customer.DrivingLicenseNumber})."
@@ -70,7 +70,7 @@ namespace Application.Services
 
             await _auditLogService.LogActionAsync(
                 null,
-                "Staff User",
+                null,
                 "Update Customer",
                 "Customers",
                 $"Updated customer profile '{customer.Name}' ({customer.Phone})."
@@ -89,7 +89,7 @@ namespace Application.Services
 
             await _auditLogService.LogActionAsync(
                 null,
-                "Staff User",
+                null,
                 "Delete Customer",
                 "Customers",
                 $"Soft-deleted customer profile '{customer.Name}'."

@@ -57,7 +57,7 @@ namespace Application.Services
 
             await _auditLogService.LogActionAsync(
                 null,
-                "Staff User",
+                null,
                 "Log Maintenance",
                 "Maintenance",
                 $"Logged '{log.ServiceType}' service for Vehicle #{log.CarId} (Cost: {log.Cost:C}, Provider: {log.PerformedBy})."
@@ -83,7 +83,7 @@ namespace Application.Services
 
             await _auditLogService.LogActionAsync(
                 null,
-                "Staff User",
+                null,
                 "Update Maintenance",
                 "Maintenance",
                 $"Updated maintenance log #{log.Id} ('{log.ServiceType}')."
@@ -102,7 +102,7 @@ namespace Application.Services
 
             await _auditLogService.LogActionAsync(
                 null,
-                "Staff User",
+                null,
                 "Delete Maintenance",
                 "Maintenance",
                 $"Soft-deleted maintenance log #{id}."

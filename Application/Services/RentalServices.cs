@@ -103,7 +103,7 @@ namespace Application.Services
 
             await _auditLogService.LogActionAsync(
                 employeeId,
-                "Staff User",
+                null,
                 "Open Rental Contract",
                 "Rentals",
                 $"Issued new Contract #CNT-{rental.Id:D5} for '{car.Model}' to customer '{customer.Name}' ({numberOfDays} days, {totalAmount:C})."
@@ -161,7 +161,7 @@ namespace Application.Services
 
             await _auditLogService.LogActionAsync(
                 employeeId,
-                "Staff User",
+                null,
                 "Cancel Contract",
                 "Rentals",
                 $"Cancelled Contract #CNT-{rentalId:D5}. Cancellation Fee: {cancellationFee:C}. Reason: {reason}."
@@ -209,7 +209,7 @@ namespace Application.Services
 
             await _auditLogService.LogActionAsync(
                 employeeId,
-                "Staff User",
+                null,
                 "Extend Contract",
                 "Rentals",
                 $"Extended Contract #CNT-{contract.Id:D5} by {extraDays} days to {extend.NewEndDate.Value:yyyy-MM-dd} (Extra: {extraAmount:C})."
@@ -267,7 +267,7 @@ namespace Application.Services
 
             await _auditLogService.LogActionAsync(
                 employeeId,
-                "Staff User",
+                null,
                 "Close & Return Contract",
                 "Rentals",
                 $"Returned vehicle & closed Contract #CNT-{rental.Id:D5}. Final amount settled: {rental.FinalAmount:C}."
