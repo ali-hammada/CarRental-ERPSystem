@@ -132,7 +132,17 @@ namespace Application.Providers
                     Transmission = c.Transmission,
                     Color = c.Color,
                     LicenseExpiryDate = c.LicenseExpiryDate,
-                    InsuranceExpiryDate = c.InsuranceExpiryDate
+                    InsuranceExpiryDate = c.InsuranceExpiryDate,
+                    ListingType = c.ListingType,
+                    SalePrice = c.SalePrice,
+                    SaleStatus = c.SaleStatus,
+                    PurchasePrice = c.PurchasePrice,
+                    PurchaseDate = c.PurchaseDate,
+                    RefurbishmentCost = c.RefurbishmentCost,
+                    TargetSalePrice = c.TargetSalePrice,
+                    MinimumFloorPrice = c.MinimumFloorPrice,
+                    OriginalPurchaseContractUrl = c.OriginalPurchaseContractUrl,
+                    FinalBuyerContractUrl = c.FinalBuyerContractUrl
                 })
                 .ToListAsync();
         }

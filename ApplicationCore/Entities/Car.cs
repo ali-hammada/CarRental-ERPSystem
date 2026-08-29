@@ -41,6 +41,10 @@ namespace ApplicationCore.Entities
         public decimal? TargetSalePrice { get; set; }
         public decimal? MinimumFloorPrice { get; set; }
 
+        // Legal & Financial Document Attachments
+        public string? OriginalPurchaseContractUrl { get; set; }
+        public string? FinalBuyerContractUrl { get; set; }
+
         public ICollection<RentalContract> RentalContracts { get; set; } = new List<RentalContract>();
         public ICollection<MaintenanceLog> MaintenanceLogs { get; set; } = new List<MaintenanceLog>();
         public ICollection<CarLocationLog> LocationLogs { get; set; } = new List<CarLocationLog>();

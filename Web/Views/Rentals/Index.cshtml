@@ -1,7 +1,8 @@
 @model IEnumerable<RentalListDto>
+@inject Web.Services.ILocalizationService Loc
 
 @{
-    ViewData["Title"] = "Rental Contracts Ledger";
+    ViewData["Title"] = Loc.GetString("Rental Contracts");
 }
 
 <div class="d-flex flex-column gap-4">
@@ -10,14 +11,14 @@
         <div>
             <div class="d-flex align-items-center gap-2 mb-1">
                 <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1">
-                    <i class="bi bi-file-earmark-text-fill me-1"></i> Contract Registry
+                    <i class="bi bi-file-earmark-text-fill me-1"></i> @Loc.GetString("Rental Contracts")
                 </span>
-                <span class="text-secondary small">Total Contracts: @Model.Count()</span>
+                <span class="text-secondary small">@Loc.GetString("Total Contracts"): @Model.Count()</span>
             </div>
-            <h2 class="fw-extrabold mb-0 text-white">Rental Contract Ledger</h2>
+            <h2 class="fw-extrabold mb-0 text-white">@Loc.GetString("Rental Contracts")</h2>
         </div>
         <a asp-action="Open" class="btn btn-glow">
-            <i class="bi bi-plus-lg me-1"></i> Open New Contract
+            <i class="bi bi-plus-lg me-1"></i> @Loc.GetString("New Contract")
         </a>
     </div>
 
@@ -30,7 +31,7 @@
                 <h4 class="text-white fw-bold">No rental contracts logged</h4>
                 <p class="mb-4">Open a contract for a vehicle to start tracking rentals.</p>
                 <a asp-action="Open" class="btn btn-glow">
-                    <i class="bi bi-plus-lg me-1"></i> New Contract
+                    <i class="bi bi-plus-lg me-1"></i> @Loc.GetString("New Contract")
                 </a>
             </div>
         }
@@ -40,14 +41,14 @@
                 <table class="table table-futuristic align-middle">
                     <thead>
                         <tr>
-                            <th>Contract ID</th>
-                            <th>Vehicle</th>
-                            <th>Renting Customer</th>
-                            <th>Period</th>
-                            <th>Total Amount</th>
-                            <th>Paid / Balance</th>
-                            <th>Status</th>
-                            <th class="text-end">Actions</th>
+                            <th>@Loc.GetString("Contract ID")</th>
+                            <th>@Loc.GetString("Vehicle")</th>
+                            <th>@Loc.GetString("Renting Customer")</th>
+                            <th>@Loc.GetString("Period")</th>
+                            <th>@Loc.GetString("Total Amount")</th>
+                            <th>@Loc.GetString("Paid / Balance")</th>
+                            <th>@Loc.GetString("Status")</th>
+                            <th class="text-end">@Loc.GetString("Actions")</th>
                         </tr>
                     </thead>
                     <tbody>

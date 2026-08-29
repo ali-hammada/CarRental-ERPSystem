@@ -48,7 +48,9 @@ namespace Application.Providers
                     PurchaseDate = c.PurchaseDate,
                     RefurbishmentCost = c.RefurbishmentCost,
                     TargetSalePrice = c.TargetSalePrice,
-                    MinimumFloorPrice = c.MinimumFloorPrice
+                    MinimumFloorPrice = c.MinimumFloorPrice,
+                    OriginalPurchaseContractUrl = c.OriginalPurchaseContractUrl,
+                    FinalBuyerContractUrl = c.FinalBuyerContractUrl
                 })
                 .ToListAsync();
         }
@@ -81,7 +83,9 @@ namespace Application.Providers
                     PurchaseDate = c.PurchaseDate,
                     RefurbishmentCost = c.RefurbishmentCost,
                     TargetSalePrice = c.TargetSalePrice,
-                    MinimumFloorPrice = c.MinimumFloorPrice
+                    MinimumFloorPrice = c.MinimumFloorPrice,
+                    OriginalPurchaseContractUrl = c.OriginalPurchaseContractUrl,
+                    FinalBuyerContractUrl = c.FinalBuyerContractUrl
                 })
                 .ToListAsync();
         }
@@ -114,7 +118,9 @@ namespace Application.Providers
                     PurchaseDate = c.PurchaseDate,
                     RefurbishmentCost = c.RefurbishmentCost,
                     TargetSalePrice = c.TargetSalePrice,
-                    MinimumFloorPrice = c.MinimumFloorPrice
+                    MinimumFloorPrice = c.MinimumFloorPrice,
+                    OriginalPurchaseContractUrl = c.OriginalPurchaseContractUrl,
+                    FinalBuyerContractUrl = c.FinalBuyerContractUrl
                 })
                 .FirstOrDefaultAsync();
         }

@@ -56,9 +56,23 @@ namespace Application.Services
                 return (false, "Vehicle is already reserved for an overlapping period.", 0);
 
             int numberOfDays = Math.Max(1, (request.EndDate.Date - request.StartDate.Date).Days + 1);
-            decimal dailyPrice = car.PricePerDay;
-            decimal totalAmount = dailyPrice * numberOfDays;
+            decimal baseDailyPrice = car.PricePerDay;
+            decimal taxRate = 0.14m;
+            decimal dailyTaxAmount = Math.Round(baseDailyPrice * taxRate, 2);
+            decimal effectiveDailyPrice = baseDailyPrice + dailyTaxAmount; 
+            decimal subTotal = baseDailyPrice * numberOfDays;
+            decimal totalTaxAmount = Math.Round(subTotal * taxRate, 2);
+            decimal totalAmountWithTax = subTotal + totalTaxAmount; 
             int startOdometer = request.StartOdometer > 0 ? request.StartOdometer : car.CurrentOdometer;
+
+            var empExists = await _unitOfWork.Employee.GetByIdAsync(employeeId);
+            if (empExists == null)
+            {
+                var fallbackEmp = (await _unitOfWork.Employee.GetAllAsync()).FirstOrDefault(e => e.IsActive);
+                if (fallbackEmp == null)
+                    return (false, "No active employee account found in database.", 0);
+                employeeId = fallbackEmp.Id;
+            }
 
             var rental = new RentalContract
             {
@@ -67,8 +81,8 @@ namespace Application.Services
                 EmployeeId = employeeId,
                 StartDate = request.StartDate,
                 EndDate = request.EndDate,
-                DailyPrice = dailyPrice,
-                TotalAmount = totalAmount,
+                DailyPrice = effectiveDailyPrice,
+                TotalAmount = totalAmountWithTax,
                 Status = RentalContractStatus.Open,
                 PaymentStatus = PaymentStatus.Unpaid,
                 StartOdometer = startOdometer,
@@ -84,16 +98,15 @@ namespace Application.Services
 
             await _unitOfWork.SaveChangesAsync();
 
-            // Auto-generate Tax Invoice Draft
             var invoice = new Invoice
             {
                 InvoiceNumber = $"INV-{DateTime.UtcNow:yyyyMMdd}-{rental.Id:D5}",
                 RentalContractId = rental.Id,
                 IssueDate = DateTime.UtcNow,
-                SubTotal = totalAmount,
-                TaxRate = 0.14m,
-                TaxAmount = Math.Round(totalAmount * 0.14m, 2),
-                TotalAmount = Math.Round(totalAmount * 1.14m, 2),
+                SubTotal = subTotal,
+                TaxRate = taxRate,
+                TaxAmount = totalTaxAmount,
+                TotalAmount = totalAmountWithTax,
                 PaidAmount = 0,
                 Status = "Issued"
             };
@@ -106,7 +119,7 @@ namespace Application.Services
                 null,
                 "Open Rental Contract",
                 "Rentals",
-                $"Issued new Contract #CNT-{rental.Id:D5} for '{car.Model}' to customer '{customer.Name}' ({numberOfDays} days, {totalAmount:C})."
+                $"Issued new Contract #CNT-{rental.Id:D5} for '{car.Model}' to customer '{customer.Name}' ({numberOfDays} days, {totalAmountWithTax:C})."
             );
 
             return (true, "Rental contract opened successfully.", rental.Id);

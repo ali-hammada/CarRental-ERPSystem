@@ -41,7 +41,15 @@ namespace Application.Services
                 return (false, "Customer record not found.", 0);
 
             var employee = await _unitOfWork.Employee.GetByIdAsync(employeeId);
-            string employeeName = employee != null ? employee.FullName : "System Employee";
+            if (employee == null)
+            {
+                var fallbackEmp = (await _unitOfWork.Employee.GetAllAsync()).FirstOrDefault(e => e.IsActive);
+                if (fallbackEmp == null)
+                    return (false, "No active employee account found in database.", 0);
+                employee = fallbackEmp;
+                employeeId = fallbackEmp.Id;
+            }
+            string employeeName = employee.FullName;
 
             decimal taxAmount = Math.Round(request.SalePrice * (request.TaxRatePercent / 100m), 2);
             decimal finalPrice = request.SalePrice + taxAmount;

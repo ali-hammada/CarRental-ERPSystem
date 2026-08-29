@@ -14,12 +14,18 @@ namespace Web.Controllers
         private readonly ICarProvider _carProvider;
         private readonly ICarServices _carServices;
         private readonly IToastNotification _toastNotification;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public CarController(ICarProvider carProvider, ICarServices carServices, IToastNotification toastNotification)
+        public CarController(
+            ICarProvider carProvider,
+            ICarServices carServices,
+            IToastNotification toastNotification,
+            IWebHostEnvironment webHostEnvironment)
         {
             _carProvider = carProvider;
             _carServices = carServices;
             _toastNotification = toastNotification;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         public async Task<IActionResult> Index(string? type = "all")
@@ -62,7 +68,7 @@ namespace Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Car car)
+        public async Task<IActionResult> Create(Car car, IFormFile? ImageFile)
         {
             if (car.ListingType == CarListingType.SaleOnly)
             {
@@ -72,6 +78,21 @@ namespace Web.Controllers
 
             if (!ModelState.IsValid)
                 return View(car);
+
+            if (ImageFile != null && ImageFile.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "cars");
+                Directory.CreateDirectory(uploadsFolder);
+                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await ImageFile.CopyToAsync(fileStream);
+                }
+
+                car.ImageUrl = "/uploads/cars/" + uniqueFileName;
+            }
 
             car.Status = CarStatus.Available;
             if (car.ListingType == CarListingType.SaleOnly || car.ListingType == CarListingType.Both)
@@ -106,7 +127,7 @@ namespace Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Car car)
+        public async Task<IActionResult> Edit(Car car, IFormFile? ImageFile)
         {
             if (car.ListingType == CarListingType.SaleOnly)
             {
@@ -116,6 +137,21 @@ namespace Web.Controllers
 
             if (!ModelState.IsValid)
                 return View(car);
+
+            if (ImageFile != null && ImageFile.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "cars");
+                Directory.CreateDirectory(uploadsFolder);
+                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await ImageFile.CopyToAsync(fileStream);
+                }
+
+                car.ImageUrl = "/uploads/cars/" + uniqueFileName;
+            }
 
             await _carServices.UpdateCarAsync(car);
 
@@ -156,6 +192,47 @@ namespace Web.Controllers
 
             TempData["Success"] = "Car status updated!";
             return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadContractDocument(int carId, IFormFile? OriginalPurchaseContract, IFormFile? FinalBuyerContract)
+        {
+            var car = await _carServices.GetByIdAsync(carId);
+            if (car == null)
+            {
+                _toastNotification.AddErrorToastMessage("Vehicle record not found.");
+                return RedirectToAction(nameof(SalesCatalog));
+            }
+
+            var contractsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "contracts");
+            Directory.CreateDirectory(contractsFolder);
+
+            if (OriginalPurchaseContract != null && OriginalPurchaseContract.Length > 0)
+            {
+                var fileName = $"PurchaseContract_Car{car.Id}_{Guid.NewGuid().ToString().Substring(0, 8)}{Path.GetExtension(OriginalPurchaseContract.FileName)}";
+                var filePath = Path.Combine(contractsFolder, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await OriginalPurchaseContract.CopyToAsync(stream);
+                }
+                car.OriginalPurchaseContractUrl = "/uploads/contracts/" + fileName;
+            }
+
+            if (FinalBuyerContract != null && FinalBuyerContract.Length > 0)
+            {
+                var fileName = $"BuyerContract_Car{car.Id}_{Guid.NewGuid().ToString().Substring(0, 8)}{Path.GetExtension(FinalBuyerContract.FileName)}";
+                var filePath = Path.Combine(contractsFolder, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await FinalBuyerContract.CopyToAsync(stream);
+                }
+                car.FinalBuyerContractUrl = "/uploads/contracts/" + fileName;
+            }
+
+            await _carServices.UpdateCarAsync(car);
+            _toastNotification.AddSuccessToastMessage("Legal & Financial contract documents saved successfully!");
+            return RedirectToAction(nameof(SalesCatalog));
         }
     }
 }

@@ -235,35 +235,77 @@ body {
     color: var(--text-primary);
 }
 
-/* Data Tables */
+/* Executive Kendo-Style DataGrids */
 .table-futuristic {
     color: var(--text-primary);
     margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 10px;
+    overflow: hidden;
 }
 
 .table-futuristic th {
-    background: rgba(15, 23, 42, 0.8);
-    color: var(--text-secondary);
-    font-weight: 600;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-bottom: 1px solid var(--border-color);
-    padding: 1rem;
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 0.88rem;
+    letter-spacing: 0.5px;
+    border-bottom: 3px solid #3b82f6 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.18) !important;
+    padding: 0.9rem 1rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.table-futuristic th:last-child {
+    border-right: none !important;
 }
 
 .table-futuristic td {
-    padding: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    border-right: 1px solid rgba(148, 163, 184, 0.1);
     vertical-align: middle;
+}
+
+.table-futuristic td:last-child {
+    border-right: none;
 }
 
 .table-futuristic tbody tr {
     transition: background-color 0.2s ease;
 }
 
+.table-futuristic tbody tr:nth-of-type(even) {
+    background-color: rgba(37, 99, 235, 0.03);
+}
+
 .table-futuristic tbody tr:hover {
-    background-color: rgba(59, 130, 246, 0.05);
+    background-color: rgba(59, 130, 246, 0.12) !important;
+}
+
+/* DataTables Kendo-Style Control Bar & Pagination */
+.dataTables_wrapper .dataTables_filter input {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+    border-radius: 20px !important;
+    padding: 0.4rem 1rem !important;
+    outline: none !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-weight: 700 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: var(--text-primary) !important;
+    border-radius: 6px !important;
 }
 
 /* Navigation Links */

@@ -1,4 +1,5 @@
 @model IEnumerable<Application.DTOs.CarListDto>
+@inject Web.Services.ILocalizationService Loc
 
 @{
     ViewData["Title"] = "Dealership Sales Showroom Catalog";
@@ -103,31 +104,32 @@
                 <div class="col-md-6 col-lg-4">
                     <div class="glass-card h-100 p-0 overflow-hidden d-flex flex-column border-secondary border-opacity-25">
                         <!-- Vehicle Image Banner -->
-                        <div class="position-relative bg-dark" style="height: 180px;">
+                        <div class="position-relative bg-dark" style="height: 220px; overflow: hidden; border-top-left-radius: var(--radius-lg); border-top-right-radius: var(--radius-lg);">
                             @if (!string.IsNullOrEmpty(car.ImageUrl))
                             {
-                                <img src="@car.ImageUrl" class="w-100 h-100 object-fit-cover" alt="@car.Model" />
+                                <img src="@car.ImageUrl" class="w-100 h-100" style="object-fit: cover; object-position: center;" alt="@car.Model" />
+                                <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(180deg, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.1) 40%, rgba(15, 23, 42, 0.9) 100%); pointer-events: none;"></div>
                             }
                             else
                             {
-                                <div class="w-100 h-100 d-flex align-items-center justify-content-center text-secondary">
+                                <div class="w-100 h-100 d-flex align-items-center justify-content-center text-secondary bg-dark bg-opacity-75">
                                     <i class="bi bi-car-front fs-1 opacity-50"></i>
                                 </div>
                             }
-                            <div class="position-absolute top-0 start-0 m-3 d-flex gap-1">
-                                <span class="badge bg-success bg-opacity-75 backdrop-blur text-white px-2.5 py-1">
-                                    <i class="bi bi-tag-fill me-1"></i> For Sale
+                            <div class="position-absolute top-0 start-0 m-3 d-flex gap-1.5 z-2">
+                                <span class="badge bg-success text-white px-3 py-1.5 shadow-sm fw-bold rounded-pill">
+                                    <i class="bi bi-tag-fill me-1"></i> @Loc.GetString("ForSale")
                                 </span>
                                 @if (car.ListingType == ApplicationCore.Enums.CarListingType.Both)
                                 {
-                                    <span class="badge bg-primary bg-opacity-75 backdrop-blur text-white px-2.5 py-1">
-                                        Both Rent & Sale
+                                    <span class="badge bg-primary text-white px-3 py-1.5 shadow-sm rounded-pill">
+                                        @Loc.GetString("Both Rent & Sale")
                                     </span>
                                 }
                             </div>
-                            <div class="position-absolute bottom-0 end-0 m-3">
-                                <span class="badge bg-dark bg-opacity-75 backdrop-blur text-warning border border-warning border-opacity-25 font-monospace">
-                                    @car.PlateNumber
+                            <div class="position-absolute bottom-0 end-0 m-3 z-2">
+                                <span class="badge bg-dark bg-opacity-90 text-warning border border-warning border-opacity-50 px-3 py-1.5 font-monospace fs-6 shadow">
+                                    <i class="bi bi-card-text me-1"></i> @car.PlateNumber
                                 </span>
                             </div>
                         </div>
@@ -162,9 +164,74 @@
                                 <a asp-controller="Sales" asp-action="Create" asp-route-carId="@car.Id" class="btn btn-glow w-100 py-2">
                                     <i class="bi bi-cart-check-fill me-1"></i> Process Vehicle Sale
                                 </a>
+                                <button type="button" class="btn btn-glass px-3 text-info" data-bs-toggle="modal" data-bs-target="#contractModal_@car.Id" title="المرفقات والعقود القانونية والمالية">
+                                    <i class="bi bi-folder-symlink-fill"></i>
+                                </button>
                                 <a asp-action="Edit" asp-route-id="@car.Id" class="btn btn-glass px-3" title="Edit Vehicle Specs">
                                     <i class="bi bi-pencil text-secondary"></i>
                                 </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legal & Financial Contracts Modal -->
+                    <div class="modal fade" id="contractModal_@car.Id" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content glass-card border-secondary">
+                                <div class="modal-header border-bottom border-secondary border-opacity-25">
+                                    <h5 class="modal-header-title fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                                        <i class="bi bi-file-earmark-pdf-fill text-warning fs-4"></i>
+                                        المرفقات والعقود القانونية والمالية - @car.Model (@car.PlateNumber)
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form asp-controller="Car" asp-action="UploadContractDocument" method="post" enctype="multipart/form-data">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="carId" value="@car.Id" />
+
+                                    <div class="modal-body d-flex flex-column gap-4 py-4">
+                                        <!-- Original Purchase Contract Section -->
+                                        <div class="p-3.5 rounded-3 bg-dark bg-opacity-60 border border-primary border-opacity-25">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <h6 class="fw-bold text-primary mb-0 d-flex align-items-center gap-2">
+                                                    <i class="bi bi-journal-check fs-5"></i> 1. عقد الشراء والتمليك الأصلي (العقد بين المعرض والبائع الأصلي)
+                                                </h6>
+                                                @if (!string.IsNullOrEmpty(car.OriginalPurchaseContractUrl))
+                                                {
+                                                    <a href="@car.OriginalPurchaseContractUrl" target="_blank" class="btn btn-sm btn-glass text-success fw-bold">
+                                                        <i class="bi bi-eye-fill me-1"></i> معاينة / فتح العقد الأصلي
+                                                    </a>
+                                                }
+                                            </div>
+                                            <p class="text-secondary small mb-3">صورة عقد الشراء الذي تم بموجبه ملكية السيارة للمعرض شاملاً التفاصيل المالية والقانونية.</p>
+                                            <input type="file" name="OriginalPurchaseContract" class="form-control" accept="image/*,.pdf" />
+                                        </div>
+
+                                        <!-- Final Customer Sales Contract Section -->
+                                        <div class="p-3.5 rounded-3 bg-dark bg-opacity-60 border border-success border-opacity-25">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <h6 class="fw-bold text-success mb-0 d-flex align-items-center gap-2">
+                                                    <i class="bi bi-file-earmark-text-fill fs-5"></i> 2. عقد البيع والتسليم النهائي للعميل المشتري
+                                                </h6>
+                                                @if (!string.IsNullOrEmpty(car.FinalBuyerContractUrl))
+                                                {
+                                                    <a href="@car.FinalBuyerContractUrl" target="_blank" class="btn btn-sm btn-glass text-success fw-bold">
+                                                        <i class="bi bi-eye-fill me-1"></i> معاينة / فتح عقد البيع للعميل
+                                                    </a>
+                                                }
+                                            </div>
+                                            <p class="text-secondary small mb-3">صورة العقد المكتوب والموقع بين المعرض والعميل المشتري عند البيع النهائي.</p>
+                                            <input type="file" name="FinalBuyerContract" class="form-control" accept="image/*,.pdf" />
+                                        </div>
+                                    </div>
+
+                                    <div class="modal-footer border-top border-secondary border-opacity-25">
+                                        <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
+                                        <button type="submit" class="btn btn-glow px-4">
+                                            <i class="bi bi-cloud-upload-fill me-1"></i> حفظ ورفع العقود القانونية
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>

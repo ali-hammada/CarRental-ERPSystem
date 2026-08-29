@@ -370,24 +370,57 @@
                 }
             });
 
-            // Auto-initialize Enterprise Data Grids for all tables
+            // Auto-initialize Enterprise Data Grids for all tables with dynamic Arabic / English Kendo-style UI
+            var isAr = document.documentElement.getAttribute('dir') === 'rtl';
+            var dtLanguage = isAr ? {
+                search: "",
+                searchPlaceholder: "🔍 بحث سريع في السجلات...",
+                lengthMenu: "عدد السطور في الصفحة: _MENU_",
+                info: "عرض _START_ - _END_ من إجمالي _TOTAL_ عنصر",
+                infoEmpty: "لا توجد عناصر لعرضها",
+                infoFiltered: "(مفلترة من إجمالي _MAX_ عنصر)",
+                zeroRecords: "لم يتم العثور على سجلات مطابقة",
+                paginate: {
+                    first: "«",
+                    previous: "‹",
+                    next: "›",
+                    last: "»"
+                }
+            } : {
+                search: "",
+                searchPlaceholder: "🔍 Fast Grid Search...",
+                lengthMenu: "Show _MENU_ entries per page",
+                info: "Showing _START_ - _END_ of _TOTAL_ entries",
+                infoEmpty: "Showing 0 to 0 of 0 entries",
+                infoFiltered: "(filtered from _MAX_ total entries)",
+                zeroRecords: "No matching records found",
+                paginate: {
+                    first: "«",
+                    previous: "‹",
+                    next: "›",
+                    last: "»"
+                }
+            };
+
+            var btnCopy = isAr ? "📋 نسخ" : "Copy";
+            var btnExcel = isAr ? "📊 إكسيل" : "Excel";
+            var btnPdf = isAr ? "📄 PDF" : "PDF";
+            var btnPrint = isAr ? "🖨️ طباعة" : "Print";
+
             $('.table-futuristic').each(function() {
                 if ($(this).find('tbody tr').length > 0 && !$(this).find('tbody tr td[colspan]').length) {
                     $(this).DataTable({
                         order: [[0, 'desc']],
                         dom: '<"d-flex flex-column flex-md-row align-items-center justify-content-between mb-3 gap-2"Bf>rt<"d-flex flex-column flex-md-row align-items-center justify-content-between mt-3 gap-2"lip>',
                         buttons: [
-                            { extend: 'copy', className: 'btn btn-sm' },
-                            { extend: 'excel', className: 'btn btn-sm', title: 'ERP Data Export' },
-                            { extend: 'pdf', className: 'btn btn-sm', title: 'ERP Data Export' },
-                            { extend: 'print', className: 'btn btn-sm' }
+                            { extend: 'copy', text: btnCopy, className: 'btn btn-sm btn-glass px-3' },
+                            { extend: 'excel', text: btnExcel, className: 'btn btn-sm btn-glass px-3', title: 'ERP Data Export' },
+                            { extend: 'pdf', text: btnPdf, className: 'btn btn-sm btn-glass px-3', title: 'ERP Data Export' },
+                            { extend: 'print', text: btnPrint, className: 'btn btn-sm btn-glass px-3' }
                         ],
                         pageLength: 10,
-                        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-                        language: {
-                            search: "",
-                            searchPlaceholder: "🔍 Fast Grid Search..."
-                        },
+                        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, isAr ? "الكل" : "All"]],
+                        language: dtLanguage,
                         responsive: true,
                         retrieve: true
                     });

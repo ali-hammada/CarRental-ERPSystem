@@ -59,10 +59,11 @@
                 <div class="col-xl-4 col-md-6">
                     <div class="glass-card h-100 d-flex flex-column overflow-hidden">
                         <!-- Vehicle Header Image / Fallback -->
-                        <div class="position-relative bg-dark" style="height: 190px;">
+                        <div class="position-relative bg-dark" style="height: 220px; overflow: hidden; border-top-left-radius: var(--radius-lg); border-top-right-radius: var(--radius-lg);">
                             @if (!string.IsNullOrEmpty(car.ImageUrl))
                             {
-                                <img src="@car.ImageUrl" alt="@car.Model" class="w-100 h-100 object-fit-cover">
+                                <img src="@car.ImageUrl" alt="@car.Model" class="w-100 h-100" style="object-fit: cover; object-position: center;">
+                                <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(180deg, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.1) 40%, rgba(15, 23, 42, 0.9) 100%); pointer-events: none;"></div>
                             }
                             else
                             {
@@ -72,18 +73,18 @@
                             }
                             
                             <!-- Status Overlay Badge -->
-                            <div class="position-absolute top-0 end-0 m-3">
+                            <div class="position-absolute top-0 end-0 m-3 z-2">
                                 @if (car.Status == CarStatus.Available)
                                 {
-                                    <span class="status-pill pill-available"><i class="bi bi-check-circle-fill"></i> Available</span>
+                                    <span class="status-pill pill-available shadow-sm"><i class="bi bi-check-circle-fill"></i> Available</span>
                                 }
                                 else if (car.Status == CarStatus.Rented)
                                 {
-                                    <span class="status-pill pill-rented"><i class="bi bi-clock-fill"></i> Rented</span>
+                                    <span class="status-pill pill-rented shadow-sm"><i class="bi bi-clock-fill"></i> Rented</span>
                                 }
                                 else
                                 {
-                                    <span class="status-pill pill-maintenance"><i class="bi bi-tools"></i> Maintenance</span>
+                                    <span class="status-pill pill-maintenance shadow-sm"><i class="bi bi-tools"></i> Maintenance</span>
                                 }
                             </div>
                         </div>
@@ -129,6 +130,10 @@
                                     </button>
                                 }
 
+                                <button type="button" class="btn btn-glass btn-sm text-info px-2.5" data-bs-toggle="modal" data-bs-target="#contractModal_@car.Id" title="المرفقات والعقود القانونية والمالية">
+                                    <i class="bi bi-folder-symlink-fill"></i>
+                                </button>
+
                                 <a asp-action="Edit" asp-route-id="@car.Id" class="btn btn-glass btn-sm" title="Edit Vehicle">
                                     <i class="bi bi-pencil-square"></i>
                                 </a>
@@ -138,6 +143,68 @@
                                     <button type="submit" class="btn btn-glass btn-sm text-danger" title="Delete Vehicle">
                                         <i class="bi bi-trash"></i>
                                     </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legal & Financial Contracts Modal -->
+                    <div class="modal fade" id="contractModal_@car.Id" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content glass-card border-secondary">
+                                <div class="modal-header border-bottom border-secondary border-opacity-25">
+                                    <h5 class="modal-header-title fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                                        <i class="bi bi-file-earmark-pdf-fill text-warning fs-4"></i>
+                                        المرفقات والعقود القانونية والمالية - @car.Model (@car.PlateNumber)
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form asp-controller="Car" asp-action="UploadContractDocument" method="post" enctype="multipart/form-data">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="carId" value="@car.Id" />
+
+                                    <div class="modal-body d-flex flex-column gap-4 py-4">
+                                        <!-- Original Purchase Contract Section -->
+                                        <div class="p-3.5 rounded-3 bg-dark bg-opacity-60 border border-primary border-opacity-25">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <h6 class="fw-bold text-primary mb-0 d-flex align-items-center gap-2">
+                                                    <i class="bi bi-journal-check fs-5"></i> 1. عقد الشراء والتمليك الأصلي (العقد بين المعرض والبائع الأصلي)
+                                                </h6>
+                                                @if (!string.IsNullOrEmpty(car.OriginalPurchaseContractUrl))
+                                                {
+                                                    <a href="@car.OriginalPurchaseContractUrl" target="_blank" class="btn btn-sm btn-glass text-success fw-bold">
+                                                        <i class="bi bi-eye-fill me-1"></i> معاينة / فتح العقد الأصلي
+                                                    </a>
+                                                }
+                                            </div>
+                                            <p class="text-secondary small mb-3">صورة عقد الشراء الذي تم بموجبه ملكية السيارة للمعرض شاملاً التفاصيل المالية والقانونية.</p>
+                                            <input type="file" name="OriginalPurchaseContract" class="form-control" accept="image/*,.pdf" />
+                                        </div>
+
+                                        <!-- Final Customer Sales Contract Section -->
+                                        <div class="p-3.5 rounded-3 bg-dark bg-opacity-60 border border-success border-opacity-25">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <h6 class="fw-bold text-success mb-0 d-flex align-items-center gap-2">
+                                                    <i class="bi bi-file-earmark-text-fill fs-5"></i> 2. عقد البيع والتسليم النهائي للعميل المشتري
+                                                </h6>
+                                                @if (!string.IsNullOrEmpty(car.FinalBuyerContractUrl))
+                                                {
+                                                    <a href="@car.FinalBuyerContractUrl" target="_blank" class="btn btn-sm btn-glass text-success fw-bold">
+                                                        <i class="bi bi-eye-fill me-1"></i> معاينة / فتح عقد البيع للعميل
+                                                    </a>
+                                                }
+                                            </div>
+                                            <p class="text-secondary small mb-3">صورة العقد المكتوب والموقع بين المعرض والعميل المشتري عند البيع النهائي.</p>
+                                            <input type="file" name="FinalBuyerContract" class="form-control" accept="image/*,.pdf" />
+                                        </div>
+                                    </div>
+
+                                    <div class="modal-footer border-top border-secondary border-opacity-25">
+                                        <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
+                                        <button type="submit" class="btn btn-glow px-4">
+                                            <i class="bi bi-cloud-upload-fill me-1"></i> حفظ ورفع العقود القانونية
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </div>

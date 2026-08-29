@@ -48,8 +48,6 @@ namespace Web.Services
             Add("Sign Out", "Sign Out", "تسجيل الخروج");
             Add("Light Mode", "Light Mode", "الثيم الأبيض");
             Add("Dark Mode", "Dark Mode", "الثيم الداكن");
-
-            // General Actions & Data Cards
             Add("Add New Vehicle", "Add New Vehicle", "إضافة سيارة جديدة");
             Add("Sell Vehicle", "Sell Vehicle", "بيع سيارة (عقد جديد)");
             Add("Total Sales Value", "Total Sales Value", "إجمالي قيمة المبيعات");
@@ -69,8 +67,6 @@ namespace Web.Services
             Add("Details", "Details", "عرض التفاصيل");
             Add("Print Agreement", "Print Agreement", "طباعة العقد الرسمي");
             Add("Collect Payment", "Collect Payment", "تحصيل الدفعة");
-
-            // Fleet Statuses & Table Column Headers
             Add("Available", "Available", "متاحة للإيجار");
             Add("Rented", "Rented", "مؤجرة حالياً");
             Add("Maintenance Status", "Maintenance", "تحت الصيانة");
@@ -106,8 +102,6 @@ namespace Web.Services
             Add("Process Vehicle Sale", "Process Vehicle Sale", "بدء عقد بيع السيارة");
             Add("Smart Deal Negotiator Assistant", "Smart Deal Negotiator Assistant", "المساعد الذكي للتفاوض");
             Add("Floor Price Breach Alert!", "Floor Price Breach Alert!", "تحذير: تجاوز أدنى سعر للتفاوض!");
-
-            // Dashboard Titles & Quick Actions
             Add("Dashboard Overview", "Dashboard Overview", "نظرة عامة على لوحة التحكم");
             Add("Quick Actions:", "Quick Actions:", "إجراءات سريعة:");
             Add("New Contract", "New Contract", "عقد إيجار جديد");
@@ -144,6 +138,29 @@ namespace Web.Services
             Add("Receipt", "Receipt", "سند القبض");
             Add("View All", "View All", "عرض الكل");
             Add("View Fleet", "View Fleet", "عرض الأسطول");
+            Add("Contract ID", "Contract ID", "رقم العقد");
+            Add("Period", "Period", "فترة الإيجار");
+            Add("Paid / Balance", "Paid / Balance", "المسدد / المتبقي");
+            Add("Fully Paid", "Fully Paid", "خالص السداد بالكامل");
+            Add("Active", "Active", "عقد نشط");
+            Add("Closed", "Closed", "عقد مغلق");
+            Add("Cancelled", "Cancelled", "عقد ملغى");
+            Add("Customer Profile", "Customer Profile", "ملف العميل");
+            Add("Total Contracts", "Total Contracts", "إجمالي العقود");
+            Add("Address", "Address", "العنوان السكني");
+            Add("National ID", "National ID", "الرقم القومي");
+            Add("Reference", "Reference", "المرجع / السند");
+            Add("Module", "Module", "الوحدة / القسم");
+            Add("Employee", "Employee", "الموظف المنفذ");
+            Add("IP Address", "IP Address", "عنوان IP");
+            Add("Service Type", "Service Type", "نوع خدمة الصيانة");
+            Add("Cost", "Cost", "التكلفة الإجمالية");
+            Add("Odometer", "Odometer", "قراءة العداد");
+            Add("Performed By", "Performed By", "المنفذ / المركز");
+            Add("Invoice Number", "Invoice Number", "رقم الفاتورة الضريبية");
+            Add("Subtotal", "Subtotal", "الإجمالي قبل الضريبة");
+            Add("Tax Amount", "Tax Amount", "مبلغ الضريبة 14%");
+            Add("Total Amount", "Total Amount", "الإجمالي الصافي الشامل");
             Add("All Contracts", "All Contracts", "جميع العقود");
 
             return dict;

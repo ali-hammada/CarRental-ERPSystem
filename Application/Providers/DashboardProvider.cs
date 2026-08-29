@@ -46,12 +46,13 @@ namespace Application.Providers
         public decimal TotalPaidAmount { get; set; }
         public decimal TotalRemainingUnpaid { get; set; }
         public decimal TotalMaintenanceCost { get; set; }
+        public decimal TotalVehicleProcurementCost { get; set; }
         
         // Sales Metrics
         public int TotalSalesCount { get; set; }
         public decimal TotalSalesRevenue { get; set; }
         public decimal CombinedGrossRevenue => TotalPaidAmount + TotalSalesRevenue;
-        public decimal NetProfit => CombinedGrossRevenue - TotalMaintenanceCost;
+        public decimal NetProfit => CombinedGrossRevenue - (TotalMaintenanceCost + TotalVehicleProcurementCost);
         public int TotalPaymentsCount { get; set; }
 
         public int TotalCarsCount { get; set; }
@@ -131,6 +132,10 @@ namespace Application.Providers
                 .Where(m => !m.IsDeleted)
                 .SumAsync(m => (decimal?)m.Cost) ?? 0m;
 
+            var totalVehicleProcurementCost = await _context.Cars
+                .AsNoTracking()
+                .SumAsync(c => (decimal?)((c.PurchasePrice ?? 0m) + (c.RefurbishmentCost ?? 0m))) ?? 0m;
+
             var activeCarsQuery = _context.Cars.AsNoTracking().Where(c => c.SaleStatus == null || c.SaleStatus != CarSaleStatus.Sold);
             var totalCarsCount = await activeCarsQuery.CountAsync();
             var rentedCarsCount = await activeCarsQuery.CountAsync(c => c.Status == CarStatus.Rented);
@@ -161,8 +166,8 @@ namespace Application.Providers
                     Model = c.Model,
                     PlateNumber = c.PlateNumber,
                     CategoryName = c.Category != null ? c.Category.Name : "Standard",
-                    TotalRentals = c.RentalContracts.Count(),
-                    TotalRevenue = c.RentalContracts.Sum(r => (decimal?)r.PaidAmount) ?? 0m,
+                    TotalRentals = c.RentalContracts.Count(r => r.Status != RentalContractStatus.Cancelled),
+                    TotalRevenue = c.RentalContracts.Where(r => r.Status != RentalContractStatus.Cancelled).Sum(r => (decimal?)(r.FinalAmount ?? r.TotalAmount)) ?? 0m,
                     Status = c.Status.ToString(),
                     ImageUrl = c.ImageUrl
                 })
@@ -231,6 +236,7 @@ namespace Application.Providers
                 TotalSalesRevenue = totalSalesRevenue,
                 TotalRemainingUnpaid = Math.Max(0m, totalRemainingUnpaid),
                 TotalMaintenanceCost = totalMaintenanceCost,
+                TotalVehicleProcurementCost = totalVehicleProcurementCost,
                 TotalPaymentsCount = totalPaymentsCount,
                 TotalCarsCount = totalCarsCount,
                 RentedCarsCount = rentedCarsCount,

@@ -29,5 +29,8 @@ namespace Application.DTOs
         public decimal TotalCostBasis => (PurchasePrice ?? 0m) + (RefurbishmentCost ?? 0m);
         public decimal? TargetSalePrice { get; set; }
         public decimal? MinimumFloorPrice { get; set; }
+
+        public string? OriginalPurchaseContractUrl { get; set; }
+        public string? FinalBuyerContractUrl { get; set; }
     }
 }

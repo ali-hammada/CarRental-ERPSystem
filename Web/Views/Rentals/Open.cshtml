@@ -145,7 +145,7 @@
 
         function updateCalculation() {
             const selectedOpt = carSelect.options[carSelect.selectedIndex];
-            const price = parseFloat(selectedOpt?.getAttribute('data-price')) || 0;
+            const basePrice = parseFloat(selectedOpt?.getAttribute('data-price')) || 0;
             const odo = selectedOpt?.getAttribute('data-odometer');
 
             if (odo && (!startOdometer.value || startOdometer.value == 0)) {
@@ -160,11 +160,15 @@
                 days = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1);
             }
 
-            const total = days * price;
+            const dailyTax = basePrice * 0.14;
+            const effectiveDaily = basePrice + dailyTax;
+            const subtotal = days * basePrice;
+            const totalTax = days * dailyTax;
+            const grandTotal = subtotal + totalTax;
 
             daysCount.textContent = days;
-            dailyPriceRate.textContent = formatCurrency(price);
-            estimatedTotal.textContent = formatCurrency(total);
+            dailyPriceRate.textContent = formatCurrency(effectiveDaily) + ' (Base: ' + formatCurrency(basePrice) + ' + 14% VAT)';
+            estimatedTotal.textContent = formatCurrency(grandTotal);
         }
 
         function formatCurrency(val) {
