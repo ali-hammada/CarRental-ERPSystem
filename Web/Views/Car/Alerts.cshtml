@@ -1,0 +1,264 @@
+@using Application.DTOs
+@using ApplicationCore.Enums
+@model IEnumerable<CarListDto>
+@inject Web.Services.ILocalizationService Loc
+
+@{
+    ViewData["Title"] = Loc.GetString("Fleet Smart Alerts Center");
+    var licenseExpiring = ViewBag.LicenseExpiring as List<CarListDto> ?? new List<CarListDto>();
+    var insuranceExpiring = ViewBag.InsuranceExpiring as List<CarListDto> ?? new List<CarListDto>();
+    var maintenanceDue = ViewBag.MaintenanceDue as List<CarListDto> ?? new List<CarListDto>();
+}
+
+<div class="d-flex flex-column gap-4">
+    <!-- Header Banner -->
+    <div class="glass-card p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 border-0">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 rounded-pill px-3 py-1">
+                    <i class="bi bi-bell-fill me-1"></i> Proactive Fleet Safety Engine
+                </span>
+            </div>
+            <h2 class="display-6 fw-extrabold mb-1">
+                <i class="bi bi-shield-exclamation text-warning me-2"></i>@Loc.GetString("Fleet Smart Alerts Center")
+            </h2>
+            <p class="text-secondary mb-0">
+                Live monitoring of vehicle license expirations, insurance renewal deadlines, and service mileage thresholds.
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="Car" asp-action="Index" class="btn btn-glass btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> @Loc.GetString("Back to Fleet Catalog")
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert Counters Row -->
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="kpi-widget kpi-warning">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-secondary small fw-semibold">License Renewals Due (30 Days)</div>
+                        <div class="fs-2 fw-extrabold text-warning mt-1">@licenseExpiring.Count</div>
+                    </div>
+                    <div class="kpi-icon">
+                        <i class="bi bi-card-heading"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="kpi-widget kpi-purple">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-secondary small fw-semibold">Insurance Expiring (30 Days)</div>
+                        <div class="fs-2 fw-extrabold text-info mt-1">@insuranceExpiring.Count</div>
+                    </div>
+                    <div class="kpi-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="kpi-widget kpi-success">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-secondary small fw-semibold">Service Mileage Thresholds</div>
+                        <div class="fs-2 fw-extrabold text-danger mt-1">@maintenanceDue.Count</div>
+                    </div>
+                    <div class="kpi-icon">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 1: Vehicle License Expiry -->
+    <div class="glass-card p-4">
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+            <h5 class="fw-bold text-white mb-0">
+                <i class="bi bi-card-heading text-warning me-2"></i>Vehicle Registration & License Renewal Alerts
+            </h5>
+            <span class="badge bg-warning text-dark fw-bold">@licenseExpiring.Count Vehicles</span>
+        </div>
+
+        @if (!licenseExpiring.Any())
+        {
+            <div class="text-center py-4 text-secondary">
+                <i class="bi bi-check-circle-fill text-success fs-2 d-block mb-2"></i>
+                All vehicle registration licenses are fully up-to-date!
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-futuristic align-middle w-100">
+                    <thead>
+                        <tr>
+                            <th>Vehicle</th>
+                            <th>Plate Number</th>
+                            <th>Expiry Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var car in licenseExpiring)
+                        {
+                            var daysLeft = car.LicenseExpiryDate.HasValue ? (int)(car.LicenseExpiryDate.Value - DateTime.UtcNow).TotalDays : 0;
+                            var isOverdue = daysLeft < 0;
+
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-white">@car.Model (@car.Year)</div>
+                                    <div class="text-secondary small">@car.FuelType • @car.Transmission</div>
+                                </td>
+                                <td><span class="badge bg-dark bg-opacity-70 text-warning font-monospace border border-warning border-opacity-25 fs-6 px-3">@car.PlateNumber</span></td>
+                                <td><span class="fw-bold @(isOverdue ? "text-danger" : "text-warning")">@(car.LicenseExpiryDate?.ToString("yyyy-MM-dd") ?? "N/A")</span></td>
+                                <td>
+                                    @if (isOverdue)
+                                    {
+                                        <span class="badge bg-danger">OVERDUE BY @Math.Abs(daysLeft) DAYS</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">EXPIRING IN @daysLeft DAYS</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="Edit" asp-route-id="@car.Id" class="btn btn-sm btn-glass">
+                                        <i class="bi bi-pencil me-1"></i> Update License
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <!-- Section 2: Vehicle Insurance Renewal Alerts -->
+    <div class="glass-card p-4">
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+            <h5 class="fw-bold text-white mb-0">
+                <i class="bi bi-shield-lock-fill text-info me-2"></i>Insurance Policy Expiration Alerts
+            </h5>
+            <span class="badge bg-info text-dark fw-bold">@insuranceExpiring.Count Vehicles</span>
+        </div>
+
+        @if (!insuranceExpiring.Any())
+        {
+            <div class="text-center py-4 text-secondary">
+                <i class="bi bi-shield-check text-success fs-2 d-block mb-2"></i>
+                All vehicle insurance policies are valid and active!
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-futuristic align-middle w-100">
+                    <thead>
+                        <tr>
+                            <th>Vehicle</th>
+                            <th>Plate Number</th>
+                            <th>Insurance Expiry Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var car in insuranceExpiring)
+                        {
+                            var daysLeft = car.InsuranceExpiryDate.HasValue ? (int)(car.InsuranceExpiryDate.Value - DateTime.UtcNow).TotalDays : 0;
+                            var isOverdue = daysLeft < 0;
+
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-white">@car.Model (@car.Year)</div>
+                                    <div class="text-secondary small">@car.FuelType</div>
+                                </td>
+                                <td><span class="badge bg-dark text-info font-monospace border border-info border-opacity-25 fs-6 px-3">@car.PlateNumber</span></td>
+                                <td><span class="fw-bold @(isOverdue ? "text-danger" : "text-info")">@(car.InsuranceExpiryDate?.ToString("yyyy-MM-dd") ?? "N/A")</span></td>
+                                <td>
+                                    @if (isOverdue)
+                                    {
+                                        <span class="badge bg-danger">POLICY EXPIRED</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info text-dark">EXPIRES IN @daysLeft DAYS</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="Edit" asp-route-id="@car.Id" class="btn btn-sm btn-glass">
+                                        <i class="bi bi-shield-plus me-1"></i> Renew Policy
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <!-- Section 3: High Mileage & Maintenance Thresholds -->
+    <div class="glass-card p-4">
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+            <h5 class="fw-bold text-white mb-0">
+                <i class="bi bi-speedometer text-danger me-2"></i>High Mileage Service & Maintenance Alerts
+            </h5>
+            <span class="badge bg-danger fw-bold">@maintenanceDue.Count Vehicles</span>
+        </div>
+
+        @if (!maintenanceDue.Any())
+        {
+            <div class="text-center py-4 text-secondary">
+                <i class="bi bi-tools text-success fs-2 d-block mb-2"></i>
+                No vehicles exceed high-mileage service alert limits!
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-futuristic align-middle w-100">
+                    <thead>
+                        <tr>
+                            <th>Vehicle</th>
+                            <th>Plate Number</th>
+                            <th>Current Odometer</th>
+                            <th>Operational Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var car in maintenanceDue)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-white">@car.Model (@car.Year)</div>
+                                </td>
+                                <td><span class="badge bg-dark text-white font-monospace border border-secondary border-opacity-25 fs-6 px-3">@car.PlateNumber</span></td>
+                                <td><span class="fw-extrabold text-danger">@car.CurrentOdometer.ToString("N0") KM</span></td>
+                                <td>
+                                    <span class="status-pill @(car.Status == CarStatus.Maintenance ? "pill-maintenance" : "pill-available")">
+                                        @car.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    <a asp-controller="Maintenance" asp-action="Create" asp-route-carId="@car.Id" class="btn btn-sm btn-glow">
+                                        <i class="bi bi-wrench-adjustable me-1"></i> Log Maintenance
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

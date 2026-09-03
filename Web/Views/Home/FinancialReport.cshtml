@@ -1,0 +1,161 @@
+@using Application.Providers
+@model DashboardMetricsDto
+@inject Web.Services.ILocalizationService Loc
+
+@{
+    ViewData["Title"] = Loc.GetString("Executive Financial P&L Statement");
+}
+
+<div class="d-flex flex-column gap-4">
+    <!-- Header Banner -->
+    <div class="glass-card p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 border-0">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">
+                    <i class="bi bi-graph-up-arrow me-1"></i> Executive C-Suite Ledger
+                </span>
+            </div>
+            <h2 class="display-6 fw-extrabold mb-1">
+                <i class="bi bi-file-earmark-bar-graph text-success me-2"></i>@Loc.GetString("Executive Financial P&L Statement")
+            </h2>
+            <p class="text-secondary mb-0">
+                Consolidated Profit and Loss statement tracking rental income, dealership sales revenues, maintenance costs, and net enterprise operating margin.
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print();" class="btn btn-glass btn-sm">
+                <i class="bi bi-printer me-1"></i> Print P&L Statement
+            </button>
+            <a asp-controller="Home" asp-action="Dashboard" class="btn btn-glow btn-sm">
+                <i class="bi bi-speedometer2 me-1"></i> Executive Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- P&L Financial Highlights Row -->
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="kpi-widget kpi-success">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-secondary small fw-semibold">Gross Rental Revenues</div>
+                        <div class="fs-3 fw-extrabold text-success mt-1">@Model.TotalPaidAmount.ToString("C")</div>
+                    </div>
+                    <div class="kpi-icon">
+                        <i class="bi bi-car-front"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="kpi-widget kpi-purple">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-secondary small fw-semibold">Car Sales Revenue</div>
+                        <div class="fs-3 fw-extrabold text-info mt-1">@Model.TotalSalesRevenue.ToString("C")</div>
+                    </div>
+                    <div class="kpi-icon">
+                        <i class="bi bi-shop"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="kpi-widget kpi-warning">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-secondary small fw-semibold">Fleet Maintenance Cost</div>
+                        <div class="fs-3 fw-extrabold text-warning mt-1">@Model.TotalMaintenanceCost.ToString("C")</div>
+                    </div>
+                    <div class="kpi-icon">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="kpi-widget kpi-primary">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-secondary small fw-semibold">Net Operating Profit</div>
+                        <div class="fs-3 fw-extrabold text-gradient mt-1">@Model.NetProfit.ToString("C")</div>
+                    </div>
+                    <div class="kpi-icon">
+                        <i class="bi bi-bank"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Official P&L Income Statement Table -->
+    <div class="glass-card p-5">
+        <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom border-secondary border-opacity-25">
+            <div>
+                <h4 class="fw-bold text-white mb-0">Consolidated Income Statement</h4>
+                <div class="text-secondary small">Financial Year @DateTime.UtcNow.Year • All figures reported in USD</div>
+            </div>
+            <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 fs-6 px-3 py-2">
+                AUDITED FINANCIAL LEDGER
+            </span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-futuristic align-middle w-100">
+                <thead>
+                    <tr>
+                        <th>Financial Line Item</th>
+                        <th>Category</th>
+                        <th class="text-end">Amount ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="fw-bold text-white bg-dark bg-opacity-50">
+                        <td colspan="3"><i class="bi bi-plus-circle text-success me-2"></i>OPERATING REVENUES</td>
+                    </tr>
+                    <tr>
+                        <td class="ps-4">Collected Rental Contract Payments</td>
+                        <td><span class="badge bg-success bg-opacity-25 text-success">Rental Operations</span></td>
+                        <td class="text-end fw-bold text-success">+@Model.TotalPaidAmount.ToString("C")</td>
+                    </tr>
+                    <tr>
+                        <td class="ps-4">Completed Dealership Vehicle Sales</td>
+                        <td><span class="badge bg-info bg-opacity-25 text-info">Car Sales</span></td>
+                        <td class="text-end fw-bold text-info">+@Model.TotalSalesRevenue.ToString("C")</td>
+                    </tr>
+                    <tr class="border-top border-secondary border-opacity-25 fw-bold text-white">
+                        <td class="ps-4">TOTAL GROSS REVENUE</td>
+                        <td>—</td>
+                        <td class="text-end text-gradient fs-5">+@Model.CombinedGrossRevenue.ToString("C")</td>
+                    </tr>
+
+                    <tr class="fw-bold text-white bg-dark bg-opacity-50 mt-3">
+                        <td colspan="3"><i class="bi bi-dash-circle text-warning me-2"></i>OPERATING EXPENSES & COST OF SALES</td>
+                    </tr>
+                    <tr>
+                        <td class="ps-4">Fleet Repair & Routine Maintenance Expenses</td>
+                        <td><span class="badge bg-warning bg-opacity-25 text-warning">Fleet Maintenance</span></td>
+                        <td class="text-end fw-bold text-warning">-@Model.TotalMaintenanceCost.ToString("C")</td>
+                    </tr>
+                    <tr>
+                        <td class="ps-4">Vehicle Procurement & Refurbishment Capital Costs</td>
+                        <td><span class="badge bg-danger bg-opacity-25 text-danger">Asset Procurement</span></td>
+                        <td class="text-end fw-bold text-danger">-@Model.TotalVehicleProcurementCost.ToString("C")</td>
+                    </tr>
+                    <tr class="border-top border-secondary border-opacity-25 fw-bold text-white">
+                        <td class="ps-4">TOTAL OPERATING EXPENSES</td>
+                        <td>—</td>
+                        <td class="text-end text-warning fs-5">-@((Model.TotalMaintenanceCost + Model.TotalVehicleProcurementCost).ToString("C"))</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr class="border-top border-2 border-primary bg-primary bg-opacity-10">
+                        <td class="fs-4 fw-extrabold text-white">NET OPERATING PROFIT (EBITDA)</td>
+                        <td><span class="badge bg-success fs-6">CONFIRMED SURPLUS</span></td>
+                        <td class="text-end fs-3 fw-extrabold text-gradient-emerald">@Model.NetProfit.ToString("C")</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>

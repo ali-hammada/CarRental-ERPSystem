@@ -234,5 +234,18 @@ namespace Web.Controllers
             _toastNotification.AddSuccessToastMessage("Legal & Financial contract documents saved successfully!");
             return RedirectToAction(nameof(SalesCatalog));
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Alerts()
+        {
+            var cars = await _carProvider.GetAllCarsAsync();
+            var now = DateTime.UtcNow;
+
+            ViewBag.LicenseExpiring = cars.Where(c => c.LicenseExpiryDate.HasValue && c.LicenseExpiryDate.Value <= now.AddDays(30)).OrderBy(c => c.LicenseExpiryDate).ToList();
+            ViewBag.InsuranceExpiring = cars.Where(c => c.InsuranceExpiryDate.HasValue && c.InsuranceExpiryDate.Value <= now.AddDays(30)).OrderBy(c => c.InsuranceExpiryDate).ToList();
+            ViewBag.MaintenanceDue = cars.Where(c => c.CurrentOdometer >= 50000 || c.Status == CarStatus.Maintenance).ToList();
+
+            return View(cars);
+        }
     }
 }

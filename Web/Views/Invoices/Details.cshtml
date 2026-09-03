@@ -14,11 +14,14 @@
                     <p class="text-secondary small mb-0">Official Tax Invoice (14% VAT)</p>
                     <p class="text-secondary small">TRN: 849201948-VAT</p>
                 </div>
-                <div class="text-end">
-                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 fs-6 px-3 py-2">
-                        @Model.InvoiceNumber
-                    </span>
-                    <div class="text-secondary small mt-2">Issued Date: @Model.IssueDate.ToString("MMMM dd, yyyy")</div>
+                <div class="d-flex align-items-center gap-3">
+                    <div id="invoiceQrCode" class="p-2 bg-white rounded-3 shadow-sm" style="width: 80px; height: 80px;" title="Official ZATCA Tax Invoice QR Code"></div>
+                    <div class="text-end">
+                        <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 fs-6 px-3 py-2">
+                            @Model.InvoiceNumber
+                        </span>
+                        <div class="text-secondary small mt-2">Issued Date: @Model.IssueDate.ToString("MMMM dd, yyyy")</div>
+                    </div>
                 </div>
             </div>
 
@@ -83,3 +86,20 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var qrText = "Seller: CarRental ERP Enterprise System\nVAT: 849201948-VAT\nTimestamp: @Model.IssueDate.ToString("yyyy-MM-ddTHH:mm:ssZ")\nTotal: @Model.TotalAmount.ToString("0.00")\nVAT Amount: @Model.TaxAmount.ToString("0.00")";
+            new QRCode(document.getElementById("invoiceQrCode"), {
+                text: qrText,
+                width: 64,
+                height: 64,
+                colorDark : "#0f172a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.M
+            });
+        });
+    </script>
+}

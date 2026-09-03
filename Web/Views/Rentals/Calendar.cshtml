@@ -1,0 +1,112 @@
+@using Application.DTOs
+@using System.Text.Encodings.Web
+@model IEnumerable<RentalListDto>
+@inject Web.Services.ILocalizationService Loc
+
+@{
+    ViewData["Title"] = Loc.GetString("Interactive Fleet Booking Calendar");
+}
+
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet" />
+</head>
+
+<div class="d-flex flex-column gap-4">
+    <!-- Header Banner -->
+    <div class="glass-card p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 border-0">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1">
+                    <i class="bi bi-calendar-event me-1"></i> Enterprise Dispatch Schedule
+                </span>
+            </div>
+            <h2 class="display-6 fw-extrabold mb-1">
+                <i class="bi bi-calendar3 text-primary me-2"></i>@Loc.GetString("Interactive Fleet Booking Calendar")
+            </h2>
+            <p class="text-secondary mb-0">
+                Visual timeline view of active rental contracts, reserved vehicles, and return deadlines to eliminate fleet scheduling conflicts.
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="Rentals" asp-action="Index" class="btn btn-glass btn-sm">
+                <i class="bi bi-list-ul me-1"></i> @Loc.GetString("Contract List")
+            </a>
+            <a asp-controller="Rentals" asp-action="Open" class="btn btn-glow btn-sm">
+                <i class="bi bi-plus-circle me-1"></i> @Loc.GetString("New Contract")
+            </a>
+        </div>
+    </div>
+
+    <!-- Calendar Legend & Filter Bar -->
+    <div class="glass-card p-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap small font-semibold">
+            <span class="text-secondary"><i class="bi bi-info-circle me-1"></i> Contract Status Legend:</span>
+            <span class="badge bg-primary bg-opacity-80 px-3 py-1.5"><i class="bi bi-circle-fill me-1" style="font-size:0.5rem;"></i> Active Rental</span>
+            <span class="badge bg-danger bg-opacity-80 px-3 py-1.5"><i class="bi bi-exclamation-triangle-fill me-1"></i> Overdue Return</span>
+            <span class="badge bg-success bg-opacity-80 px-3 py-1.5"><i class="bi bi-check-circle-fill me-1"></i> Completed / Closed</span>
+            <span class="badge bg-secondary bg-opacity-80 px-3 py-1.5"><i class="bi bi-x-circle-fill me-1"></i> Cancelled</span>
+        </div>
+        <div class="text-secondary small font-monospace">
+            Total Tracked Contracts: <span class="text-white fw-bold">@Model.Count()</span>
+        </div>
+    </div>
+
+    <!-- FullCalendar Engine Container -->
+    <div class="glass-card p-4">
+        <div id="fleetCalendar" style="min-height: 650px;"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('fleetCalendar');
+            var isAr = document.documentElement.getAttribute('dir') === 'rtl';
+
+            var events = [
+                @foreach (var r in Model)
+                {
+                    var isOverdue = r.Status == ApplicationCore.Enums.RentalContractStatus.Open && r.EndDate < DateTime.UtcNow;
+                    var color = isOverdue ? "#f43f5e" : 
+                               (r.Status == ApplicationCore.Enums.RentalContractStatus.Open ? "#3b82f6" : 
+                               (r.Status == ApplicationCore.Enums.RentalContractStatus.Closed ? "#10b981" : "#64748b"));
+                    
+                    var title = $"Contract #{r.Id}: {r.CarModel} ({r.CustomerName})";
+                    <text>
+                    {
+                        id: '@r.Id',
+                        title: '@JavaScriptEncoder.Default.Encode(title)',
+                        start: '@r.StartDate.ToString("yyyy-MM-ddTHH:mm:ss")',
+                        end: '@(r.ActualEndDate?.ToString("yyyy-MM-ddTHH:mm:ss") ?? r.EndDate.ToString("yyyy-MM-ddTHH:mm:ss"))',
+                        backgroundColor: '@color',
+                        borderColor: '@color',
+                        url: '/Rentals/Details?rentalId=@r.Id'
+                    },
+                    </text>
+                }
+            ];
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: isAr ? 'ar' : 'en',
+                direction: isAr ? 'rtl' : 'ltr',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,listMonth'
+                },
+                events: events,
+                eventClick: function(info) {
+                    if (info.event.url) {
+                        window.location.href = info.event.url;
+                        info.jsEvent.preventDefault();
+                    }
+                },
+                height: 'auto'
+            });
+
+            calendar.render();
+        });
+    </script>
+}

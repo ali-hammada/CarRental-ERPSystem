@@ -1,0 +1,233 @@
+@inject Web.Services.ILocalizationService Loc
+
+@{
+    ViewData["Title"] = Loc.GetString("Interactive Sale Installment Calculator");
+}
+
+<div class="d-flex flex-column gap-4">
+    <!-- Header Banner -->
+    <div class="glass-card p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 border-0">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">
+                    <i class="bi bi-calculator-fill me-1"></i> Dealership Amortization Engine
+                </span>
+            </div>
+            <h2 class="display-6 fw-extrabold mb-1">
+                <i class="bi bi-calculator text-success me-2"></i>@Loc.GetString("Interactive Sale Installment Calculator")
+            </h2>
+            <p class="text-secondary mb-0">
+                Model vehicle prices, down payments, interest rates, and loan durations to generate live amortization schedules.
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="Sales" asp-action="Index" class="btn btn-glass btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> @Loc.GetString("Back to Sales Ledger")
+            </a>
+            <a asp-controller="Sales" asp-action="Create" class="btn btn-glow btn-sm">
+                <i class="bi bi-plus-circle me-1"></i> @Loc.GetString("New Sale Contract")
+            </a>
+        </div>
+    </div>
+
+    <!-- Calculator Input & Live Metrics Summary -->
+    <div class="row g-4">
+        <!-- Input Form Card -->
+        <div class="col-lg-5">
+            <div class="glass-card p-4 h-100">
+                <h5 class="fw-bold text-white mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+                    <i class="bi bi-sliders text-primary me-2"></i>Dealership Terms & Parameters
+                </h5>
+
+                <form id="amortizationForm" onsubmit="return false;">
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">Vehicle Sale Price ($)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-primary">$</span>
+                            <input type="number" id="calcSalePrice" class="form-control fw-bold fs-5 text-white" value="35000" min="1000" step="500" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">Down Payment Deposit ($)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-success">$</span>
+                            <input type="number" id="calcDownPayment" class="form-control fw-bold text-white" value="7000" min="0" step="500" required />
+                        </div>
+                        <div class="form-text text-secondary small">Deposit ratio: <span id="depositRatioBadge" class="badge bg-success bg-opacity-25 text-success">20%</span></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">Annual Profit / Interest Rate (%)</label>
+                        <div class="input-group">
+                            <input type="number" id="calcInterestRate" class="form-control fw-bold text-white" value="5.5" min="0" max="30" step="0.1" required />
+                            <span class="input-group-text bg-dark border-secondary text-info">%</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">Financing Duration (Months)</label>
+                        <select id="calcMonths" class="form-select fw-bold text-white">
+                            <option value="12">12 Months (1 Year)</option>
+                            <option value="24" selected>24 Months (2 Years)</option>
+                            <option value="36">36 Months (3 Years)</option>
+                            <option value="48">48 Months (4 Years)</option>
+                            <option value="60">60 Months (5 Years)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">First Payment Due Date</label>
+                        <input type="date" id="calcStartDate" class="form-control text-white" value="@DateTime.UtcNow.AddMonths(1).ToString("yyyy-MM-dd")" />
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Calculated Summary KPIs Card -->
+        <div class="col-lg-7">
+            <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <h5 class="fw-bold text-white mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+                        <i class="bi bi-pie-chart-fill text-warning me-2"></i>Financial Plan Breakdown
+                    </h5>
+
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <div class="p-3 bg-dark bg-opacity-60 rounded-3 border border-secondary border-opacity-25">
+                                <div class="text-secondary small fw-semibold">Financed Principal Amount</div>
+                                <div class="fs-3 fw-extrabold text-primary mt-1" id="resPrincipal">$28,000.00</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 bg-dark bg-opacity-60 rounded-3 border border-secondary border-opacity-25">
+                                <div class="text-secondary small fw-semibold">Monthly Installment Payment</div>
+                                <div class="fs-3 fw-extrabold text-success mt-1" id="resMonthly">$1,234.90</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 bg-dark bg-opacity-60 rounded-3 border border-secondary border-opacity-25">
+                                <div class="text-secondary small fw-semibold">Total Financing Interest</div>
+                                <div class="fs-3 fw-extrabold text-warning mt-1" id="resTotalInterest">$1,637.60</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 bg-dark bg-opacity-60 rounded-3 border border-secondary border-opacity-25">
+                                <div class="text-secondary small fw-semibold">Total Cost of Financing</div>
+                                <div class="fs-3 fw-extrabold text-info mt-1" id="resTotalCost">$36,637.60</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-glass" onclick="window.print();">
+                        <i class="bi bi-printer me-1"></i> Print Schedule
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Amortization Schedule Table -->
+    <div class="glass-card p-4">
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+            <h5 class="fw-bold text-white mb-0">
+                <i class="bi bi-table text-info me-2"></i>Line-by-Line Amortization Schedule
+            </h5>
+            <span class="badge bg-primary px-3 py-1 fw-bold" id="scheduleBadge">24 Payments</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-futuristic align-middle w-100" id="scheduleTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Due Date</th>
+                        <th>Installment Amount</th>
+                        <th>Principal Portion</th>
+                        <th>Interest Portion</th>
+                        <th>Remaining Principal</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleBody">
+                    <!-- Dynamic JS schedule lines -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            function calculateAmortization() {
+                var salePrice = parseFloat($('#calcSalePrice').val()) || 0;
+                var downPayment = parseFloat($('#calcDownPayment').val()) || 0;
+                var annualRate = parseFloat($('#calcInterestRate').val()) || 0;
+                var months = parseInt($('#calcMonths').val()) || 12;
+                var startDateStr = $('#calcStartDate').val();
+
+                if (downPayment > salePrice) {
+                    downPayment = salePrice;
+                    $('#calcDownPayment').val(downPayment);
+                }
+
+                var principal = salePrice - downPayment;
+                var depositPct = salePrice > 0 ? ((downPayment / salePrice) * 100).toFixed(1) : 0;
+                $('#depositRatioBadge').text(depositPct + '%');
+
+                var monthlyRate = (annualRate / 100) / 12;
+                var monthlyPayment = 0;
+
+                if (monthlyRate > 0) {
+                    monthlyPayment = (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
+                } else {
+                    monthlyPayment = principal / months;
+                }
+
+                var totalCost = downPayment + (monthlyPayment * months);
+                var totalInterest = (monthlyPayment * months) - principal;
+
+                $('#resPrincipal').text('$' + principal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                $('#resMonthly').text('$' + monthlyPayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                $('#resTotalInterest').text('$' + totalInterest.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                $('#resTotalCost').text('$' + totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                $('#scheduleBadge').text(months + ' Payments');
+
+                // Render Schedule Table Lines
+                var tbody = $('#scheduleBody');
+                tbody.empty();
+
+                var remainingBalance = principal;
+                var startDate = startDateStr ? new Date(startDateStr) : new Date();
+
+                for (var i = 1; i <= months; i++) {
+                    var interestPortion = remainingBalance * monthlyRate;
+                    var principalPortion = monthlyPayment - interestPortion;
+                    remainingBalance -= principalPortion;
+                    if (remainingBalance < 0 || i === months) remainingBalance = 0;
+
+                    var dueDate = new Date(startDate);
+                    dueDate.setMonth(dueDate.getMonth() + (i - 1));
+                    var dateFormatted = dueDate.toISOString().split('T')[0];
+
+                    var tr = `
+                        <tr>
+                            <td><span class="badge bg-dark text-white fw-bold px-2 py-1">#${i}</span></td>
+                            <td><span class="fw-semibold text-white">${dateFormatted}</span></td>
+                            <td><span class="fw-bold text-success">$${monthlyPayment.toFixed(2)}</span></td>
+                            <td><span class="text-info">$${principalPortion.toFixed(2)}</span></td>
+                            <td><span class="text-warning">$${interestPortion.toFixed(2)}</span></td>
+                            <td><span class="fw-bold text-white">$${remainingBalance.toFixed(2)}</span></td>
+                        </tr>
+                    `;
+                    tbody.append(tr);
+                }
+            }
+
+            $('#calcSalePrice, #calcDownPayment, #calcInterestRate, #calcMonths, #calcStartDate').on('input change', calculateAmortization);
+            calculateAmortization();
+        });
+    </script>
+}

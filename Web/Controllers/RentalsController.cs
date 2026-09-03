@@ -271,5 +271,12 @@ namespace Web.Controllers
             };
             return View(model);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Calendar()
+        {
+            var rentals = await _rentalProvider.GetAllRentalsAsync();
+            return View(rentals);
+        }
     }
 }

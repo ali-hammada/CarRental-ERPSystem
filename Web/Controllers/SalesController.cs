@@ -157,5 +157,11 @@ namespace Web.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpGet]
+        public IActionResult Calculator()
+        {
+            return View();
+        }
     }
 }

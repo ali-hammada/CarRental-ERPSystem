@@ -63,5 +63,13 @@ namespace Web.Controllers
             var metrics = await _dashboardProvider.GetDashboardMetricsAsync(employeeId);
             return View(metrics);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> FinancialReport()
+        {
+            int? employeeId = IsUserAdmin() ? null : GetCurrentEmployeeId();
+            var metrics = await _dashboardProvider.GetDashboardMetricsAsync(employeeId);
+            return View(metrics);
+        }
     }
 }

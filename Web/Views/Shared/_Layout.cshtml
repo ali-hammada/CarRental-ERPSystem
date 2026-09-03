@@ -72,6 +72,22 @@
                     <i class="bi bi-tag-fill text-success"></i>
                     <span class="sidebar-link-text">@Loc.GetString("Car Sales Ledger")</span>
                 </a>
+                <a class="sidebar-link" asp-controller="Rentals" asp-action="Calendar" title="Booking Calendar">
+                    <i class="bi bi-calendar3 text-primary"></i>
+                    <span class="sidebar-link-text">Booking Calendar</span>
+                </a>
+                <a class="sidebar-link" asp-controller="Car" asp-action="Alerts" title="Fleet Alerts Center">
+                    <i class="bi bi-shield-exclamation text-warning"></i>
+                    <span class="sidebar-link-text">Fleet Alerts</span>
+                </a>
+                <a class="sidebar-link" asp-controller="Sales" asp-action="Calculator" title="Installment Calculator">
+                    <i class="bi bi-calculator text-success"></i>
+                    <span class="sidebar-link-text">Amortization Calculator</span>
+                </a>
+                <a class="sidebar-link" asp-controller="Home" asp-action="FinancialReport" title="Executive Financial P&L">
+                    <i class="bi bi-file-earmark-bar-graph text-info"></i>
+                    <span class="sidebar-link-text">Financial P&L</span>
+                </a>
                 <a class="sidebar-link" asp-controller="Customers" asp-action="Index" title="@Loc.GetString("Customers")">
                     <i class="bi bi-people-fill"></i>
                     <span class="sidebar-link-text">@Loc.GetString("Customers")</span>
