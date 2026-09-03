@@ -39,7 +39,6 @@ namespace Web.Services
             Add("Audit Monitor", "Audit Monitor", "سجلات ومراقبة النظام");
             Add("Roles & Permissions", "Roles & Permissions", "إدارة الصلاحيات والأدوار");
 
-            // Top Header & System Badges
             Add("Enterprise Portal", "Enterprise Portal", "بوابة إدارة المؤسسة");
             Add("System Operational Alerts", "System Operational Alerts", "تنبيهات التشغيل والعمليات");
             Add("Overdue Rental Contracts", "Overdue Rental Contracts", "عقود إيجار متأخرة التسليم");

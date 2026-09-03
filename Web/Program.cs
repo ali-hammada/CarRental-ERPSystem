@@ -311,11 +311,7 @@ namespace Web
             // ------------------------------
             // Middleware pipeline
             // ------------------------------
-            if (!app.Environment.IsDevelopment())
-            {
-                app.UseExceptionHandler("/Home/Error");
-                app.UseHsts();
-            }
+            app.UseDeveloperExceptionPage();
 
             var localizationOptions = new RequestLocalizationOptions
             {
