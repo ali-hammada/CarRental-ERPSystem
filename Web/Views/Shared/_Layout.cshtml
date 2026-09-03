@@ -39,6 +39,7 @@
 <body>
 
     <div class="app-wrapper" id="appWrapper">
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
         <!-- Collapsible Glassmorphic Sidebar -->
         <aside class="sidebar-wrapper" id="sidebarMenu">
             <div class="sidebar-header">
@@ -149,7 +150,7 @@
                     <div class="dropdown">
                         <button class="btn btn-glass d-flex align-items-center gap-1.5 px-3 py-1.5 rounded-pill" type="button" data-bs-toggle="dropdown" title="Select System Language">
                             <i class="bi bi-globe text-primary"></i>
-                            <span class="small fw-bold text-white ms-1">@(isArabic ? "العربية 🇪🇬" : "English 🇺🇸")</span>
+                            <span class="small fw-bold text-white ms-1 d-none d-sm-inline">@(isArabic ? "العربية 🇪🇬" : "English 🇺🇸")</span>
                             <i class="bi bi-chevron-down text-secondary ms-1" style="font-size: 0.7rem;"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow-lg border-secondary border-opacity-25 mt-2">
@@ -356,9 +357,17 @@
             }
 
             sidebarToggle.on('click', function() {
-                appWrapper.toggleClass('sidebar-collapsed');
-                const isCollapsed = appWrapper.hasClass('sidebar-collapsed');
-                localStorage.setItem('sidebarCollapsed', isCollapsed);
+                if ($(window).width() <= 768) {
+                    appWrapper.toggleClass('sidebar-mobile-open');
+                } else {
+                    appWrapper.toggleClass('sidebar-collapsed');
+                    const isCollapsed = appWrapper.hasClass('sidebar-collapsed');
+                    localStorage.setItem('sidebarCollapsed', isCollapsed);
+                }
+            });
+
+            $('#sidebarBackdrop').on('click', function() {
+                appWrapper.removeClass('sidebar-mobile-open');
             });
 
             // Highlight Active Link

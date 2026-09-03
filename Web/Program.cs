@@ -136,6 +136,39 @@ namespace Web
                     var context = services.GetRequiredService<AppDbContext>();
                     context.Database.EnsureCreated();
 
+                    // Ensure table name consistency for Employees
+                    context.Database.ExecuteSqlRaw(@"
+                        IF EXISTS (SELECT * FROM sys.tables WHERE name = 'Employee') AND NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Employees')
+                        BEGIN
+                            EXEC sp_rename 'Employee', 'Employees';
+                        END;
+                    ");
+
+                    // Ensure all tables have BaseEntity columns (IsDeleted, CreatedAt, etc.)
+                    var allTables = new[] { "Cars", "Customers", "Employees", "Employee", "RentalContracts", "Payments", "CarCategories", "MaintenanceLogs", "Invoices", "CarLocationLogs", "AuditLogs", "CarSaleContracts", "SaleInstallments" };
+                    foreach (var tbl in allTables)
+                    {
+                        context.Database.ExecuteSqlRaw($@"
+                            IF EXISTS (SELECT * FROM sys.tables WHERE name = '{tbl}')
+                            BEGIN
+                                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[{tbl}]') AND name = N'IsDeleted')
+                                    ALTER TABLE [{tbl}] ADD [IsDeleted] bit NOT NULL DEFAULT 0;
+
+                                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[{tbl}]') AND name = N'CreatedAt')
+                                    ALTER TABLE [{tbl}] ADD [CreatedAt] datetime2 NOT NULL DEFAULT (GETUTCDATE());
+
+                                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[{tbl}]') AND name = N'CreatedBy')
+                                    ALTER TABLE [{tbl}] ADD [CreatedBy] nvarchar(max) NULL;
+
+                                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[{tbl}]') AND name = N'UpdatedAt')
+                                    ALTER TABLE [{tbl}] ADD [UpdatedAt] datetime2 NULL;
+
+                                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[{tbl}]') AND name = N'UpdatedBy')
+                                    ALTER TABLE [{tbl}] ADD [UpdatedBy] nvarchar(max) NULL;
+                            END;
+                        ");
+                    }
+
                     // Ensure GPS columns exist on Cars table
                     context.Database.ExecuteSqlRaw(@"
                         IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Cars]') AND name = N'CurrentLatitude')
