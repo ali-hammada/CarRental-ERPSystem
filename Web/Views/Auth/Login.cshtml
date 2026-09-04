@@ -1,122 +1,192 @@
 @model Application.Services.DTOs.LoginDto
+@using System.Globalization
+@inject Web.Services.ILocalizationService Loc
 
 @{
-  ViewData["Title"]="Login";
-  var returnUrl = ViewData["ReturnUrl"] as string;
+    ViewData["Title"] = Loc.GetString("Login") ?? "Login";
+    var returnUrl = ViewData["ReturnUrl"] as string;
+    var currentUICulture = CultureInfo.CurrentUICulture.Name;
+    var isArabic = currentUICulture.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
 }
 
-<div class="row justify-content-center mt-5">
-  <div class="col-md-5">
-    <div class="card shadow-lg border-0 rounded-4">
+<div class="auth-page-container">
+    <div class="auth-page-bg"></div>
+    <div class="auth-grid-overlay"></div>
 
-      <div class="card-header bg-primary text-white text-center py-4 rounded-top-4">
-        <h4 class="mb-0">
-          <i class="bi bi-box-arrow-in-right"></i> Welcome Back
-        </h4>
-        <small>Login to your account</small>
-      </div>
-
-      <div class="card-body p-4">
-
-        @if(TempData["Success"]!=null)
-        {
-          <div class="alert alert-success alert-dismissible fade show">
-            <i class="bi bi-check-circle"></i> @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
-        }
-
-        @if(TempData["Info"]!=null)
-        {
-          <div class="alert alert-info alert-dismissible fade show">
-            <i class="bi bi-info-circle"></i> @TempData["Info"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
-        }
-
-        <form asp-action="Login" method="post">
-          <input type="hidden" name="returnUrl" value="@returnUrl" />
-
-          <div asp-validation-summary="All" class="text-danger mb-3"></div>
-
-          <!-- Email -->
-          <div class="mb-3">
-            <label asp-for="Email" class="form-label">Email Address</label>
-            <div class="input-group">
-              <span class="input-group-text">
-                <i class="bi bi-envelope"></i>
-              </span>
-              <input asp-for="Email" type="email" class="form-control"
-                     placeholder="Enter your email" autofocus />
-            </div>
-            <span asp-validation-for="Email" class="text-danger small"></span>
-          </div>
-
-          <!-- Password -->
-          <div class="mb-3">
-            <label asp-for="Password" class="form-label">Password</label>
-            <div class="input-group">
-              <span class="input-group-text">
-                <i class="bi bi-lock"></i>
-              </span>
-              <input asp-for="Password" type="password" class="form-control"
-                     placeholder="Enter your password" />
-              <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                <i class="bi bi-eye"></i>
-              </button>
-            </div>
-            <span asp-validation-for="Password" class="text-danger small"></span>
-          </div>
-
-          <!-- Remember Me & Forgot Password -->
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="rememberMe" checked>
-              <label class="form-check-label small" for="rememberMe">
-                Remember me
-              </label>
-            </div>
-            <a href="#" class="small text-decoration-none">Forgot password?</a>
-          </div>
-
-          <!-- Submit Button -->
-          <div class="d-grid">
-            <button type="submit" class="btn btn-primary btn-lg">
-              <i class="bi bi-box-arrow-in-right"></i> Login
+    <div class="auth-top-actions">
+        <div class="dropdown">
+            <button class="btn btn-glass d-flex align-items-center gap-1.5 px-3 py-1.5 rounded-pill" type="button" data-bs-toggle="dropdown" title="Select Language">
+                <i class="bi bi-globe text-primary"></i>
+                <span class="small fw-bold text-white ms-1">@(isArabic ? "العربية 🇪🇬" : "English 🇺🇸")</span>
+                <i class="bi bi-chevron-down text-secondary ms-1" style="font-size: 0.7rem;"></i>
             </button>
-          </div>
-        </form>
-
-        <hr class="my-4" />
-
-        <div class="text-center small">
-          Don't have an account?
-          <a asp-action="Register" class="fw-bold text-decoration-none">Sign up here</a>
+            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-secondary border-opacity-25 mt-2">
+                <li>
+                    <form asp-controller="Language" asp-action="SetLanguage" method="post" class="d-inline">
+                        <input type="hidden" name="culture" value="en-US" />
+                        <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
+                        <button type="submit" class="dropdown-item d-flex align-items-center justify-content-between py-2 @(!isArabic ? "active text-primary fw-bold" : "")">
+                            <span>🇺🇸 English (US)</span>
+                            @if (!isArabic) { <i class="bi bi-check-lg text-primary ms-2"></i> }
+                        </button>
+                    </form>
+                </li>
+                <li><hr class="dropdown-divider my-1 border-secondary border-opacity-25"></li>
+                <li>
+                    <form asp-controller="Language" asp-action="SetLanguage" method="post" class="d-inline">
+                        <input type="hidden" name="culture" value="ar-EG" />
+                        <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
+                        <button type="submit" class="dropdown-item d-flex align-items-center justify-content-between py-2 @(isArabic ? "active text-primary fw-bold" : "")">
+                            <span>🇪🇬 العربية (مصر)</span>
+                            @if (isArabic) { <i class="bi bi-check-lg text-primary ms-2"></i> }
+                        </button>
+                    </form>
+                </li>
+            </ul>
         </div>
-
-      </div>
     </div>
-  </div>
+
+    <div class="auth-card-wrapper" style="width: 100%; max-width: 980px; margin: 1.5rem auto; position: relative; z-index: 2;">
+        <div class="auth-split-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.3), 0 0 35px rgba(59, 130, 246, 0.1); overflow: hidden;">
+            <div class="row g-0 align-items-stretch">
+                
+                <div class="col-md-6 d-none d-md-flex">
+                    <div class="auth-showcase-panel w-100" style="position: relative; min-height: 520px; height: 100%; background: #0b1120; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; padding: 2.75rem;">
+                        <div class="auth-showcase-bg" style="position: absolute; inset: 0; background-image: url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80'); background-size: cover; background-position: center; z-index: 0;"></div>
+                        <div class="auth-showcase-overlay" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11, 17, 32, 0.35) 0%, rgba(11, 17, 32, 0.85) 65%, #0b1120 100%); z-index: 1;"></div>
+
+                        <div class="auth-showcase-content" style="position: relative; z-index: 2;">
+                           
+                            <h2 class="h3 fw-extrabold text-white mb-2" style="letter-spacing: -0.5px; line-height: 1.35;">
+                                @(isArabic ? "منظومة إدارة أسطول وتأجير المركبات" : "Next-Gen Fleet & Rental Management")
+                            </h2>
+                          
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-12">
+                    <div class="auth-form-panel" style="padding: 3rem 2.5rem; background: #ffffff; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 fs-5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                    <i class="bi bi-person-fill-lock"></i>
+                                </div>
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1 fw-bold small">
+                                    @(isArabic ? "بوابة الدخول للموظفين" : "Employee Portal")
+                                </span>
+                            </div>
+                            <h3 class="fw-extrabold text-dark mb-1" style="color: #0f172a !important;">
+                                @(isArabic ? "تسجيل الدخول" : "Welcome Back")
+                            </h3>
+                            <p class="text-muted small mb-0">
+                                @(isArabic ? "أدخل بريدك الإلكتروني وكلمة المرور لمتابعة العمل" : "Enter your credentials to access the ERP dashboard")
+                            </p>
+                        </div>
+
+                        @if (TempData["Success"] != null)
+                        {
+                            <div class="alert alert-success d-flex align-items-center gap-2 border-0 bg-success bg-opacity-15 text-success rounded-3 py-2.5 px-3 mb-3 small">
+                                <i class="bi bi-check-circle-fill fs-5"></i>
+                                <div>@TempData["Success"]</div>
+                            </div>
+                        }
+
+                        @if (TempData["Info"] != null)
+                        {
+                            <div class="alert alert-info d-flex align-items-center gap-2 border-0 bg-info bg-opacity-15 text-info rounded-3 py-2.5 px-3 mb-3 small">
+                                <i class="bi bi-info-circle-fill fs-5"></i>
+                                <div>@TempData["Info"]</div>
+                            </div>
+                        }
+
+                        <form asp-action="Login" method="post" id="loginForm" autocomplete="on">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+
+                            <div asp-validation-summary="All" class="alert alert-danger bg-danger bg-opacity-15 border-0 text-danger rounded-3 py-2 px-3 mb-3 small @(ViewData.ModelState.IsValid ? "d-none" : "")"></div>
+
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label text-dark small fw-bold mb-1.5" style="color: #1e293b !important;">
+                                    @(isArabic ? "البريد الإلكتروني" : "Email Address")
+                                </label>
+                                <div class="input-group" style="background: #ffffff; border-radius: 12px; border: 1.5px solid #cbd5e1; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                                    <span class="input-group-text" style="background: #f8fafc; border: none; color: #64748b; font-size: 1.15rem; padding: 0.85rem 1.1rem;">
+                                        <i class="bi bi-envelope-fill"></i>
+                                    </span>
+                                    <input asp-for="Email" type="email" class="form-control"
+                                           style="background: #ffffff; border: none; padding: 0.85rem 1rem; color: #0f172a; font-size: 0.95rem; font-weight: 500;"
+                                           placeholder="admin@carrental.com"
+                                           required autofocus />
+                                </div>
+                                <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                    <label asp-for="Password" class="form-label text-dark small fw-bold mb-0" style="color: #1e293b !important;">
+                                        @(isArabic ? "كلمة المرور" : "Password")
+                                    </label>
+                                </div>
+                                <div class="input-group" style="background: #ffffff; border-radius: 12px; border: 1.5px solid #cbd5e1; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                                    <span class="input-group-text" style="background: #f8fafc; border: none; color: #64748b; font-size: 1.15rem; padding: 0.85rem 1.1rem;">
+                                        <i class="bi bi-lock-fill"></i>
+                                    </span>
+                                    <input asp-for="Password" type="password" class="form-control" id="passwordInput"
+                                           style="background: #ffffff; border: none; padding: 0.85rem 1rem; color: #0f172a; font-size: 0.95rem;"
+                                           placeholder="••••••••" required />
+                                    <button class="btn" type="button" id="togglePassword" title="Show/Hide password" style="background: #ffffff; border: none; color: #64748b; padding: 0 1.1rem;">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="Password" class="text-danger small mt-1 d-block"></span>
+                            </div>
+
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="rememberMe" checked>
+                                    <label class="form-check-label text-muted small" for="rememberMe">
+                                        @(isArabic ? "تذكرني" : "Remember me")
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-glow w-100 py-3 fw-bold d-flex align-items-center justify-content-center gap-2" style="font-size: 1rem; border-radius: 12px;">
+                                <i class="bi bi-box-arrow-in-right fs-5"></i>
+                                <span>@(isArabic ? "تسجيل الدخول للنظام" : "Sign In to ERP Portal")</span>
+                            </button>
+                        </form>
+
+                        <div class="text-center mt-4 pt-3 border-top border-light-subtle text-muted small">
+                            <span>@(isArabic ? "ليس لديك حساب ؟" : "Don't have an account?")</span>
+                            <a asp-action="Register" class="text-primary fw-bold text-decoration-none ms-1">
+                                @(isArabic ? "إنشاء حساب جديد" : "Sign up here")
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
-  <partial name="_ValidationScriptsPartial" />
+    <partial name="_ValidationScriptsPartial" />
 
-  <script>
-    // Toggle password visibility
-    document.getElementById('togglePassword')?.addEventListener('click', function() {
-        const passwordInput = document.querySelector('input[name="Password"]');
-        const icon = this.querySelector('i');
+    <script>
+        document.getElementById('togglePassword')?.addEventListener('click', function () {
+            const passwordInput = document.getElementById('passwordInput');
+            const icon = this.querySelector('i');
 
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            icon.classList.remove('bi-eye');
-            icon.classList.add('bi-eye-slash');
-        } else {
-            passwordInput.type = 'password';
-            icon.classList.remove('bi-eye-slash');
-            icon.classList.add('bi-eye');
-        }
-    });
-  </script>
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        });
+    </script>
 }

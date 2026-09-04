@@ -7,6 +7,36 @@
 @{
     var currentUICulture = CultureInfo.CurrentUICulture.Name;
     var isArabic = currentUICulture.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var isAuthPage = string.Equals(currentController, "Auth", StringComparison.OrdinalIgnoreCase);
+    var isAuthenticated = User.Identity?.IsAuthenticated == true && !isAuthPage;
+
+    var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+    var userName = User.Identity?.Name ?? "";
+    var isUserAdmin = User.IsInRole("Admin") || User.IsInRole("Administrator") ||
+                      string.Equals(userRole, "admin", StringComparison.OrdinalIgnoreCase) ||
+                      string.Equals(userRole, "administrator", StringComparison.OrdinalIgnoreCase) ||
+                      userName.Contains("admin", StringComparison.OrdinalIgnoreCase);
+
+    var isManager = isUserAdmin || string.Equals(userRole, "Manager", StringComparison.OrdinalIgnoreCase);
+    var isAccountant = isUserAdmin || isManager || string.Equals(userRole, "Accountant", StringComparison.OrdinalIgnoreCase);
+    var isHR = isUserAdmin || string.Equals(userRole, "HR", StringComparison.OrdinalIgnoreCase);
+    var isEmployee = isUserAdmin || isManager || string.Equals(userRole, "Employee", StringComparison.OrdinalIgnoreCase);
+
+    var displayRole = isUserAdmin ? "Admin" : (string.IsNullOrEmpty(userRole) ? "Employee" : userRole);
+
+    int overdueCount = 0;
+    int maintenanceCount = 0;
+    int totalAlerts = 0;
+
+    if (isAuthenticated)
+    {
+        var navMetrics = await DashboardProvider.GetDashboardMetricsAsync(isUserAdmin ? null : (int?)null);
+        overdueCount = navMetrics?.OverdueRentalsCount ?? 0;
+        maintenanceCount = navMetrics?.MaintenanceCarsCount ?? 0;
+        totalAlerts = overdueCount + maintenanceCount;
+    }
 }
 
 <!DOCTYPE html>
@@ -23,7 +53,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
     
-    <!-- Enterprise Data Grid Dependencies (DataTables / Kendo Engine) -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" />
@@ -36,121 +65,142 @@
         })();
     </script>
 </head>
-<body>
+<body class="@(!isAuthenticated ? "auth-mode" : "")">
 
-    <div class="app-wrapper" id="appWrapper">
-        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-        <!-- Collapsible Glassmorphic Sidebar -->
-        <aside class="sidebar-wrapper" id="sidebarMenu">
-            <div class="sidebar-header">
-                <a class="sidebar-brand" asp-controller="Home" asp-action="Dashboard">
-                    <div class="sidebar-brand-icon">
-                        <i class="bi bi-car-front-fill"></i>
-                    </div>
-                    <span class="sidebar-brand-text text-gradient">CarRental<span class="text-white">ERP</span></span>
-                </a>
-            </div>
-
-            <nav class="sidebar-nav">
-                <a class="sidebar-link" asp-controller="Home" asp-action="Dashboard" title="@Loc.GetString("Dashboard")">
-                    <i class="bi bi-grid-1x2-fill"></i>
-                    <span class="sidebar-link-text">@Loc.GetString("Dashboard")</span>
-                </a>
-                <a class="sidebar-link" asp-controller="Car" asp-action="Index" title="@Loc.GetString("Rental Fleet Catalog")">
-                    <i class="bi bi-car-front-fill"></i>
-                    <span class="sidebar-link-text">@Loc.GetString("Rental Fleet Catalog")</span>
-                </a>
-                <a class="sidebar-link" asp-controller="Car" asp-action="SalesCatalog" title="@Loc.GetString("Sales Showroom")">
-                    <i class="bi bi-shop text-warning"></i>
-                    <span class="sidebar-link-text">@Loc.GetString("Sales Showroom")</span>
-                </a>
-                <a class="sidebar-link" asp-controller="Rentals" asp-action="Index" title="@Loc.GetString("Rental Contracts")">
-                    <i class="bi bi-file-earmark-text-fill"></i>
-                    <span class="sidebar-link-text">@Loc.GetString("Rental Contracts")</span>
-                </a>
-                <a class="sidebar-link" asp-controller="Sales" asp-action="Index" title="@Loc.GetString("Car Sales Ledger")">
-                    <i class="bi bi-tag-fill text-success"></i>
-                    <span class="sidebar-link-text">@Loc.GetString("Car Sales Ledger")</span>
-                </a>
-                <a class="sidebar-link" asp-controller="Rentals" asp-action="Calendar" title="Booking Calendar">
-                    <i class="bi bi-calendar3 text-primary"></i>
-                    <span class="sidebar-link-text">Booking Calendar</span>
-                </a>
-                <a class="sidebar-link" asp-controller="Car" asp-action="Alerts" title="Fleet Alerts Center">
-                    <i class="bi bi-shield-exclamation text-warning"></i>
-                    <span class="sidebar-link-text">Fleet Alerts</span>
-                </a>
-                <a class="sidebar-link" asp-controller="Sales" asp-action="Calculator" title="Installment Calculator">
-                    <i class="bi bi-calculator text-success"></i>
-                    <span class="sidebar-link-text">Amortization Calculator</span>
-                </a>
-                <a class="sidebar-link" asp-controller="Home" asp-action="FinancialReport" title="Executive Financial P&L">
-                    <i class="bi bi-file-earmark-bar-graph text-info"></i>
-                    <span class="sidebar-link-text">Financial P&L</span>
-                </a>
-                <a class="sidebar-link" asp-controller="Customers" asp-action="Index" title="@Loc.GetString("Customers")">
-                    <i class="bi bi-people-fill"></i>
-                    <span class="sidebar-link-text">@Loc.GetString("Customers")</span>
-                </a>
-                <a class="sidebar-link" asp-controller="Payment" asp-action="Index" title="@Loc.GetString("Payment Ledger")">
-                    <i class="bi bi-wallet2"></i>
-                    <span class="sidebar-link-text">@Loc.GetString("Payment Ledger")</span>
-                </a>
-                <a class="sidebar-link" asp-controller="Invoices" asp-action="Index" title="@Loc.GetString("Tax Invoices")">
-                    <i class="bi bi-receipt-cutoff"></i>
-                    <span class="sidebar-link-text">@Loc.GetString("Tax Invoices")</span>
-                </a>
-                <a class="sidebar-link" asp-controller="Maintenance" asp-action="Index" title="@Loc.GetString("Maintenance")">
-                    <i class="bi bi-tools"></i>
-                    <span class="sidebar-link-text">@Loc.GetString("Maintenance")</span>
-                </a>
-                <a class="sidebar-link" asp-controller="Tracking" asp-action="Index" title="@Loc.GetString("GPS Live Tracking")">
-                    <i class="bi bi-broadcast text-primary"></i>
-                    <span class="sidebar-link-text">@Loc.GetString("GPS Live Tracking")</span>
-                </a>
-                <a class="sidebar-link" asp-controller="AuditLogs" asp-action="Index" title="@Loc.GetString("Audit Monitor")">
-                    <i class="bi bi-shield-check text-danger"></i>
-                    <span class="sidebar-link-text">@Loc.GetString("Audit Monitor")</span>
-                </a>
-
-@{
-    var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-    var userName = User.Identity?.Name ?? "";
-    var isUserAdmin = User.IsInRole("Admin") || User.IsInRole("Administrator") ||
-                      string.Equals(userRole, "admin", StringComparison.OrdinalIgnoreCase) ||
-                      userName.Contains("admin", StringComparison.OrdinalIgnoreCase);
-    var displayRole = isUserAdmin ? "Admin" : (string.IsNullOrEmpty(userRole) ? "Employee" : userRole);
-
-    var navMetrics = await DashboardProvider.GetDashboardMetricsAsync(isUserAdmin ? null : (int?)null);
-    var overdueCount = navMetrics?.OverdueRentalsCount ?? 0;
-    var maintenanceCount = navMetrics?.MaintenanceCarsCount ?? 0;
-    var totalAlerts = overdueCount + maintenanceCount;
-}
-
-                @if (isUserAdmin)
-                {
-                    <a class="sidebar-link" asp-controller="Employees" asp-action="Permissions" title="@Loc.GetString("Roles & Permissions")">
-                        <i class="bi bi-key-fill text-warning"></i>
-                        <span class="sidebar-link-text">@Loc.GetString("Roles & Permissions")</span>
+    <div class="app-wrapper @(!isAuthenticated ? "auth-layout" : "")" id="appWrapper">
+        @if (isAuthenticated)
+        {
+            <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+            <!-- Collapsible Glassmorphic Sidebar -->
+            <aside class="sidebar-wrapper" id="sidebarMenu">
+                <div class="sidebar-header">
+                    <a class="sidebar-brand" asp-controller="Home" asp-action="Dashboard">
+                        <div class="sidebar-brand-icon">
+                            <i class="bi bi-car-front-fill"></i>
+                        </div>
+                        <span class="sidebar-brand-text text-gradient">CarRental<span class="text-white">ERP</span></span>
                     </a>
-                    <a class="sidebar-link" asp-controller="Employees" asp-action="Index" title="Staff Directory">
-                        <i class="bi bi-people-fill text-info"></i>
-                        <span class="sidebar-link-text">Staff Directory</span>
-                    </a>
-                }
-            </nav>
-
-            <div class="sidebar-footer">
-                <div class="small text-secondary sidebar-brand-text">
-                    <span>Enterprise v2.5</span>
                 </div>
-            </div>
-        </aside>
 
-        <!-- Main Wrapper -->
+                <nav class="sidebar-nav">
+                    <a class="sidebar-link" asp-controller="Home" asp-action="Dashboard" title="@Loc.GetString("Dashboard")">
+                        <i class="bi bi-grid-1x2-fill"></i>
+                        <span class="sidebar-link-text">@Loc.GetString("Dashboard")</span>
+                    </a>
+
+                    @if (isUserAdmin || isManager || isEmployee)
+                    {
+                        <a class="sidebar-link" asp-controller="Car" asp-action="Index" title="@Loc.GetString("Rental Fleet Catalog")">
+                            <i class="bi bi-car-front-fill"></i>
+                            <span class="sidebar-link-text">@Loc.GetString("Rental Fleet Catalog")</span>
+                        </a>
+                        <a class="sidebar-link" asp-controller="Car" asp-action="SalesCatalog" title="@Loc.GetString("Sales Showroom")">
+                            <i class="bi bi-shop text-warning"></i>
+                            <span class="sidebar-link-text">@Loc.GetString("Sales Showroom")</span>
+                        </a>
+                        <a class="sidebar-link" asp-controller="Rentals" asp-action="Index" title="@Loc.GetString("Rental Contracts")">
+                            <i class="bi bi-file-earmark-text-fill"></i>
+                            <span class="sidebar-link-text">@Loc.GetString("Rental Contracts")</span>
+                        </a>
+                        <a class="sidebar-link" asp-controller="Sales" asp-action="Index" title="@Loc.GetString("Car Sales Ledger")">
+                            <i class="bi bi-tag-fill text-success"></i>
+                            <span class="sidebar-link-text">@Loc.GetString("Car Sales Ledger")</span>
+                        </a>
+                        <a class="sidebar-link" asp-controller="Rentals" asp-action="Calendar" title="Booking Calendar">
+                            <i class="bi bi-calendar3 text-primary"></i>
+                            <span class="sidebar-link-text">Booking Calendar</span>
+                        </a>
+                    }
+
+                    @if (isUserAdmin || isManager)
+                    {
+                        <a class="sidebar-link" asp-controller="Car" asp-action="Alerts" title="Fleet Alerts Center">
+                            <i class="bi bi-shield-exclamation text-warning"></i>
+                            <span class="sidebar-link-text">Fleet Alerts</span>
+                        </a>
+                        <a class="sidebar-link" asp-controller="Sales" asp-action="Calculator" title="Installment Calculator">
+                            <i class="bi bi-calculator text-success"></i>
+                            <span class="sidebar-link-text">Amortization Calculator</span>
+                        </a>
+                    }
+
+                    @if (isUserAdmin || isManager || isAccountant)
+                    {
+                        <a class="sidebar-link" asp-controller="Home" asp-action="FinancialReport" title="Executive Financial P&L">
+                            <i class="bi bi-file-earmark-bar-graph text-info"></i>
+                            <span class="sidebar-link-text">Financial P&L</span>
+                        </a>
+                    }
+
+                    @if (isUserAdmin || isManager || isEmployee)
+                    {
+                        <a class="sidebar-link" asp-controller="Customers" asp-action="Index" title="@Loc.GetString("Customers")">
+                            <i class="bi bi-people-fill"></i>
+                            <span class="sidebar-link-text">@Loc.GetString("Customers")</span>
+                        </a>
+                    }
+
+                    @if (isUserAdmin || isManager || isAccountant || isEmployee)
+                    {
+                        <a class="sidebar-link" asp-controller="Payment" asp-action="Index" title="@Loc.GetString("Payment Ledger")">
+                            <i class="bi bi-wallet2"></i>
+                            <span class="sidebar-link-text">@Loc.GetString("Payment Ledger")</span>
+                        </a>
+                        <a class="sidebar-link" asp-controller="Invoices" asp-action="Index" title="@Loc.GetString("Tax Invoices")">
+                            <i class="bi bi-receipt-cutoff"></i>
+                            <span class="sidebar-link-text">@Loc.GetString("Tax Invoices")</span>
+                        </a>
+                    }
+
+                    @if (isUserAdmin || isManager || isEmployee)
+                    {
+                        <a class="sidebar-link" asp-controller="Maintenance" asp-action="Index" title="@Loc.GetString("Maintenance")">
+                            <i class="bi bi-tools"></i>
+                            <span class="sidebar-link-text">@Loc.GetString("Maintenance")</span>
+                        </a>
+                        <a class="sidebar-link" asp-controller="Tracking" asp-action="Index" title="@Loc.GetString("GPS Live Tracking")">
+                            <i class="bi bi-broadcast text-primary"></i>
+                            <span class="sidebar-link-text">@Loc.GetString("GPS Live Tracking")</span>
+                        </a>
+                    }
+
+                    @if (isUserAdmin || isHR)
+                    {
+                        <a class="sidebar-link" asp-controller="AuditLogs" asp-action="Index" title="@Loc.GetString("Audit Monitor")">
+                            <i class="bi bi-shield-check text-danger"></i>
+                            <span class="sidebar-link-text">@Loc.GetString("Audit Monitor")</span>
+                        </a>
+                    }
+
+                    @if (isUserAdmin || isHR)
+                    {
+                        <a class="sidebar-link" asp-controller="Employees" asp-action="Index" title="Staff Directory">
+                            <i class="bi bi-people-fill text-info"></i>
+                            <span class="sidebar-link-text">Staff Directory</span>
+                        </a>
+                    }
+
+                    @if (isUserAdmin)
+                    {
+                        <a class="sidebar-link" asp-controller="Employees" asp-action="Permissions" title="@Loc.GetString("Roles & Permissions")">
+                            <i class="bi bi-key-fill text-warning"></i>
+                            <span class="sidebar-link-text">@Loc.GetString("Roles & Permissions")</span>
+                        </a>
+                    }
+                </nav>
+
+                <div class="sidebar-footer">
+                    <div class="small text-secondary sidebar-brand-text">
+                        <span>Enterprise v2.5</span>
+                    </div>
+                </div>
+            </aside>
+        }
+
         <div class="main-wrapper">
-            <!-- Top Sticky Header -->
-            <header class="top-header">
+            @if (isAuthenticated)
+            {
+                <header class="top-header">
                 <div class="d-flex align-items-center gap-3">
                     <button class="btn-sidebar-toggle" id="sidebarToggle" title="Toggle Navigation Sidebar">
                         <i class="bi bi-list fs-4"></i>
@@ -166,7 +216,7 @@
                     <div class="dropdown">
                         <button class="btn btn-glass d-flex align-items-center gap-1.5 px-3 py-1.5 rounded-pill" type="button" data-bs-toggle="dropdown" title="Select System Language">
                             <i class="bi bi-globe text-primary"></i>
-                            <span class="small fw-bold text-white ms-1 d-none d-sm-inline">@(isArabic ? "العربية 🇪🇬" : "English 🇺🇸")</span>
+                            <span class="small fw-bold text-white ms-1 d-none d-sm-inline">@(isArabic ? "العربية " : "English ")</span>
                             <i class="bi bi-chevron-down text-secondary ms-1" style="font-size: 0.7rem;"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow-lg border-secondary border-opacity-25 mt-2">
@@ -186,7 +236,7 @@
                                     <input type="hidden" name="culture" value="ar-EG" />
                                     <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
                                     <button type="submit" class="dropdown-item d-flex align-items-center justify-content-between py-2 @(isArabic ? "active text-primary fw-bold" : "")">
-                                        <span>🇪🇬 العربية (مصر)</span>
+                                        <span> العربية </span>
                                         @if (isArabic) { <i class="bi bi-check-lg text-primary ms-2"></i> }
                                     </button>
                                 </form>
@@ -319,39 +369,39 @@
                     }
                 </div>
             </header>
+            }
 
-            <!-- Main Content Body -->
-            <main role="main" class="py-4 flex-grow-1">
-                <div class="container-fluid px-4">
+            <main role="main" class="@(isAuthenticated ? "py-4 flex-grow-1" : "flex-grow-1 d-flex flex-column")">
+                <div class="@(isAuthenticated ? "container-fluid px-4" : "container-fluid p-0 flex-grow-1 d-flex flex-column")">
                     @RenderBody()
                 </div>
             </main>
 
-            <!-- Footer -->
-            <footer class="border-top border-secondary border-opacity-10 py-3 bg-dark bg-opacity-50 mt-auto">
-                <div class="container-fluid px-4">
-                    <div class="d-flex flex-column flex-md-row align-items-center justify-content-between text-secondary small gap-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-car-front-fill text-primary"></i>
-                            <span>&copy; @DateTime.UtcNow.Year CarRental ERP Enterprise System. All rights reserved.</span>
-                        </div>
-                        <div class="d-flex gap-4">
-                            <a href="#" class="text-secondary text-decoration-none">Privacy Policy</a>
-                            <a href="#" class="text-secondary text-decoration-none">Terms of Service</a>
+            @if (isAuthenticated)
+            {
+                <footer class="border-top border-secondary border-opacity-10 py-3 bg-dark bg-opacity-50 mt-auto">
+                    <div class="container-fluid px-4">
+                        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between text-secondary small gap-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-car-front-fill text-primary"></i>
+                                <span>&copy; @DateTime.UtcNow.Year CarRental ERP Enterprise System. All rights reserved.</span>
+                            </div>
+                            <div class="d-flex gap-4">
+                                <a href="#" class="text-secondary text-decoration-none">Privacy Policy</a>
+                                <a href="#" class="text-secondary text-decoration-none">Terms of Service</a>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </footer>
+                </footer>
+            }
         </div>
     </div>
 
-    <!-- Core Scripts -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
-    <!-- Data Grid Engine (DataTables / Kendo UI Integration) -->
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
@@ -367,7 +417,6 @@
             const appWrapper = $('#appWrapper');
             const sidebarToggle = $('#sidebarToggle');
 
-            // Restore Sidebar State from localStorage
             if (localStorage.getItem('sidebarCollapsed') === 'true') {
                 appWrapper.addClass('sidebar-collapsed');
             }
@@ -386,7 +435,6 @@
                 appWrapper.removeClass('sidebar-mobile-open');
             });
 
-            // Highlight Active Link
             var currentPath = window.location.pathname.toLowerCase();
             $('.sidebar-link').each(function() {
                 var href = $(this).attr('href');
@@ -395,7 +443,6 @@
                 }
             });
 
-            // Auto-initialize Enterprise Data Grids for all tables with dynamic Arabic / English Kendo-style UI
             var isAr = document.documentElement.getAttribute('dir') === 'rtl';
             var dtLanguage = isAr ? {
                 search: "",
@@ -452,7 +499,6 @@
                 }
             });
 
-            // Futuristic Theme Switcher Logic
             function updateThemeUI(theme) {
                 document.documentElement.setAttribute('data-theme', theme);
                 localStorage.setItem('appTheme', theme);
@@ -469,93 +515,95 @@
         });
     </script>
 
-    <!-- Live Admin Floating Side-Toast Container & Engine -->
-    <div id="liveAdminToastContainer" class="live-toast-container"></div>
+    @if (isAuthenticated)
+    {
+        <div id="liveAdminToastContainer" class="live-toast-container"></div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                let lastSeenAuditId = parseInt(localStorage.getItem('last_seen_audit_id') || '0');
+
+                function showLiveToast(audit) {
+                    const container = document.getElementById('liveAdminToastContainer');
+                    if (!container) return;
+
+                    const toast = document.createElement('div');
+                    toast.className = 'live-toast-card';
+                    toast.innerHTML = `
+                        <div class="d-flex align-items-start justify-content-between gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-primary bg-opacity-25 text-primary p-2 fs-5 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                    <i class="bi bi-bell-fill"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-white small"><i class="bi bi-person-circle text-info me-1"></i> ${audit.employeeName}</div>
+                                    <div class="fw-semibold text-gradient small">${audit.action} (${audit.module})</div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close btn-close-white small" onclick="this.closest('.live-toast-card').remove();"></button>
+                        </div>
+                        <div class="mt-2 text-secondary small text-truncate" style="font-size: 0.78rem;" title="${audit.details}">
+                            ${audit.details}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary border-opacity-25" style="font-size: 0.7rem;">
+                            <span class="text-secondary"><i class="bi bi-clock me-1"></i> ${audit.time}</span>
+                            <a href="/AuditLogs/Index" class="text-primary text-decoration-none fw-bold">View Log →</a>
+                        </div>
+                    `;
+
+                    container.appendChild(toast);
+
+                    // Auto-remove toast after 8 seconds
+                    setTimeout(() => {
+                        if (toast && toast.parentNode) {
+                            toast.style.opacity = '0';
+                            toast.style.transform = 'translateY(-10px)';
+                            setTimeout(() => toast.remove(), 300);
+                        }
+                    }, 8000);
+                }
+
+                function pollNewAudits() {
+                    fetch('/AuditLogs/GetLatestAudit')
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data && data.id) {
+                                if (lastSeenAuditId > 0 && data.id > lastSeenAuditId) {
+                                    showLiveToast(data);
+                                }
+                                lastSeenAuditId = data.id;
+                                localStorage.setItem('last_seen_audit_id', lastSeenAuditId);
+                            }
+                        })
+                        .catch(() => {});
+                }
+
+                pollNewAudits();
+                setInterval(pollNewAudits, 4000);
+
+                function updateHeaderClock() {
+                    const clockEl = document.getElementById('liveHeaderClock');
+                    if (clockEl) {
+                        const now = new Date();
+                        const isAr = document.documentElement.getAttribute('dir') === 'rtl';
+                        clockEl.textContent = now.toLocaleString(isAr ? 'ar-EG' : 'en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                            hour12: true
+                        });
+                    }
+                }
+                updateHeaderClock();
+                setInterval(updateHeaderClock, 1000);
+            });
+        </script>
+    }
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            let lastSeenAuditId = parseInt(localStorage.getItem('last_seen_audit_id') || '0');
-
-            function showLiveToast(audit) {
-                const container = document.getElementById('liveAdminToastContainer');
-                if (!container) return;
-
-                const toast = document.createElement('div');
-                toast.className = 'live-toast-card';
-                toast.innerHTML = `
-                    <div class="d-flex align-items-start justify-content-between gap-2">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="rounded-circle bg-primary bg-opacity-25 text-primary p-2 fs-5 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                                <i class="bi bi-bell-fill"></i>
-                            </div>
-                            <div>
-                                <div class="fw-bold text-white small"><i class="bi bi-person-circle text-info me-1"></i> ${audit.employeeName}</div>
-                                <div class="fw-semibold text-gradient small">${audit.action} (${audit.module})</div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white small" onclick="this.closest('.live-toast-card').remove();"></button>
-                    </div>
-                    <div class="mt-2 text-secondary small text-truncate" style="font-size: 0.78rem;" title="${audit.details}">
-                        ${audit.details}
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary border-opacity-25" style="font-size: 0.7rem;">
-                        <span class="text-secondary"><i class="bi bi-clock me-1"></i> ${audit.time}</span>
-                        <a href="/AuditLogs/Index" class="text-primary text-decoration-none fw-bold">View Log →</a>
-                    </div>
-                `;
-
-                container.appendChild(toast);
-
-                // Auto-remove toast after 8 seconds
-                setTimeout(() => {
-                    if (toast && toast.parentNode) {
-                        toast.style.opacity = '0';
-                        toast.style.transform = 'translateY(-10px)';
-                        setTimeout(() => toast.remove(), 300);
-                    }
-                }, 8000);
-            }
-
-            function pollNewAudits() {
-                fetch('/AuditLogs/GetLatestAudit')
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data && data.id) {
-                            if (lastSeenAuditId > 0 && data.id > lastSeenAuditId) {
-                                showLiveToast(data);
-                            }
-                            lastSeenAuditId = data.id;
-                            localStorage.setItem('last_seen_audit_id', lastSeenAuditId);
-                        }
-                    })
-                    .catch(() => {});
-            }
-
-            pollNewAudits();
-            setInterval(pollNewAudits, 4000);
-
-            // Live Local Clock Engine
-            function updateHeaderClock() {
-                const clockEl = document.getElementById('liveHeaderClock');
-                if (clockEl) {
-                    const now = new Date();
-                    const isAr = document.documentElement.getAttribute('dir') === 'rtl';
-                    clockEl.textContent = now.toLocaleString(isAr ? 'ar-EG' : 'en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                        hour12: true
-                    });
-                }
-            }
-            updateHeaderClock();
-            setInterval(updateHeaderClock, 1000);
-        });
-
-        // Global AJAX Form Handler Helper
         function submitFormViaAjax(formElement, onSuccess) {
             var $form = $(formElement);
             var formData = new FormData(formElement);

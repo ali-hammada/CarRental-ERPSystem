@@ -27,19 +27,18 @@ namespace Web.Services
 
             // Navigation Sidebar Links
             Add("Dashboard", "Dashboard", "لوحة التحكم الرئيسية");
-            Add("Rental Fleet Catalog", "Rental Fleet Catalog", "كتالوج أسطول الإيجارات");
-            Add("Sales Showroom", "Sales Showroom", "معرض بيع السيارات");
+            Add("Rental Fleet Catalog", "Rental Fleet Catalog", "  الإيجارات");
+            Add("Sales Showroom", "Sales Showroom", "معرض السيارات");
             Add("Rental Contracts", "Rental Contracts", "عقود الإيجار");
             Add("Car Sales Ledger", "Car Sales Ledger", "سجل مبيعات السيارات");
             Add("Customers", "Customers", "إدارة العملاء");
-            Add("Payment Ledger", "Payment Ledger", "سجل المقبوضات والمدفوعات");
+            Add("Payment Ledger", "Payment Ledger", "سجل القبض والمدفوع");
             Add("Tax Invoices", "Tax Invoices", "الفواتير الضريبية");
-            Add("Maintenance", "Maintenance", "صيانة وإصلاح الأسطول");
+            Add("Maintenance", "Maintenance", "صيانة وإصلاح ");
             Add("GPS Live Tracking", "GPS Live Tracking", "التتبع المباشر عبر GPS");
             Add("Audit Monitor", "Audit Monitor", "سجلات ومراقبة النظام");
             Add("Roles & Permissions", "Roles & Permissions", "إدارة الصلاحيات والأدوار");
 
-            Add("Enterprise Portal", "Enterprise Portal", "بوابة إدارة المؤسسة");
             Add("System Operational Alerts", "System Operational Alerts", "تنبيهات التشغيل والعمليات");
             Add("Overdue Rental Contracts", "Overdue Rental Contracts", "عقود إيجار متأخرة التسليم");
             Add("Vehicles in Maintenance", "Vehicles in Maintenance", "سيارات داخل ورش الصيانة");
@@ -51,14 +50,14 @@ namespace Web.Services
             Add("Sell Vehicle", "Sell Vehicle", "بيع سيارة (عقد جديد)");
             Add("Total Sales Value", "Total Sales Value", "إجمالي قيمة المبيعات");
             Add("Net Gross Profit", "Net Gross Profit", "صافي أرباح المعرض");
-            Add("Installments Receivable", "Installments Receivable", "الأقساط المستحقة القادمة");
+            Add("Installments Receivable", "Installments Receivable", "الأقساط المستحقة ");
             Add("Cash / Financing Ratio", "Cash / Financing Ratio", "نسبة الكاش / التقسيط");
-            Add("Fleet Utilization", "Fleet Utilization", "نسبة تشغيل الأسطول");
+            Add("Fleet Utilization", "Fleet Utilization", "نسبة التشغيل ");
             Add("Total Rentals", "Total Rentals", "إجمالي عقود الإيجار");
             Add("Active Rentals", "Active Rentals", "العقود النشطة حالياً");
             Add("Total Revenue", "Total Revenue", "إجمالي إيرادات النظام");
             Add("Net Revenue", "Net Revenue", "صافي الدخل الربحي");
-            Add("All Fleet Vehicles", "All Fleet Vehicles", "جميع سيارات الأسطول");
+            Add("All Fleet Vehicles", "All Fleet Vehicles", "جميع سيارات ");
             Add("Rental Fleet", "Rental Fleet", "أسطول الإيجارات فقط");
             Add("Search...", "Search...", "بحث سريع...");
             Add("Save", "Save", "حفظ البيانات");

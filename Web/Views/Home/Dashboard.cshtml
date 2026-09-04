@@ -7,18 +7,10 @@
 }
 
 <div class="d-flex flex-column gap-4">
-    <!-- Header Hero Banner & Quick Actions -->
     <div class="glass-card p-4 position-relative overflow-hidden border-0">
         <div class="row align-items-center relative-1">
             <div class="col-lg-7 mb-3 mb-lg-0">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1">
-                        <i class="bi bi-shield-check me-1"></i> @Loc.GetString("Enterprise Portal")
-                    </span>
-                    <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">
-                        <i class="bi bi-lightning-charge me-1"></i> ERP Core Engine
-                    </span>
-                </div>
+            
                 <h2 class="display-6 fw-extrabold mb-1">
                     @Loc.GetString("Dashboard Overview") <span class="text-gradient">@User.Identity?.Name</span>
                 </h2>
@@ -37,7 +29,6 @@
             </div>
         </div>
 
-        <!-- Quick Actions Bar -->
         <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <div class="text-secondary small fw-semibold">
@@ -67,7 +58,6 @@
         </div>
     </div>
 
-    <!-- Operation Alerts Bar -->
     @if (Model.OverdueRentalsCount > 0 || Model.MaintenanceCarsCount > 0 || Model.TotalRemainingUnpaid > 0)
     {
         <div class="row g-3">
@@ -125,9 +115,7 @@
         </div>
     }
 
-    <!-- Top KPI Stat Grid (6 Widgets) -->
     <div class="row g-4">
-        <!-- Net Profit Card -->
         <div class="col-xl-4 col-md-6">
             <div class="kpi-widget kpi-success h-100">
                 <div class="d-flex align-items-center justify-content-between">
