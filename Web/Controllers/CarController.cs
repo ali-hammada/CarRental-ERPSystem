@@ -63,7 +63,7 @@ namespace Web.Controllers
         public IActionResult Create()
         {
             var car = new Car { ListingType = CarListingType.RentalOnly };
-            return View(car);
+            return View("CreateEdit", car);
         }
 
         [HttpPost]
@@ -77,7 +77,7 @@ namespace Web.Controllers
             }
 
             if (!ModelState.IsValid)
-                return View(car);
+                return View("CreateEdit", car);
 
             if (ImageFile != null && ImageFile.Length > 0)
             {
@@ -122,7 +122,7 @@ namespace Web.Controllers
                 _toastNotification.AddErrorToastMessage("Car not found.");
                 return RedirectToAction(nameof(Index));
             }
-            return View(car);
+            return View("CreateEdit", car);
         }
 
         [HttpPost]
@@ -136,7 +136,7 @@ namespace Web.Controllers
             }
 
             if (!ModelState.IsValid)
-                return View(car);
+                return View("CreateEdit", car);
 
             if (ImageFile != null && ImageFile.Length > 0)
             {

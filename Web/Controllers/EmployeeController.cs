@@ -39,7 +39,7 @@ namespace Web.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            return View(new EmployeeVM());
+            return View("CreateEdit", new EmployeeVM());
         }
 
         [HttpPost]
@@ -49,7 +49,7 @@ namespace Web.Controllers
             if (!ModelState.IsValid)
             {
                 _toast.AddInfoToastMessage("Please fix validation errors.");
-                return View(vm);
+                return View("CreateEdit", vm);
             }
 
             var existing = await _employeeServices.GetByEmailAsync(vm.Email);
@@ -57,7 +57,7 @@ namespace Web.Controllers
             {
                 ModelState.AddModelError("Email", "Email already exists.");
                 _toast.AddWarningToastMessage("Email already exists.");
-                return View(vm);
+                return View("CreateEdit", vm);
             }
 
             var employee = new Employee
@@ -99,7 +99,7 @@ namespace Web.Controllers
                 IsActive = employee.IsActive,
             };
 
-            return View(vm);
+            return View("CreateEdit", vm);
         }
 
         [HttpPost]
@@ -111,7 +111,7 @@ namespace Web.Controllers
             if (!ModelState.IsValid)
             {
                 ShowValidationErrors();
-                return View(vm);
+                return View("CreateEdit", vm);
             }
 
             var employee = await _employeeServices.GetByIdAsync(vm.Id);
@@ -126,7 +126,7 @@ namespace Web.Controllers
             {
                 ModelState.AddModelError("Email", "Email address is already in use.");
                 _toast.AddWarningToastMessage("Email address is already in use.");
-                return View(vm);
+                return View("CreateEdit", vm);
             }
 
             employee.FullName = vm.FullName;

@@ -1,8 +1,8 @@
-﻿@model Web.ViewModels.EmployeeVM
+@model Web.ViewModels.EmployeeVM
 
 @{
-  var isEdit = Model!=null&&Model.Id!=0;
-  ViewData["Title"]=isEdit ? "Edit Employee" : "Add New Employee";
+  var isEdit = Model != null && Model.Id != 0;
+  ViewData["Title"] = isEdit ? "Edit Employee" : "Add New Employee";
 }
 
 <div class="container mt-4">
@@ -17,7 +17,7 @@
         </div>
         <div class="card-body">
 
-          @if(TempData["Error"]!=null)
+          @if(TempData["Error"] != null)
           {
             <div class="alert alert-danger alert-dismissible fade show">
               <i class="bi bi-exclamation-triangle-fill"></i> @TempData["Error"]
@@ -25,7 +25,7 @@
             </div>
           }
 
-          @if(TempData["Success"]!=null)
+          @if(TempData["Success"] != null)
           {
             <div class="alert alert-success alert-dismissible fade show">
               <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
@@ -139,7 +139,7 @@
               <div class="col-12">
                 <div class="form-check form-switch">
                   <input asp-for="IsActive" class="form-check-input" type="checkbox"
-                         id="isActiveSwitch" checked="@(!isEdit)" />
+                         id="isActiveSwitch" />
                   <label class="form-check-label" for="isActiveSwitch">Active Employee</label>
                 </div>
               </div>

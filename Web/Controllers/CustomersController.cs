@@ -41,7 +41,7 @@ namespace Web.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            return View(new Customer { LicenseExpiryDate = DateTime.Today.AddYears(1) });
+            return View("CreateEdit", new Customer { LicenseExpiryDate = DateTime.Today.AddYears(1) });
         }
 
         [HttpPost]
@@ -54,7 +54,7 @@ namespace Web.Controllers
             if (!ModelState.IsValid)
             {
                 _toast.AddInfoToastMessage("Please fix validation errors.");
-                return View(customer);
+                return View("CreateEdit", customer);
             }
 
             try
@@ -67,7 +67,7 @@ namespace Web.Controllers
             catch (Exception ex)
             {
                 _toast.AddErrorToastMessage($"Failed to add customer: {ex.Message}");
-                return View(customer);
+                return View("CreateEdit", customer);
             }
         }
 
@@ -83,7 +83,7 @@ namespace Web.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                return View(customer);
+                return View("CreateEdit", customer);
             }
             catch
             {
@@ -102,7 +102,7 @@ namespace Web.Controllers
             if (!ModelState.IsValid)
             {
                 _toast.AddInfoToastMessage("Please fix validation errors.");
-                return View(customer);
+                return View("CreateEdit", customer);
             }
 
             try
@@ -114,7 +114,7 @@ namespace Web.Controllers
             catch (Exception ex)
             {
                 _toast.AddErrorToastMessage($"Failed to update customer: {ex.Message}");
-                return View(customer);
+                return View("CreateEdit", customer);
             }
         }
 
