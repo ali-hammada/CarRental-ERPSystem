@@ -2,7 +2,6 @@ using Application.Providers;
 using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NToastNotify;
 
 namespace Web.Controllers
 {
@@ -11,16 +10,13 @@ namespace Web.Controllers
     {
         private readonly ICarTrackingProvider _trackingProvider;
         private readonly ICarTrackingService _trackingService;
-        private readonly IToastNotification _toast;
 
         public TrackingController(
             ICarTrackingProvider trackingProvider,
-            ICarTrackingService trackingService,
-            IToastNotification toast)
+            ICarTrackingService trackingService)
         {
             _trackingProvider = trackingProvider;
             _trackingService = trackingService;
-            _toast = toast;
         }
 
         [HttpGet]
@@ -36,7 +32,6 @@ namespace Web.Controllers
             var car = await _trackingProvider.GetCarCurrentLocationAsync(id);
             if (car == null)
             {
-                _toast.AddErrorToastMessage("Vehicle record not found for tracking.");
                 return RedirectToAction(nameof(Index));
             }
 
@@ -63,12 +58,9 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SimulatePing(int id)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             var result = await _trackingService.SimulateTelemetryPingAsync(id);
-            if (result)
-                _toast.AddSuccessToastMessage("GPS telemetry ping simulated successfully.");
-            else
-                _toast.AddErrorToastMessage("Failed to simulate GPS telemetry.");
-
+            if (isAjax) return Json(new { success = result, redirectUrl = Url.Action(nameof(Car), new { id = id }) });
             return RedirectToAction(nameof(Car), new { id = id });
         }
     }

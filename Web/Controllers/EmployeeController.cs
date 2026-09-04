@@ -3,7 +3,6 @@ using ApplicationCore.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using NToastNotify;
 using Web.ViewModels;
 
 namespace Web.Controllers
@@ -12,12 +11,10 @@ namespace Web.Controllers
     public class EmployeesController : Controller
     {
         private readonly IEmployeeServices _employeeServices;
-        private readonly IToastNotification _toast;
 
-        public EmployeesController(IEmployeeServices employeeServices, IToastNotification toast)
+        public EmployeesController(IEmployeeServices employeeServices)
         {
             _employeeServices = employeeServices;
-            _toast = toast;
         }
 
         public async Task<IActionResult> Index()
@@ -46,9 +43,15 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(EmployeeVM vm)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
             if (!ModelState.IsValid)
             {
-                _toast.AddInfoToastMessage("Please fix validation errors.");
+                if (isAjax)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    return Json(new { success = false, message = string.Join("<br>", errors) });
+                }
                 return View("CreateEdit", vm);
             }
 
@@ -56,7 +59,7 @@ namespace Web.Controllers
             if (existing != null)
             {
                 ModelState.AddModelError("Email", "Email already exists.");
-                _toast.AddWarningToastMessage("Email already exists.");
+                if (isAjax) return Json(new { success = false, message = "Email already exists." });
                 return View("CreateEdit", vm);
             }
 
@@ -76,7 +79,8 @@ namespace Web.Controllers
             }
 
             await _employeeServices.AddAsync(employee);
-            _toast.AddSuccessToastMessage("Employee added successfully.");
+
+            if (isAjax) return Json(new { success = true, redirectUrl = Url.Action(nameof(Index)) });
             return RedirectToAction(nameof(Index));
         }
 
@@ -86,7 +90,6 @@ namespace Web.Controllers
             var employee = await _employeeServices.GetByIdAsync(id);
             if (employee == null)
             {
-                _toast.AddErrorToastMessage("Employee not found.");
                 return RedirectToAction(nameof(Index));
             }
             var vm = new EmployeeVM
@@ -106,18 +109,23 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EmployeeVM vm)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             ModelState.Remove("PasswordHash");
 
             if (!ModelState.IsValid)
             {
-                ShowValidationErrors();
+                if (isAjax)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    return Json(new { success = false, message = string.Join("<br>", errors) });
+                }
                 return View("CreateEdit", vm);
             }
 
             var employee = await _employeeServices.GetByIdAsync(vm.Id);
             if (employee == null)
             {
-                _toast.AddErrorToastMessage("Employee not found.");
+                if (isAjax) return Json(new { success = false, message = "Employee not found." });
                 return RedirectToAction(nameof(Index));
             }
 
@@ -125,7 +133,7 @@ namespace Web.Controllers
             if (existing != null && existing.Id != vm.Id)
             {
                 ModelState.AddModelError("Email", "Email address is already in use.");
-                _toast.AddWarningToastMessage("Email address is already in use.");
+                if (isAjax) return Json(new { success = false, message = "Email address is already in use." });
                 return View("CreateEdit", vm);
             }
 
@@ -142,7 +150,8 @@ namespace Web.Controllers
             }
 
             await _employeeServices.UpdateAsync(employee);
-            _toast.AddSuccessToastMessage($"{employee.FullName} updated successfully.");
+
+            if (isAjax) return Json(new { success = true, redirectUrl = Url.Action(nameof(Index)) });
             return RedirectToAction(nameof(Index));
         }
 
@@ -150,15 +159,16 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             var employee = await _employeeServices.GetByIdAsync(id);
             if (employee == null)
             {
-                _toast.AddErrorToastMessage("Employee not found.");
+                if (isAjax) return Json(new { success = false, message = "Employee not found." });
                 return RedirectToAction(nameof(Index));
             }
 
             await _employeeServices.DeleteAsync(id);
-            _toast.AddSuccessToastMessage("Employee record deleted.");
+            if (isAjax) return Json(new { success = true, redirectUrl = Url.Action(nameof(Index)) });
             return RedirectToAction(nameof(Index));
         }
 
@@ -183,18 +193,18 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateRole(int id, string role)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             var employee = await _employeeServices.GetByIdAsync(id);
             if (employee == null)
             {
-                _toast.AddErrorToastMessage("User account not found.");
+                if (isAjax) return Json(new { success = false, message = "User account not found." });
                 return RedirectToAction(nameof(Permissions));
             }
 
-            string oldRole = employee.Role;
             employee.Role = role;
             await _employeeServices.UpdateAsync(employee);
 
-            _toast.AddSuccessToastMessage($"Permissions updated! User '{employee.FullName}' role changed from '{oldRole}' to '{role}'.");
+            if (isAjax) return Json(new { success = true, redirectUrl = Url.Action(nameof(Permissions)) });
             return RedirectToAction(nameof(Permissions));
         }
 
@@ -202,18 +212,18 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleStatus(int id)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             var employee = await _employeeServices.GetByIdAsync(id);
             if (employee == null)
             {
-                _toast.AddErrorToastMessage("User account not found.");
+                if (isAjax) return Json(new { success = false, message = "User account not found." });
                 return RedirectToAction(nameof(Permissions));
             }
 
             employee.IsActive = !employee.IsActive;
             await _employeeServices.UpdateAsync(employee);
 
-            string statusStr = employee.IsActive ? "ACTIVATED" : "SUSPENDED";
-            _toast.AddSuccessToastMessage($"Account for '{employee.FullName}' is now {statusStr}.");
+            if (isAjax) return Json(new { success = true, redirectUrl = Url.Action(nameof(Permissions)) });
             return RedirectToAction(nameof(Permissions));
         }
 
@@ -221,16 +231,17 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> QuickResetPassword(int id, string newPassword)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
             {
-                _toast.AddErrorToastMessage("Password must be at least 6 characters long.");
+                if (isAjax) return Json(new { success = false, message = "Password must be at least 6 characters long." });
                 return RedirectToAction(nameof(Permissions));
             }
 
             var employee = await _employeeServices.GetByIdAsync(id);
             if (employee == null)
             {
-                _toast.AddErrorToastMessage("User account not found.");
+                if (isAjax) return Json(new { success = false, message = "User account not found." });
                 return RedirectToAction(nameof(Permissions));
             }
 
@@ -238,7 +249,7 @@ namespace Web.Controllers
             employee.PasswordHash = hasher.HashPassword(employee, newPassword);
             await _employeeServices.UpdateAsync(employee);
 
-            _toast.AddSuccessToastMessage($"Password updated successfully for '{employee.FullName}'.");
+            if (isAjax) return Json(new { success = true, redirectUrl = Url.Action(nameof(Permissions)) });
             return RedirectToAction(nameof(Permissions));
         }
 
@@ -247,24 +258,6 @@ namespace Web.Controllers
         {
             var exists = await _employeeServices.GetByEmailAsync(email);
             return Json(new { exists = exists != null });
-        }
-
-        private void ShowValidationErrors()
-        {
-            var errors = ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage)
-                .ToList();
-
-            if (errors.Any())
-            {
-                var message = string.Join("<br>", errors);
-                _toast.AddErrorToastMessage(message);
-            }
-            else
-            {
-                _toast.AddInfoToastMessage("Please fix validation errors.");
-            }
         }
     }
 }

@@ -2,7 +2,7 @@
 
 @{
   var isEdit = Model != null && Model.Id != 0;
-  ViewData["Title"] = isEdit ? "Edit Employee" : "Add New Employee";
+  ViewData["Title"] = isEdit ? "Edit Employee" : "Add Employee";
 }
 
 <div class="container mt-4">
@@ -42,47 +42,40 @@
             }
 
             <div class="row g-3">
-              <!-- Full Name -->
               <div class="col-md-12">
                 <label asp-for="FullName" class="form-label">Full Name <span class="text-danger">*</span></label>
-                <input asp-for="FullName" class="form-control" required
-                       placeholder="Enter full name" />
+                <input asp-for="FullName" class="form-control" required placeholder="Enter full name" />
                 <span asp-validation-for="FullName" class="text-danger"></span>
               </div>
 
-              <!-- Email -->
               <div class="col-md-6">
                 <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
                 <div class="input-group">
                   <span class="input-group-text">
                     <i class="bi bi-envelope"></i>
                   </span>
-                  <input asp-for="Email" type="email" class="form-control" required
-                         placeholder="example@domain.com" id="EmailInput" />
+                  <input asp-for="Email" type="email" class="form-control" required placeholder="example@domain.com" id="EmailInput" />
                 </div>
                 <span asp-validation-for="Email" class="text-danger"></span>
                 <div id="emailExistsMessage" class="text-danger small mt-1" style="display:none;">
-                  <i class="bi bi-exclamation-triangle-fill me-1"></i> Email already exists!
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i> Email already exists
                 </div>
               </div>
 
-              <!-- Phone -->
               <div class="col-md-6">
                 <label asp-for="Phone" class="form-label">Phone <span class="text-danger">*</span></label>
                 <div class="input-group">
                   <span class="input-group-text">
                     <i class="bi bi-telephone"></i>
                   </span>
-                  <input asp-for="Phone" class="form-control" required
-                         placeholder="+1234567890" id="PhoneInput" />
+                  <input asp-for="Phone" class="form-control" required placeholder="+1234567890" id="PhoneInput" />
                 </div>
                 <span asp-validation-for="Phone" class="text-danger"></span>
                 <div id="phoneExistsMessage" class="text-danger small mt-1" style="display:none;">
-                  <i class="bi bi-exclamation-triangle-fill me-1"></i> Phone already exists!
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i> Phone already exists
                 </div>
               </div>
 
-              <!-- Password Section -->
               <div class="col-md-6">
                 <label class="form-label">
                   @(isEdit ? "New Password (leave blank to keep current)" : "Password")
@@ -102,7 +95,6 @@
                 <span id="passwordError" class="text-danger small"></span>
               </div>
 
-              <!-- Confirm Password -->
               <div class="col-md-6">
                 <label class="form-label">
                   @(isEdit ? "Confirm New Password" : "Confirm Password")
@@ -117,11 +109,10 @@
                          placeholder="Confirm password" />
                 </div>
                 <span id="passwordMatchError" class="text-danger small" style="display:none;">
-                  <i class="bi bi-exclamation-triangle-fill me-1"></i> Passwords do not match!
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i> Passwords do not match
                 </span>
               </div>
 
-              <!-- Role -->
               <div class="col-md-12">
                 <label asp-for="Role" class="form-label">Role <span class="text-danger">*</span></label>
                 <select asp-for="Role" class="form-select" required>
@@ -135,11 +126,9 @@
                 <span asp-validation-for="Role" class="text-danger"></span>
               </div>
 
-              <!-- IsActive -->
               <div class="col-12">
                 <div class="form-check form-switch">
-                  <input asp-for="IsActive" class="form-check-input" type="checkbox"
-                         id="isActiveSwitch" />
+                  <input asp-for="IsActive" class="form-check-input" type="checkbox" id="isActiveSwitch" />
                   <label class="form-check-label" for="isActiveSwitch">Active Employee</label>
                 </div>
               </div>
@@ -178,7 +167,6 @@
         const emailExistsMessage = document.getElementById('emailExistsMessage');
         const phoneExistsMessage = document.getElementById('phoneExistsMessage');
 
-        // Toggle password visibility
         if (togglePasswordBtn) {
             togglePasswordBtn.addEventListener('click', function () {
                 const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
@@ -189,7 +177,6 @@
             });
         }
 
-        // Validate password match
         function validatePasswordMatch() {
             if (passwordInput.value && passwordInput.value !== confirmPasswordInput.value) {
                 passwordMatchError.style.display = 'block';
@@ -205,7 +192,6 @@
         confirmPasswordInput.addEventListener('input', validatePasswordMatch);
         passwordInput.addEventListener('input', validatePasswordMatch);
 
-        // Check email exists (for Create mode only)
         @if(!isEdit)
         {
               <text>
@@ -214,13 +200,6 @@
                       checkFieldExists('Email', this.value, emailExistsMessage);
                   }
               });
-              </text>
-        }
-
-        // Check phone exists (for Create mode only)
-        @if(!isEdit)
-        {
-              <text>
               phoneInput.addEventListener('blur', function () {
                   if (this.value) {
                       checkFieldExists('Phone', this.value, phoneExistsMessage);
@@ -229,7 +208,6 @@
               </text>
         }
 
-        // Function to check if field exists
         async function checkFieldExists(field, value, messageElement) {
             try {
                 const response = await fetch(`/Employees/Check${field}Exists`, {
@@ -252,19 +230,14 @@
             }
         }
 
-        // Form submission
         form.addEventListener('submit', function (e) {
-            // Validate password match if password is provided
+            e.preventDefault();
             if (passwordInput.value || !@isEdit.ToString().ToLower()) {
                 if (!validatePasswordMatch()) {
-                    e.preventDefault();
                     return;
                 }
             }
-
-            // Disable button during processing
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Processing...';
+            submitFormViaAjax(this);
         });
     });
   </script>

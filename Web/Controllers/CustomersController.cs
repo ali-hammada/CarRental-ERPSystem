@@ -3,7 +3,6 @@ using Application.Services;
 using ApplicationCore.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NToastNotify;
 
 namespace Web.Controllers
 {
@@ -12,16 +11,13 @@ namespace Web.Controllers
     {
         private readonly ICustomerProvider _customerProvider;
         private readonly ICustomerServices _customerServices;
-        private readonly IToastNotification _toast;
 
         public CustomersController(
             ICustomerProvider customerProvider,
-            ICustomerServices customerServices,
-            IToastNotification toast)
+            ICustomerServices customerServices)
         {
             _customerProvider = customerProvider;
             _customerServices = customerServices;
-            _toast = toast;
         }
 
         public async Task<IActionResult> Index()
@@ -33,7 +29,6 @@ namespace Web.Controllers
             }
             catch
             {
-                _toast.AddErrorToastMessage("Error loading customer catalog.");
                 return View(new List<Application.DTOs.CustomerListDto>());
             }
         }
@@ -48,12 +43,17 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Customer customer)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             ModelState.Remove("PasswordHash");
             ModelState.Remove("RentalContracts");
 
             if (!ModelState.IsValid)
             {
-                _toast.AddInfoToastMessage("Please fix validation errors.");
+                if (isAjax)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    return Json(new { success = false, message = string.Join("<br>", errors) });
+                }
                 return View("CreateEdit", customer);
             }
 
@@ -61,12 +61,12 @@ namespace Web.Controllers
             {
                 customer.PasswordHash ??= string.Empty;
                 await _customerServices.AddCustomerAsync(customer);
-                _toast.AddSuccessToastMessage("Customer added successfully.");
+                if (isAjax) return Json(new { success = true, redirectUrl = Url.Action(nameof(Index)) });
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                _toast.AddErrorToastMessage($"Failed to add customer: {ex.Message}");
+                if (isAjax) return Json(new { success = false, message = $"Failed to add customer: {ex.Message}" });
                 return View("CreateEdit", customer);
             }
         }
@@ -79,7 +79,6 @@ namespace Web.Controllers
                 var customer = await _customerServices.GetByIdAsync(id);
                 if (customer == null)
                 {
-                    _toast.AddWarningToastMessage("Customer record not found.");
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -87,7 +86,6 @@ namespace Web.Controllers
             }
             catch
             {
-                _toast.AddErrorToastMessage("Error loading customer details.");
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -96,24 +94,29 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Customer customer)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             ModelState.Remove("PasswordHash");
             ModelState.Remove("RentalContracts");
 
             if (!ModelState.IsValid)
             {
-                _toast.AddInfoToastMessage("Please fix validation errors.");
+                if (isAjax)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    return Json(new { success = false, message = string.Join("<br>", errors) });
+                }
                 return View("CreateEdit", customer);
             }
 
             try
             {
                 await _customerServices.UpdateCustomerAsync(customer);
-                _toast.AddSuccessToastMessage("Customer profile updated.");
+                if (isAjax) return Json(new { success = true, redirectUrl = Url.Action(nameof(Index)) });
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                _toast.AddErrorToastMessage($"Failed to update customer: {ex.Message}");
+                if (isAjax) return Json(new { success = false, message = $"Failed to update customer: {ex.Message}" });
                 return View("CreateEdit", customer);
             }
         }
@@ -122,18 +125,15 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             try
             {
                 var result = await _customerServices.DeleteCustomerAsync(id);
-
-                if (!result)
-                    _toast.AddWarningToastMessage("Customer could not be deleted.");
-                else
-                    _toast.AddSuccessToastMessage("Customer profile removed.");
+                if (isAjax) return Json(new { success = result, redirectUrl = Url.Action(nameof(Index)) });
             }
-            catch
+            catch (Exception ex)
             {
-                _toast.AddErrorToastMessage("Failed to delete customer.");
+                if (isAjax) return Json(new { success = false, message = ex.Message });
             }
 
             return RedirectToAction(nameof(Index));

@@ -3,7 +3,6 @@ using ApplicationCore.Entities;
 using ApplicationCore.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NToastNotify;
 
 namespace Web.Controllers
 {
@@ -12,16 +11,13 @@ namespace Web.Controllers
     {
         private readonly IMaintenanceService _maintenanceService;
         private readonly ICarServices _carServices;
-        private readonly IToastNotification _toast;
 
         public MaintenanceController(
             IMaintenanceService maintenanceService,
-            ICarServices carServices,
-            IToastNotification toast)
+            ICarServices carServices)
         {
             _maintenanceService = maintenanceService;
             _carServices = carServices;
-            _toast = toast;
         }
 
         public async Task<IActionResult> Index()
@@ -36,15 +32,6 @@ namespace Web.Controllers
             var allCars = await _carServices.GetAllCarsAsync();
             ViewBag.Cars = allCars;
 
-            if (carId.HasValue && carId > 0)
-            {
-                var selectedCar = allCars.FirstOrDefault(c => c.Id == carId.Value);
-                if (selectedCar != null && selectedCar.Status == CarStatus.Rented)
-                {
-                    _toast.AddWarningToastMessage($"Vehicle '{selectedCar.Model} ({selectedCar.PlateNumber})' is currently RENTED under an active contract and cannot undergo maintenance until returned.");
-                }
-            }
-
             var model = new MaintenanceLog
             {
                 CarId = carId ?? 0,
@@ -57,6 +44,7 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(MaintenanceLog log)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             ModelState.Remove("Car");
 
             var allCars = await _carServices.GetAllCarsAsync();
@@ -64,13 +52,19 @@ namespace Web.Controllers
 
             if (targetCar != null && targetCar.Status == CarStatus.Rented)
             {
-                _toast.AddErrorToastMessage($"Cannot record maintenance for vehicle '{targetCar.Model} ({targetCar.PlateNumber})' because it is currently RENTED out under an active contract. Please close the contract first.");
+                var errorMsg = $"Cannot record maintenance for vehicle '{targetCar.Model} ({targetCar.PlateNumber})' because it is currently RENTED out under an active contract. Please close the contract first.";
+                if (isAjax) return Json(new { success = false, message = errorMsg });
                 ViewBag.Cars = allCars;
                 return View(log);
             }
 
             if (!ModelState.IsValid)
             {
+                if (isAjax)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    return Json(new { success = false, message = string.Join("<br>", errors) });
+                }
                 ViewBag.Cars = allCars;
                 return View(log);
             }
@@ -97,7 +91,7 @@ namespace Web.Controllers
                 }
             }
 
-            _toast.AddSuccessToastMessage($"Maintenance log recorded successfully (Status: {log.Status}).");
+            if (isAjax) return Json(new { success = true, redirectUrl = Url.Action(nameof(Index)) });
             return RedirectToAction(nameof(Index));
         }
 
@@ -105,10 +99,11 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Complete(int id)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             var log = await _maintenanceService.GetByIdAsync(id);
             if (log == null)
             {
-                _toast.AddErrorToastMessage("Maintenance record not found.");
+                if (isAjax) return Json(new { success = false, message = "Maintenance record not found." });
                 return RedirectToAction(nameof(Index));
             }
 
@@ -122,7 +117,7 @@ namespace Web.Controllers
                 await _carServices.UpdateCarAsync(car);
             }
 
-            _toast.AddSuccessToastMessage($"Maintenance completed for '{car?.Model} ({car?.PlateNumber})'. Vehicle status restored to AVAILABLE for new rentals!");
+            if (isAjax) return Json(new { success = true, redirectUrl = Url.Action(nameof(Index)) });
             return RedirectToAction(nameof(Index));
         }
 
@@ -130,8 +125,9 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             await _maintenanceService.DeleteLogAsync(id);
-            _toast.AddSuccessToastMessage("Maintenance log removed.");
+            if (isAjax) return Json(new { success = true, redirectUrl = Url.Action(nameof(Index)) });
             return RedirectToAction(nameof(Index));
         }
     }

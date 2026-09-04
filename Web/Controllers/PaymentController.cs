@@ -3,7 +3,6 @@ using Application.Services;
 using ApplicationCore.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NToastNotify;
 using System.Security.Claims;
 
 namespace Web.Controllers
@@ -13,13 +12,11 @@ namespace Web.Controllers
     {
         private readonly IPaymentServices _paymentService;
         private readonly IRentalProvider _rentalProvider;
-        private readonly IToastNotification _toast;
 
-        public PaymentController(IPaymentServices paymentServices, IRentalProvider rentalProvider, IToastNotification toast)
+        public PaymentController(IPaymentServices paymentServices, IRentalProvider rentalProvider)
         {
             _paymentService = paymentServices;
             _rentalProvider = rentalProvider;
-            _toast = toast;
         }
 
         private bool IsUserAdmin()
@@ -59,7 +56,6 @@ namespace Web.Controllers
             var (success, message, remaining) = await _paymentService.GetRemainingAmountAsync(rentalId, employeeId ?? GetCurrentEmployeeId());
             if (!success)
             {
-                _toast.AddErrorToastMessage(message);
                 return RedirectToAction(nameof(Index));
             }
             ViewBag.RentalId = rentalId;
@@ -71,17 +67,18 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MakePayment(int rentalId, decimal amount, PaymentPurpose purpose, PaymentMethod method, string? transactionRef = null)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             int? employeeId = IsUserAdmin() ? null : GetCurrentEmployeeId();
             var result = await _paymentService.MakePaymentAsync(rentalId, amount, purpose, method, employeeId ?? GetCurrentEmployeeId(), transactionRef);
             if (!result.success)
             {
-                _toast.AddErrorToastMessage(result.message);
+                if (isAjax) return Json(new { success = false, message = result.message });
                 ViewBag.RentalId = rentalId;
                 ViewBag.RemainingAmount = amount;
                 return View();
             }
 
-            _toast.AddSuccessToastMessage("Payment recorded successfully.");
+            if (isAjax) return Json(new { success = true, redirectUrl = Url.Action("Receipt", new { paymentId = result.PaymentId }) });
             return RedirectToAction("Receipt", new { paymentId = result.PaymentId });
         }
 
@@ -109,7 +106,6 @@ namespace Web.Controllers
             var payment = await _paymentService.GetPaymentByIdAsync(paymentId, employeeId ?? GetCurrentEmployeeId());
             if (payment == null)
             {
-                _toast.AddErrorToastMessage("Payment record not found.");
                 return RedirectToAction(nameof(Index));
             }
             return View(payment);

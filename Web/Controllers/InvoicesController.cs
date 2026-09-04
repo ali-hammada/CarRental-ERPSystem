@@ -1,7 +1,6 @@
 using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NToastNotify;
 
 namespace Web.Controllers
 {
@@ -9,12 +8,10 @@ namespace Web.Controllers
     public class InvoicesController : Controller
     {
         private readonly IInvoiceService _invoiceService;
-        private readonly IToastNotification _toast;
 
-        public InvoicesController(IInvoiceService invoiceService, IToastNotification toast)
+        public InvoicesController(IInvoiceService invoiceService)
         {
             _invoiceService = invoiceService;
-            _toast = toast;
         }
 
         public async Task<IActionResult> Index()
@@ -29,7 +26,6 @@ namespace Web.Controllers
             var invoice = await _invoiceService.GetByIdAsync(id);
             if (invoice == null)
             {
-                _toast.AddErrorToastMessage("Invoice record not found.");
                 return RedirectToAction(nameof(Index));
             }
 

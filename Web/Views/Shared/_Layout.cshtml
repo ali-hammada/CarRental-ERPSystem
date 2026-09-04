@@ -554,9 +554,56 @@
             updateHeaderClock();
             setInterval(updateHeaderClock, 1000);
         });
+
+        // Global AJAX Form Handler Helper
+        function submitFormViaAjax(formElement, onSuccess) {
+            var $form = $(formElement);
+            var formData = new FormData(formElement);
+            var $alert = $form.find('.ajax-error-alert');
+            if ($alert.length === 0) {
+                $alert = $('<div class="alert alert-danger ajax-error-alert mt-3" style="display:none;"></div>');
+                $form.prepend($alert);
+            }
+            $alert.hide().empty();
+
+            var $submitBtn = $form.find('button[type="submit"]');
+            var originalBtnHtml = $submitBtn.html();
+            $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Processing...');
+
+            $.ajax({
+                url: $form.attr('action'),
+                type: $form.attr('method') || 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+                success: function(response) {
+                    $submitBtn.prop('disabled', false).html(originalBtnHtml);
+                    if (response.success) {
+                        if (onSuccess) {
+                            onSuccess(response);
+                        } else if (response.redirectUrl) {
+                            window.location.href = response.redirectUrl;
+                        } else {
+                            window.location.reload();
+                        }
+                    } else {
+                        var msg = response.message || "An error occurred.";
+                        $alert.html('<i class="bi bi-exclamation-triangle-fill me-2"></i>' + msg).slideDown();
+                    }
+                },
+                error: function(xhr) {
+                    $submitBtn.prop('disabled', false).html(originalBtnHtml);
+                    var msg = "An unexpected server error occurred.";
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    $alert.html('<i class="bi bi-exclamation-triangle-fill me-2"></i>' + msg).slideDown();
+                }
+            });
+        }
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)
-    @await Component.InvokeAsync("NToastNotify")
 </body>
 </html>

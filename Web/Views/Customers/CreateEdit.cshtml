@@ -23,7 +23,7 @@
                 </a>
             </div>
 
-            <form asp-action="@(isEdit ? "Edit" : "Create")" method="post">
+            <form asp-action="@(isEdit ? "Edit" : "Create")" method="post" id="customerForm">
                 @if (isEdit)
                 {
                     <input type="hidden" asp-for="Id" />
@@ -88,4 +88,12 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            $('#customerForm').on('submit', function (e) {
+                e.preventDefault();
+                submitFormViaAjax(this);
+            });
+        });
+    </script>
 }

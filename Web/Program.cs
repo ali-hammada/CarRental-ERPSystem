@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
-using NToastNotify;
 using System.Globalization;
 using System.Security.Claims;
 using Web.Services;
@@ -23,11 +22,7 @@ namespace Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // ------------------------------
-            // Localization
-            // ------------------------------
             builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
-
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddControllersWithViews()
                 .AddViewLocalization()
@@ -50,21 +45,14 @@ namespace Web
                 options.SupportedUICultures = supportedCultures;
             });
 
-            // ------------------------------
-            // DB Context with Transient Failure Resiliency
-            // ------------------------------
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(connectionString, b => b.MigrationsAssembly("InFrastructure").EnableRetryOnFailure()));
+                options.UseSqlServer(connectionString, b => b.MigrationsAssembly("InFrastructure").EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null)));
 
-            // ------------------------------
-            // Repositories & Services
-            // ------------------------------
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<ICarRepository, CarRepository>();
             builder.Services.AddScoped<IRentalContractRepository, RentalContractRepository>();
 
-            // DDD Fast Providers
             builder.Services.AddScoped<ICarProvider, CarProvider>();
             builder.Services.AddScoped<ICustomerProvider, CustomerProvider>();
             builder.Services.AddScoped<IRentalProvider, RentalProvider>();
@@ -74,7 +62,6 @@ namespace Web
             builder.Services.AddScoped<IAuditProvider, AuditProvider>();
             builder.Services.AddScoped<IAuditLogProvider, AuditLogProvider>();
 
-            // DDD Domain Services
             builder.Services.AddScoped<IRentalServices, RentalServices>();
             builder.Services.AddScoped<ISaleServices, SaleServices>();
             builder.Services.AddScoped<IAuditServices, AuditServices>();
@@ -90,9 +77,6 @@ namespace Web
             builder.Services.AddScoped<ICarTrackingService, CarTrackingService>();
             builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
-            // ------------------------------
-            // Cookie Authentication & Authorization Policies
-            // ------------------------------
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
@@ -114,20 +98,10 @@ namespace Web
                     ));
             });
 
-            // ------------------------------
-            // NToastNotify
-            // ------------------------------
-            builder.Services.AddRazorPages().AddNToastNotifyToastr(new ToastrOptions
-            {
-                ProgressBar = true,
-                PositionClass = ToastPositions.TopLeft,
-                PreventDuplicates = true,
-                CloseButton = true,
-            });
+            builder.Services.AddRazorPages();
 
             var app = builder.Build();
 
-            // Automatic Database & New Tables Safe Initialization
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
@@ -136,7 +110,6 @@ namespace Web
                     var context = services.GetRequiredService<AppDbContext>();
                     context.Database.EnsureCreated();
 
-                    // Ensure table name consistency for Employees
                     context.Database.ExecuteSqlRaw(@"
                         IF EXISTS (SELECT * FROM sys.tables WHERE name = 'Employee') AND NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Employees')
                         BEGIN
@@ -144,7 +117,6 @@ namespace Web
                         END;
                     ");
 
-                    // Ensure all tables have BaseEntity columns (IsDeleted, CreatedAt, etc.)
                     var allTables = new[] { "Cars", "Customers", "Employees", "Employee", "RentalContracts", "Payments", "CarCategories", "MaintenanceLogs", "Invoices", "CarLocationLogs", "AuditLogs", "CarSaleContracts", "SaleInstallments" };
                     foreach (var tbl in allTables)
                     {
@@ -169,7 +141,6 @@ namespace Web
                         ");
                     }
 
-                    // Ensure GPS columns exist on Cars table
                     context.Database.ExecuteSqlRaw(@"
                         IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Cars]') AND name = N'CurrentLatitude')
                         BEGIN
@@ -179,7 +150,6 @@ namespace Web
                         END;
                     ");
 
-                    // Ensure Expiry columns exist on Cars table
                     context.Database.ExecuteSqlRaw(@"
                         IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Cars]') AND name = N'LicenseExpiryDate')
                         BEGIN
@@ -188,7 +158,6 @@ namespace Web
                         END;
                     ");
 
-                    // Ensure Car Sales columns exist on Cars table
                     context.Database.ExecuteSqlRaw(@"
                         IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Cars]') AND name = N'ListingType')
                         BEGIN
@@ -198,7 +167,6 @@ namespace Web
                         END;
                     ");
 
-                    // Ensure Procurement & Negotiation Floor Price columns exist on Cars
                     context.Database.ExecuteSqlRaw(@"
                         IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Cars]') AND name = N'PurchasePrice')
                         BEGIN
@@ -210,7 +178,6 @@ namespace Web
                         END;
                     ");
 
-                    // Ensure Dealership profit columns exist on CarSaleContracts
                     context.Database.ExecuteSqlRaw(@"
                         IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[CarSaleContracts]') AND name = N'TotalCostBasis')
                         BEGIN
@@ -220,7 +187,6 @@ namespace Web
                         END;
                     ");
 
-                    // Ensure CarSaleContracts table exists
                     context.Database.ExecuteSqlRaw(@"
                         IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'CarSaleContracts')
                         BEGIN
@@ -253,7 +219,6 @@ namespace Web
                         END;
                     ");
 
-                    // Ensure SaleInstallments table exists
                     context.Database.ExecuteSqlRaw(@"
                         IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'SaleInstallments')
                         BEGIN
@@ -278,7 +243,6 @@ namespace Web
                         END;
                     ");
 
-                    // Ensure CarLocationLogs table exists
                     context.Database.ExecuteSqlRaw(@"
                         IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'CarLocationLogs')
                         BEGIN
@@ -303,7 +267,6 @@ namespace Web
                         END;
                     ");
 
-                    // Ensure AuditLogs table exists
                     context.Database.ExecuteSqlRaw(@"
                         IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'AuditLogs')
                         BEGIN
@@ -326,7 +289,6 @@ namespace Web
                         END;
                     ");
 
-                    // Ensure Admin users have Role = 'Admin'
                     context.Database.ExecuteSqlRaw(@"
                         UPDATE [Employees]
                         SET [Role] = 'Admin'
@@ -337,13 +299,10 @@ namespace Web
                 catch (Exception ex)
                 {
                     var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogWarning(ex, "Database initialization note.");
+                    logger.LogWarning(ex, "Database schema check completed.");
                 }
             }
 
-            // ------------------------------
-            // Middleware pipeline
-            // ------------------------------
             app.UseDeveloperExceptionPage();
 
             var localizationOptions = new RequestLocalizationOptions
@@ -357,13 +316,9 @@ namespace Web
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
-
             app.UseAuthentication();
             app.UseAuthorization();
-
-            app.UseNToastNotify();
 
             app.MapControllerRoute(
                 name: "default",

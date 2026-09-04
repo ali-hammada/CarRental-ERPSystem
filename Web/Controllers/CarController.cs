@@ -4,7 +4,6 @@ using ApplicationCore.Entities;
 using ApplicationCore.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NToastNotify;
 
 namespace Web.Controllers
 {
@@ -13,25 +12,21 @@ namespace Web.Controllers
     {
         private readonly ICarProvider _carProvider;
         private readonly ICarServices _carServices;
-        private readonly IToastNotification _toastNotification;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         public CarController(
             ICarProvider carProvider,
             ICarServices carServices,
-            IToastNotification toastNotification,
             IWebHostEnvironment webHostEnvironment)
         {
             _carProvider = carProvider;
             _carServices = carServices;
-            _toastNotification = toastNotification;
             _webHostEnvironment = webHostEnvironment;
         }
 
         public async Task<IActionResult> Index(string? type = "all")
         {
             var cars = await _carProvider.GetAllCarsAsync();
-            // Exclude sold vehicles from active operational catalog
             cars = cars.Where(c => c.SaleStatus != CarSaleStatus.Sold && c.SaleStatus != CarSaleStatus.Reserved).ToList();
 
             if (type == "rental")
@@ -51,7 +46,6 @@ namespace Web.Controllers
         public async Task<IActionResult> SalesCatalog()
         {
             var cars = await _carProvider.GetAllCarsAsync();
-            // Showroom catalog: Only display vehicles available for sale (exclude Sold/Reserved/OutOfService)
             var salesCars = cars.Where(c => (c.ListingType == CarListingType.SaleOnly || c.ListingType == CarListingType.Both)
                                          && c.SaleStatus != CarSaleStatus.Sold
                                          && c.SaleStatus != CarSaleStatus.Reserved
@@ -70,6 +64,8 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Car car, IFormFile? ImageFile)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
             if (car.ListingType == CarListingType.SaleOnly)
             {
                 ModelState.Remove("PricePerDay");
@@ -77,7 +73,14 @@ namespace Web.Controllers
             }
 
             if (!ModelState.IsValid)
+            {
+                if (isAjax)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    return Json(new { success = false, message = string.Join("<br>", errors) });
+                }
                 return View("CreateEdit", car);
+            }
 
             if (ImageFile != null && ImageFile.Length > 0)
             {
@@ -106,11 +109,13 @@ namespace Web.Controllers
 
             await _carServices.AddCarAsync(car);
 
-            _toastNotification.AddSuccessToastMessage("Car added successfully!");
-            if (car.ListingType == CarListingType.SaleOnly)
-                return RedirectToAction(nameof(SalesCatalog));
+            string targetUrl = car.ListingType == CarListingType.SaleOnly ? Url.Action(nameof(SalesCatalog))! : Url.Action(nameof(Index))!;
+            if (isAjax)
+            {
+                return Json(new { success = true, redirectUrl = targetUrl });
+            }
 
-            return RedirectToAction(nameof(Index));
+            return Redirect(targetUrl);
         }
 
         [HttpGet]
@@ -119,7 +124,6 @@ namespace Web.Controllers
             var car = await _carServices.GetByIdAsync(id);
             if (car == null)
             {
-                _toastNotification.AddErrorToastMessage("Car not found.");
                 return RedirectToAction(nameof(Index));
             }
             return View("CreateEdit", car);
@@ -129,6 +133,8 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Car car, IFormFile? ImageFile)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
             if (car.ListingType == CarListingType.SaleOnly)
             {
                 ModelState.Remove("PricePerDay");
@@ -136,7 +142,14 @@ namespace Web.Controllers
             }
 
             if (!ModelState.IsValid)
+            {
+                if (isAjax)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    return Json(new { success = false, message = string.Join("<br>", errors) });
+                }
                 return View("CreateEdit", car);
+            }
 
             if (ImageFile != null && ImageFile.Length > 0)
             {
@@ -155,7 +168,11 @@ namespace Web.Controllers
 
             await _carServices.UpdateCarAsync(car);
 
-            _toastNotification.AddSuccessToastMessage("Car updated successfully!");
+            if (isAjax)
+            {
+                return Json(new { success = true, redirectUrl = Url.Action(nameof(Index)) });
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -163,34 +180,33 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             var result = await _carServices.DeleteCarAsync(id);
-            if (!result)
+
+            if (isAjax)
             {
-                _toastNotification.AddErrorToastMessage("Car could not be deleted.");
-            }
-            else
-            {
-                _toastNotification.AddSuccessToastMessage("Car deleted successfully.");
+                return Json(new { success = result, redirectUrl = Url.Action(nameof(Index)) });
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangeStatus(int id, CarStatus status)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             var car = await _carServices.GetByIdAsync(id);
             if (car == null)
             {
-                TempData["Error"] = "Car not found!";
+                if (isAjax) return Json(new { success = false, message = "Car not found!" });
                 return RedirectToAction("Index");
             }
 
             car.Status = status;
             await _carServices.UpdateCarAsync(car);
 
-            TempData["Success"] = "Car status updated!";
+            if (isAjax) return Json(new { success = true, redirectUrl = Url.Action("Index") });
             return RedirectToAction("Index");
         }
 
@@ -198,10 +214,11 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UploadContractDocument(int carId, IFormFile? OriginalPurchaseContract, IFormFile? FinalBuyerContract)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             var car = await _carServices.GetByIdAsync(carId);
             if (car == null)
             {
-                _toastNotification.AddErrorToastMessage("Vehicle record not found.");
+                if (isAjax) return Json(new { success = false, message = "Vehicle record not found." });
                 return RedirectToAction(nameof(SalesCatalog));
             }
 
@@ -231,7 +248,7 @@ namespace Web.Controllers
             }
 
             await _carServices.UpdateCarAsync(car);
-            _toastNotification.AddSuccessToastMessage("Legal & Financial contract documents saved successfully!");
+            if (isAjax) return Json(new { success = true, redirectUrl = Url.Action(nameof(SalesCatalog)) });
             return RedirectToAction(nameof(SalesCatalog));
         }
 

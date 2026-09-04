@@ -3,7 +3,6 @@ using Application.Providers;
 using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NToastNotify;
 using System.Security.Claims;
 
 namespace Web.Controllers
@@ -15,20 +14,17 @@ namespace Web.Controllers
         private readonly ISaleServices _saleServices;
         private readonly ICustomerProvider _customerProvider;
         private readonly IAuditServices _auditServices;
-        private readonly IToastNotification _toast;
 
         public SalesController(
             ISaleProvider saleProvider,
             ISaleServices saleServices,
             ICustomerProvider customerProvider,
-            IAuditServices auditServices,
-            IToastNotification toast)
+            IAuditServices auditServices)
         {
             _saleProvider = saleProvider;
             _saleServices = saleServices;
             _customerProvider = customerProvider;
             _auditServices = auditServices;
-            _toast = toast;
         }
 
         private bool IsUserAdmin()
@@ -43,7 +39,7 @@ namespace Web.Controllers
         private int GetCurrentEmployeeId()
         {
             var employeeIdClaim = User.FindFirst("EmployeeId")?.Value
-                               ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                                ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(employeeIdClaim))
                 throw new UnauthorizedAccessException("User is not authenticated.");
             return int.Parse(employeeIdClaim);
@@ -75,8 +71,15 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CarSaleRequestDto request)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
             if (!ModelState.IsValid)
             {
+                if (isAjax)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    return Json(new { success = false, message = string.Join("<br>", errors) });
+                }
                 ViewBag.AvailableCars = await _saleProvider.GetCarsAvailableForSaleAsync(request.CarId);
                 ViewBag.Customers = await _customerProvider.GetAllCustomersAsync();
                 return View(request);
@@ -86,14 +89,15 @@ namespace Web.Controllers
             var result = await _saleServices.CreateSaleContractAsync(request, employeeId);
             if (!result.Success)
             {
-                _toast.AddErrorToastMessage(result.Message);
+                if (isAjax) return Json(new { success = false, message = result.Message });
                 ViewBag.AvailableCars = await _saleProvider.GetCarsAvailableForSaleAsync(request.CarId);
                 ViewBag.Customers = await _customerProvider.GetAllCustomersAsync();
                 return View(request);
             }
 
-            _toast.AddSuccessToastMessage("Car sale contract finalized successfully!");
             await _auditServices.LogAsync("Vehicle Sale Contract", "Sales", $"Employee {User.Identity?.Name} finalized vehicle sale for Car #{request.CarId} at agreed price ${request.SalePrice}", User.Identity?.Name, employeeId);
+
+            if (isAjax) return Json(new { success = true, redirectUrl = Url.Action(nameof(Details), new { id = result.ContractId }) });
             return RedirectToAction(nameof(Details), new { id = result.ContractId });
         }
 
@@ -103,7 +107,6 @@ namespace Web.Controllers
             var sale = await _saleProvider.GetSaleContractDetailsByIdAsync(id);
             if (sale == null)
             {
-                _toast.AddErrorToastMessage("Sale contract record not found.");
                 return RedirectToAction(nameof(Index));
             }
 
@@ -118,7 +121,6 @@ namespace Web.Controllers
             var sale = await _saleProvider.GetSaleContractDetailsByIdAsync(id);
             if (sale == null)
             {
-                _toast.AddErrorToastMessage("Sale contract record not found.");
                 return RedirectToAction(nameof(Index));
             }
 
@@ -131,17 +133,14 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> PayInstallment(int installmentId, int contractId, string? transactionRef)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             var result = await _saleServices.PayInstallmentAsync(installmentId, transactionRef);
-            if (!result.Success)
+            if (result.Success)
             {
-                _toast.AddErrorToastMessage(result.Message);
-            }
-            else
-            {
-                _toast.AddSuccessToastMessage(result.Message);
                 await _auditServices.LogAsync("Installment Collected", "Sales", $"Employee {User.Identity?.Name} collected installment #{installmentId} for Sale Contract #{contractId}", User.Identity?.Name);
             }
 
+            if (isAjax) return Json(new { success = result.Success, message = result.Message, redirectUrl = Url.Action(nameof(Details), new { id = contractId }) });
             return RedirectToAction(nameof(Details), new { id = contractId });
         }
 
@@ -149,12 +148,9 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(int contractId, string? reason)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             var result = await _saleServices.CancelSaleContractAsync(contractId, reason);
-            if (!result.Success)
-                _toast.AddErrorToastMessage(result.Message);
-            else
-                _toast.AddSuccessToastMessage(result.Message);
-
+            if (isAjax) return Json(new { success = result.Success, message = result.Message, redirectUrl = Url.Action(nameof(Index)) });
             return RedirectToAction(nameof(Index));
         }
 

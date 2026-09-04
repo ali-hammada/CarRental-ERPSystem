@@ -5,7 +5,6 @@ using Application.Services.DTOs;
 using ApplicationCore.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NToastNotify;
 using Web.ViewModels;
 
 namespace Web.Controllers
@@ -19,7 +18,6 @@ namespace Web.Controllers
         private readonly IRentalServices _rentalServices;
         private readonly IPaymentServices _paymentServices;
         private readonly IAuditServices _auditServices;
-        private readonly IToastNotification _toast;
 
         public RentalsController(
             IRentalProvider rentalProvider,
@@ -27,8 +25,7 @@ namespace Web.Controllers
             ICustomerProvider customerProvider,
             IRentalServices rentalServices,
             IPaymentServices paymentServices,
-            IAuditServices auditServices,
-            IToastNotification toast)
+            IAuditServices auditServices)
         {
             _rentalProvider = rentalProvider;
             _carProvider = carProvider;
@@ -36,13 +33,12 @@ namespace Web.Controllers
             _rentalServices = rentalServices;
             _paymentServices = paymentServices;
             _auditServices = auditServices;
-            _toast = toast;
         }
 
         private int GetCurrentEmployeeId()
         {
             var employeeIdClaim = User.FindFirst("EmployeeId")?.Value
-                               ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                                ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(employeeIdClaim))
                 throw new UnauthorizedAccessException("User is not authenticated.");
             return int.Parse(employeeIdClaim);
@@ -57,43 +53,25 @@ namespace Web.Controllers
                    (!string.IsNullOrEmpty(name) && name.Contains("admin", StringComparison.OrdinalIgnoreCase));
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
-            List<RentalListDto> rentals;
-            if (IsUserAdmin())
-            {
-                rentals = await _rentalProvider.GetAllRentalsAsync();
-            }
-            else
-            {
-                int employeeId = GetCurrentEmployeeId();
-                rentals = await _rentalProvider.GetEmployeeRentalsAsync(employeeId);
-            }
+            var rentals = await _rentalProvider.GetAllRentalsAsync();
             return View(rentals);
         }
 
         [HttpGet]
-        public async Task<IActionResult> Open(int? carId)
+        public async Task<IActionResult> Open(int? carId, int? customerId)
         {
-            if (carId.HasValue)
-            {
-                var car = await _carProvider.GetCarByIdAsync(carId.Value);
-                if (car == null || car.Status != CarStatus.Available)
-                {
-                    _toast.AddErrorToastMessage("Selected car is not available.");
-                    return RedirectToAction("Index", "Car");
-                }
-                ViewBag.SelectedCar = car;
-            }
-
             ViewBag.AvailableCars = await _carProvider.GetAvailableCarsAsync();
             ViewBag.Customers = await _customerProvider.GetAllCustomersAsync();
 
             var model = new RentalRequestDTO
             {
                 CarId = carId ?? 0,
+                CustomerId = customerId ?? 0,
                 StartDate = DateTime.Today,
-                EndDate = DateTime.Today.AddDays(1)
+                EndDate = DateTime.Today.AddDays(3)
             };
 
             return View(model);
@@ -103,8 +81,15 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Open(RentalRequestDTO request)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
             if (!ModelState.IsValid)
             {
+                if (isAjax)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    return Json(new { success = false, message = string.Join("<br>", errors) });
+                }
                 ViewBag.AvailableCars = await _carProvider.GetAvailableCarsAsync();
                 ViewBag.Customers = await _customerProvider.GetAllCustomersAsync();
                 return View(request);
@@ -114,14 +99,15 @@ namespace Web.Controllers
             var result = await _rentalServices.OpenRequestRentalAsync(request, employeeId);
             if (!result.Success)
             {
-                _toast.AddErrorToastMessage(result.Content);
+                if (isAjax) return Json(new { success = false, message = result.Content });
                 ViewBag.AvailableCars = await _carProvider.GetAvailableCarsAsync();
                 ViewBag.Customers = await _customerProvider.GetAllCustomersAsync();
                 return View(request);
             }
 
             await _auditServices.LogAsync("New Rental Contract", "Rentals", $"Employee {User.Identity?.Name} opened new rental contract for Car #{request.CarId} and Customer #{request.CustomerId}", User.Identity?.Name, employeeId);
-            _toast.AddSuccessToastMessage("Contract opened & tax invoice generated successfully!");
+
+            if (isAjax) return Json(new { success = true, redirectUrl = Url.Action("Index") });
             return RedirectToAction("Index");
         }
 
@@ -129,12 +115,10 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(int rentalId, string? reason)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             int employeeId = GetCurrentEmployeeId();
             var result = await _rentalServices.CancelRentalAsync(rentalId, employeeId, reason);
-            if (!result.Success)
-                _toast.AddErrorToastMessage(result.Content);
-            else
-                _toast.AddSuccessToastMessage(result.Content);
+            if (isAjax) return Json(new { success = result.Success, message = result.Content, redirectUrl = Url.Action("Index") });
             return RedirectToAction("Index");
         }
 
@@ -151,7 +135,6 @@ namespace Web.Controllers
             var rental = await _rentalProvider.GetRentalDetailsByIdAsync(rentalId);
             if (rental == null)
             {
-                _toast.AddErrorToastMessage("Rental contract not found.");
                 return RedirectToAction("Index");
             }
 
@@ -167,7 +150,6 @@ namespace Web.Controllers
             var rental = await _rentalProvider.GetRentalDetailsByIdAsync(rentalId);
             if (rental == null)
             {
-                _toast.AddErrorToastMessage("Rental contract not found.");
                 return RedirectToAction("Index");
             }
 
@@ -182,7 +164,6 @@ namespace Web.Controllers
             var rental = await _rentalProvider.GetRentalDetailsByIdAsync(rentalId);
             if (rental == null)
             {
-                _toast.AddErrorToastMessage("Rental contract not found.");
                 return RedirectToAction("Index");
             }
 
@@ -201,19 +182,28 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Extend(ExtendRentalDto extend)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
             if (!ModelState.IsValid)
+            {
+                if (isAjax)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    return Json(new { success = false, message = string.Join("<br>", errors) });
+                }
                 return View(extend);
+            }
 
             int employeeId = GetCurrentEmployeeId();
             var result = await _rentalServices.ExtendContractAsync(extend, employeeId);
             if (!result.Success)
             {
-                _toast.AddErrorToastMessage(result.Content);
+                if (isAjax) return Json(new { success = false, message = result.Content });
                 ViewBag.Rental = await _rentalProvider.GetRentalDetailsByIdAsync(extend.RentalId);
                 return View(extend);
             }
 
-            _toast.AddSuccessToastMessage(result.Content);
+            if (isAjax) return Json(new { success = true, redirectUrl = Url.Action("Details", new { rentalId = result.id }) });
             return RedirectToAction("Details", new { rentalId = result.id });
         }
 
@@ -223,12 +213,10 @@ namespace Web.Controllers
             var rental = await _rentalProvider.GetRentalDetailsByIdAsync(rentalId);
             if (rental == null)
             {
-                _toast.AddErrorToastMessage("Rental contract not found.");
                 return RedirectToAction("Index");
             }
             if (rental.Status != RentalContractStatus.Open)
             {
-                _toast.AddWarningToastMessage("Only active open contracts can be closed.");
                 return RedirectToAction("Details", new { rentalId = rentalId });
             }
 
@@ -247,16 +235,17 @@ namespace Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Close(RentalCloseDto request)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             int employeeId = GetCurrentEmployeeId();
             var result = await _rentalServices.CloseContractAsync(request, employeeId);
             if (!result.Success)
             {
-                _toast.AddErrorToastMessage(result.Content);
+                if (isAjax) return Json(new { success = false, message = result.Content });
                 ViewBag.Rental = await _rentalProvider.GetRentalDetailsByIdAsync(request.RentalId);
                 return View(request);
             }
 
-            _toast.AddSuccessToastMessage(result.Content);
+            if (isAjax) return Json(new { success = true, redirectUrl = Url.Action("Index") });
             return RedirectToAction("Index");
         }
 
